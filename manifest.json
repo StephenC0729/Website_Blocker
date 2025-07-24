@@ -10,17 +10,17 @@
     "tabs"
   ],
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "frontend/popup.html",
     "default_title": "App Blocker"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "frontend/background.js"
   },
   
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "js": ["frontend/content.js"]
     }
   ]
 }
