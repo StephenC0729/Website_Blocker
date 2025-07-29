@@ -1,0 +1,28 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient background -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#9B59B6;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#6B73C4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4A90D9;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Rounded rectangle background -->
+  <rect x="68" y="68" width="376" height="376" rx="80" ry="80" fill="url(#bgGradient)"/>
+  
+  <!-- Browser window container -->
+  <rect x="130" y="115" width="252" height="282" rx="12" ry="12" fill="white"/>
+  
+  <!-- Browser dots -->
+  <circle cx="156" cy="138" r="6" fill="#6B73C4"/>
+  <circle cx="180" cy="138" r="6" fill="#6B73C4"/>
+  <circle cx="204" cy="138" r="6" fill="#6B73C4"/>
+  
+  <!-- Browser content area -->
+  <rect x="142" y="155" width="228" height="228" rx="4" ry="4" fill="#6B73C4"/>
+  
+  <!-- Prohibition sign (circle with diagonal line) -->
+  <circle cx="256" cy="269" r="72" fill="none" stroke="white" stroke-width="16"/>
+  <line x1="208" y1="217" x2="304" y2="321" stroke="white" stroke-width="16" stroke-linecap="round"/>
+</svg>
