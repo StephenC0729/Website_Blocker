@@ -32,37 +32,83 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Navigation Header -->
-    <nav class="bg-white shadow-sm border-b">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
+    <div class="flex h-screen">
+        <!-- Sidebar Navigation -->
+        <div class="w-64 bg-white shadow-lg flex flex-col">
+            <!-- Header -->
+            <div class="p-4 border-b border-gray-200">
                 <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <h1 class="text-xl font-bold text-gray-900">
-                            <i class="fas fa-chart-line text-blue-600 mr-2"></i>
-                            Productivity Dashboard
-                        </h1>
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-shield-alt text-white text-sm"></i>
                     </div>
+                    <h1 class="text-lg font-bold text-gray-900">App Blocker</h1>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <!-- Authentication Status -->
-                    <div id="authStatus" class="flex items-center">
-                        <span class="text-sm text-gray-600">Local Mode</span>
-                        <button id="authButton" class="ml-3 bg-blue-600 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-700">
-                            Sign In
-                        </button>
-                    </div>
-                    <!-- Settings -->
-                    <button id="settingsButton" class="text-gray-600 hover:text-gray-900">
-                        <i class="fas fa-cog text-lg"></i>
+                <div class="mt-3 flex items-center">
+                    <button id="authButton" class="text-sm bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700">
+                        Log In or Sign Up
                     </button>
                 </div>
             </div>
-        </div>
-    </nav>
 
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Navigation Menu -->
+            <nav class="flex-1 p-4">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="dashboard.html" class="flex items-center px-3 py-2 bg-blue-100 text-blue-800 rounded-lg font-medium">
+                            <i class="fas fa-chart-line mr-3"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="blocklist.html" class="flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-ban mr-3"></i>
+                            Blocklist Set
+                        </a>
+                    </li>
+                    <li>
+                        <a href="about.html" class="flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-info-circle mr-3"></i>
+                            About
+                        </a>
+                    </li>
+                    <li>
+                        <a href="faq.html" class="flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-question-circle mr-3"></i>
+                            FAQ
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Footer -->
+            <div class="p-4 border-t border-gray-200">
+                <div class="text-xs text-gray-500 text-center">
+                    <p>Text and Links</p>
+                    <p class="mt-1">© 2024 App Blocker</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col">
+            <!-- Top Header -->
+            <header class="bg-white shadow-sm border-b p-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold text-gray-900">
+                        <i class="fas fa-chart-line text-blue-500 mr-2"></i>
+                        Productivity Dashboard
+                    </h2>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm text-gray-600">Local Mode</span>
+                        <button id="settingsButton" class="text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-cog text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="flex-1 p-6 overflow-auto">
         <!-- Timer Section -->
         <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
             <div class="flex items-center justify-between mb-6">
@@ -278,6 +324,8 @@
                     <i class="fas fa-save mr-2"></i>Save Settings
                 </button>
             </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -304,6 +352,17 @@
     </div>
 
     <!-- Scripts -->
+    <script>
+        // Simple interactivity for auth button
+        document.getElementById('authButton').addEventListener('click', function() {
+            alert('Authentication feature coming soon!');
+        });
+
+        document.getElementById('settingsButton').addEventListener('click', function() {
+            const settingsPanel = document.getElementById('settingsPanel');
+            settingsPanel.classList.toggle('hidden');
+        });
+    </script>
     <script src="dashboard.js"></script>
 </body>
 </html>
