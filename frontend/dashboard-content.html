@@ -1,0 +1,303 @@
+<!-- 
+    Dashboard Content Area
+    Main content panel for the productivity dashboard with analytics, timer, and blocking controls
+    Uses Tailwind CSS classes for responsive layout and styling
+-->
+<div class="flex-1 p-6 overflow-auto min-h-full">
+    <!-- 
+        Pomodoro Timer Section 
+        Enhanced version of the popup timer with larger interface and extended controls
+    -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+        <!-- Timer Header with Session Type Tabs -->
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">
+                <i class="fas fa-clock text-red-500 mr-2"></i>
+                Pomodoro Timer
+            </h2>
+            <!-- Session Type Selection Tabs -->
+            <div class="flex space-x-2">
+                <button id="pomodoroTab" class="session-tab active bg-red-100 text-red-800 px-4 py-2 rounded-md text-sm font-medium">
+                    Pomodoro
+                </button>
+                <button id="shortBreakTab" class="session-tab bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+                    Short Break
+                </button>
+                <button id="longBreakTab" class="session-tab bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+                    Long Break
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Timer Display Area -->
+        <div class="flex items-center justify-center mb-6">
+            <div class="text-center">
+                <!-- Large Timer Display - 6xl size for dashboard visibility -->
+                <div id="timerDisplay" class="text-6xl font-mono font-light text-gray-900 mb-4">25:00</div>
+                <!-- Session Status Text -->
+                <div id="sessionType" class="text-lg text-gray-600 mb-4">Ready to focus</div>
+                <!-- Timer Control Buttons -->
+                <div class="flex space-x-4 justify-center">
+                    <button id="startButton" class="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors">
+                        <i class="fas fa-play mr-2"></i>Start
+                    </button>
+                    <button id="pauseButton" class="bg-yellow-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-yellow-700 transition-colors hidden">
+                        <i class="fas fa-pause mr-2"></i>Pause
+                    </button>
+                    <button id="resetButton" class="bg-gray-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-stop mr-2"></i>Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Progress Bar - Visual indicator of session completion -->
+        <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+            <div id="progressBar" class="bg-red-600 h-2 rounded-full transition-all duration-1000" style="width: 0%"></div>
+        </div>
+        
+        <!-- Session Statistics -->
+        <div class="flex justify-between text-sm text-gray-600">
+            <span>Session: <span id="sessionCount">1</span></span>
+            <span>Completed Pomodoros: <span id="completedPomodoros">0</span></span>
+        </div>
+    </div>
+
+    <!-- 
+        Analytics Grid Section
+        Two-column responsive grid displaying productivity metrics and visualizations
+    -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- 
+            Productivity Overview Card
+            Key productivity metrics in a 2x2 grid layout
+        -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-chart-bar text-blue-500 mr-2"></i>
+                Productivity Overview
+            </h3>
+            <!-- Metrics Grid - 2x2 layout for key statistics -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-600" id="todayFocusTime">0h 0m</div>
+                    <div class="text-sm text-gray-600">Today's Focus</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-600" id="weeklyFocusTime">0h 0m</div>
+                    <div class="text-sm text-gray-600">This Week</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-red-600" id="sitesBlockedToday">0</div>
+                    <div class="text-sm text-gray-600">Sites Blocked</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-purple-600" id="completionRate">0%</div>
+                    <div class="text-sm text-gray-600">Completion Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 
+            Session Timeline Card
+            Recent session history with scrollable list
+        -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-history text-green-500 mr-2"></i>
+                Recent Sessions
+            </h3>
+            <!-- Scrollable Session History Container -->
+            <div id="sessionHistory" class="space-y-3 max-h-48 overflow-y-auto">
+                <!-- Session history items will be dynamically populated here by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 
+        Charts Section
+        Interactive data visualizations using Chart.js
+    -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- 
+            Weekly Productivity Chart Card
+            Line chart showing productivity trends over the week
+        -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-chart-line text-indigo-500 mr-2"></i>
+                Weekly Productivity
+            </h3>
+            <!-- Chart.js Canvas for Weekly Productivity Line Chart -->
+            <canvas id="weeklyChart" width="400" height="200"></canvas>
+        </div>
+
+        <!-- 
+            Category Breakdown Chart Card
+            Pie chart showing distribution of blocked website categories
+        -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-chart-pie text-orange-500 mr-2"></i>
+                Blocked Categories
+            </h3>
+            <!-- Chart.js Canvas for Category Pie Chart -->
+            <canvas id="categoryChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- 
+        Website Blocking Management Section
+        Controls for managing blocked websites and categories
+    -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+        <!-- Blocking Section Header with Controls -->
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-900">
+                <i class="fas fa-shield-alt text-red-500 mr-2"></i>
+                Website Blocking
+            </h3>
+            <div class="flex items-center space-x-4">
+                <!-- Blocking Mode Selector -->
+                <div class="flex items-center">
+                    <span class="text-sm text-gray-600 mr-2">Mode:</span>
+                    <select id="blockingMode" class="border border-gray-300 rounded-md px-3 py-1 text-sm">
+                        <option value="pomodoro">Pomodoro Mode</option>
+                        <option value="strict">Strict Mode</option>
+                    </select>
+                </div>
+                <!-- Add Category Button -->
+                <button id="addCategoryButton" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
+                    <i class="fas fa-plus mr-2"></i>Add Category
+                </button>
+            </div>
+        </div>
+
+        <!-- 
+            Categories List Container
+            Dynamic list of website blocking categories populated by JavaScript
+        -->
+        <div id="categoriesList" class="space-y-4">
+            <!-- Website categories (Social Media, Entertainment, etc.) will be populated here by JavaScript -->
+        </div>
+    </div>
+
+    <!-- 
+        Settings Panel (Initially Hidden)
+        Comprehensive settings interface for timer, notifications, and security
+    -->
+    <div id="settingsPanel" class="bg-white rounded-lg shadow-sm p-6 hidden">
+        <h3 class="text-lg font-semibold text-gray-900 mb-6">
+            <i class="fas fa-cog text-gray-500 mr-2"></i>
+            Settings
+        </h3>
+        
+        <!-- Settings Grid Layout -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Timer Configuration Section -->
+            <div>
+                <h4 class="font-medium text-gray-900 mb-4">Timer Configuration</h4>
+                <!-- Timer Duration Controls -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Work Session (minutes)</label>
+                        <input type="number" id="workDuration" class="w-full border border-gray-300 rounded-md px-3 py-2" value="25" min="1" max="60">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Short Break (minutes)</label>
+                        <input type="number" id="shortBreakDuration" class="w-full border border-gray-300 rounded-md px-3 py-2" value="5" min="1" max="30">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Long Break (minutes)</label>
+                        <input type="number" id="longBreakDuration" class="w-full border border-gray-300 rounded-md px-3 py-2" value="15" min="1" max="60">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Preferences Section -->
+            <div>
+                <h4 class="font-medium text-gray-900 mb-4">Notifications</h4>
+                <!-- Notification Checkboxes -->
+                <div class="space-y-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="desktopNotifications" class="rounded border-gray-300" checked>
+                        <span class="ml-2 text-sm text-gray-700">Desktop notifications</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="soundNotifications" class="rounded border-gray-300" checked>
+                        <span class="ml-2 text-sm text-gray-700">Sound notifications</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="autoStartBreaks" class="rounded border-gray-300">
+                        <span class="ml-2 text-sm text-gray-700">Auto-start breaks</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Settings Section -->
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <h4 class="font-medium text-gray-900 mb-4">Security</h4>
+            <!-- Security Controls Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Password Protection -->
+                <div>
+                    <label class="flex items-center mb-4">
+                        <input type="checkbox" id="passwordProtection" class="rounded border-gray-300">
+                        <span class="ml-2 text-sm text-gray-700">Password protection</span>
+                    </label>
+                    <!-- Password Fields (Hidden by default) -->
+                    <div id="passwordSettings" class="space-y-2 hidden">
+                        <input type="password" id="newPassword" placeholder="New password" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                        <input type="password" id="confirmPassword" placeholder="Confirm password" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                    </div>
+                </div>
+                <!-- Lockdown Mode -->
+                <div>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="lockdownMode" class="rounded border-gray-300">
+                        <span class="ml-2 text-sm text-gray-700">Lockdown mode (prevent settings changes during sessions)</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Save Button -->
+        <div class="mt-8 flex justify-end">
+            <button id="saveSettings" class="bg-green-600 text-white px-6 py-2 rounded-md font-medium hover:bg-green-700">
+                <i class="fas fa-save mr-2"></i>Save Settings
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 
+    Modals Section
+    Modal dialogs for adding categories and managing website lists
+-->
+
+<!-- 
+    Add Category Modal
+    Modal dialog for creating new website blocking categories
+-->
+<div id="addCategoryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Add New Category</h3>
+        <!-- Category Form Fields -->
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
+                <input type="text" id="categoryName" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="e.g., Social Media">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Websites (one per line)</label>
+                <textarea id="categoryWebsites" class="w-full border border-gray-300 rounded-md px-3 py-2" rows="4" placeholder="facebook.com&#10;twitter.com&#10;instagram.com"></textarea>
+            </div>
+        </div>
+        <!-- Modal Action Buttons -->
+        <div class="flex justify-end space-x-3 mt-6">
+            <button id="cancelAddCategory" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Cancel</button>
+            <button id="saveCategory" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save Category</button>
+        </div>
+    </div>
+</div>
