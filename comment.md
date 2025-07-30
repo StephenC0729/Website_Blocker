@@ -141,3 +141,99 @@
      ☒ Check existing HTML files and components
      ☒ Identify missing components based on CLAUDE.md requirements
      ☒ Provide comprehensive analysis of what needs to be added
+
+
+  Recommended Structure
+
+  Website_Blocker/
+  ├── manifest.json
+  ├── CLAUDE.md
+  ├── CHANGELOG.md
+  │
+  ├── src/
+  │   ├── background/
+  │   │   ├── background.js          # Service worker (current frontend/background.js)
+  │   │   └── services/
+  │   │       ├── blockingService.js  # Website blocking logic
+  │   │       ├── analyticsService.js # Session tracking & analytics
+  │   │       ├── storageService.js   # Chrome storage abstraction
+  │   │       └── timerService.js     # Background Pomodoro timer
+  │   │
+  │   ├── content/
+  │   │   └── content.js             # Content script (current frontend/content.js)
+  │   │
+  │   ├── popup/
+  │   │   ├── popup.html             # Main popup interface
+  │   │   ├── popup.js               # Popup logic
+  │   │   └── popup.css              # Popup styles
+  │   │
+  │   ├── dashboard/
+  │   │   ├── dashboard.html         # Full dashboard page
+  │   │   ├── dashboard.js           # Dashboard functionality
+  │   │   ├── dashboard.css          # Dashboard styles
+  │   │   └── components/
+  │   │       ├── timer/
+  │   │       │   ├── timer.js       # Timer component
+  │   │       │   └── timer.css
+  │   │       ├── analytics/
+  │   │       │   ├── charts.js      # Chart.js integrations
+  │   │       │   └── analytics.css
+  │   │       ├── blocklist/
+  │   │       │   ├── blockSets.js   # 6 block sets management
+  │   │       │   └── blocklist.css
+  │   │       └── settings/
+  │   │           ├── settings.js
+  │   │           └── settings.css
+  │   │
+  │   ├── pages/
+  │   │   ├── blocked.html           # Blocked site page
+  │   │   ├── blocked.js
+  │   │   ├── options.html           # Extension options page
+  │   │   ├── options.js
+  │   │   └── login.html             # Future auth page
+  │   │
+  │   └── shared/
+  │       ├── utils/
+  │       │   ├── urlUtils.js        # URL cleaning utilities
+  │       │   ├── timeUtils.js       # Time formatting utilities
+  │       │   └── constants.js       # App constants
+  │       ├── styles/
+  │       │   ├── variables.css      # CSS custom properties
+  │       │   └── common.css         # Shared styles
+  │       └── components/
+  │           ├── modal.js           # Reusable modal component
+  │           └── navigation.js      # Shared navigation logic
+  │
+  ├── assets/
+  │   ├── icons/
+  │   │   ├── icon16.png
+  │   │   ├── icon48.png
+  │   │   ├── icon128.png
+  │   │   └── icon.svg
+  │   └── images/
+  │       └── add_site.svg
+  │
+  └── docs/
+      ├── README.md
+      ├── API.md                     # Chrome extension API usage
+      └── ARCHITECTURE.md            # Technical architecture docs
+
+  Key Improvements
+
+  1. Clear separation of concerns - Background, content, popup, and dashboard are separate
+  2. Component-based architecture - Dashboard broken into reusable components
+  3. Service layer - Business logic extracted into services
+  4. Shared utilities - Common code reused across components
+  5. Future-ready - Structure supports planned features (6 block sets, analytics, auth)
+  6. Standards compliance - Follows Chrome extension best practices
+
+  Migration Steps
+
+  1. Create new directory structure
+  2. Move and rename existing files
+  3. Split large files into focused components
+  4. Create missing dashboard implementation
+  5. Update manifest.json paths
+  6. Implement service layer for business logic
+
+  This structure will make the codebase more maintainable and support the planned Phase 3-5 features from your CLAUDE.md specifications.   

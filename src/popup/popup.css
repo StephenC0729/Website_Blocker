@@ -1,0 +1,206 @@
+/* Main popup container - fixed dimensions for Chrome extension popup */
+body {
+  width: 300px;
+  height: 400px;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #ba4949; /* Default pomodoro red theme */
+  color: white;
+  overflow: hidden; /* Prevent scrollbars in compact popup */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Main content container - centers all timer elements */
+.container {
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px; /* Consistent spacing between elements */
+}
+
+/* Header section styling */
+.header {
+  margin: 0;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 300; /* Light weight for modern look */
+  color: white;
+}
+
+/* Session tabs container - horizontal layout for Pomodoro/Break tabs */
+.session-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 4px; /* Small gap between tabs */
+}
+
+/* Individual session tab styling */
+.session-tab {
+  padding: 6px 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2); /* Semi-transparent white background */
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px; /* Compact text for small popup */
+  transition: background 0.2s; /* Smooth hover transitions */
+}
+
+/* Active tab state - slightly more opaque */
+.session-tab.active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Hover effect for better user interaction */
+.session-tab:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Main timer display - large, prominent countdown */
+.timer-display {
+  font-size: 48px; /* Large text for easy reading */
+  font-weight: 300;
+  margin: 10px 0;
+  font-family: 'Courier New', monospace; /* Monospace for consistent digit spacing */
+  line-height: 1; /* Tight line height for compact display */
+}
+
+/* Progress bar container - visual timer progress indicator */
+.progress-bar {
+  width: 80%; /* Most of the popup width */
+  height: 4px; /* Thin bar design */
+  background: rgba(255, 255, 255, 0.2); /* Semi-transparent track */
+  border-radius: 2px;
+  margin: 8px 0;
+  overflow: hidden; /* Prevents progress fill overflow */
+}
+
+/* Animated progress fill - shows session completion */
+.progress-fill {
+  height: 100%;
+  background: white; /* Solid white progress indicator */
+  width: 0%; /* Starts empty, animated by JavaScript */
+  transition: width 0.1s ease; /* Smooth progress animation */
+  border-radius: 2px;
+}
+
+/* Timer control buttons container */
+.timer-controls {
+  margin: 10px 0;
+}
+
+/* Start/Pause and Reset button styling */
+.control-btn {
+  padding: 8px 16px;
+  border: none;
+  background: white; /* White buttons for contrast against colored background */
+  color: #ba4949; /* Text color matches theme */
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500; /* Medium weight for button text */
+  cursor: pointer;
+  margin: 0 4px; /* Small spacing between buttons */
+  transition: all 0.2s; /* Smooth hover animations */
+  text-transform: uppercase; /* Uppercase for button emphasis */
+  letter-spacing: 0.5px; /* Spaced letters for readability */
+}
+
+/* Button hover effects for better user feedback */
+.control-btn:hover {
+  background: #f0f0f0; /* Slightly darker on hover */
+  transform: translateY(-1px); /* Subtle lift effect */
+}
+
+/* Button click animation */
+.control-btn:active {
+  transform: translateY(0); /* Returns to original position */
+}
+
+/* Session information text styling */
+.session-info {
+  font-size: 12px;
+  opacity: 0.8; /* Slightly transparent for subtle appearance */
+  margin: 0;
+}
+
+/* Session counter display */
+.session-count {
+  margin: 2px 0;
+  font-size: 13px;
+}
+
+/* Dashboard navigation button - positioned in top-left corner */
+.dashboard-btn {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: none; /* Transparent background */
+  border: none;
+  cursor: pointer;
+  opacity: 0.8; /* Subtle appearance until hovered */
+  transition: opacity 0.2s; /* Smooth opacity change */
+  width: 24px;
+  height: 24px;
+  padding: 0;
+}
+
+/* Dashboard button hover effect */
+.dashboard-btn:hover {
+  opacity: 1; /* Full opacity on hover */
+}
+
+/* Dashboard button icon styling */
+.dashboard-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Maintains aspect ratio */
+}
+
+/* Add site button - positioned in top-right corner */
+.add-site-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none; /* Transparent background */
+  border: none;
+  cursor: pointer;
+  opacity: 0.8; /* Subtle appearance until hovered */
+  transition: opacity 0.2s; /* Smooth opacity change */
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: white; /* White icon for visibility */
+  font-size: 16px;
+  display: flex; /* Center the icon */
+  align-items: center;
+  justify-content: center;
+}
+
+/* Add site button hover effect */
+.add-site-btn:hover {
+  opacity: 1; /* Full opacity on hover */
+}
+
+/* Theme color classes - applied to body for different session types */
+.pomodoro {
+  background: #BA4949; /* Red theme for focus sessions */
+}
+
+.short-break {
+  background: #38858A; /* Teal theme for short breaks */
+}
+
+.long-break {
+  background: #397097; /* Blue theme for long breaks */
+}

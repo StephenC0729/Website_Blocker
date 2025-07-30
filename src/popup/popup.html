@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <!-- Body starts with pomodoro theme class - will be changed by JavaScript -->
+  <body class="pomodoro">
+    <!-- Dashboard navigation button - opens full dashboard in new tab -->
+    <button class="dashboard-btn" id="dashboardBtn">
+      <img src="../icons/Icon.svg" alt="Dashboard" />
+    </button>
+    
+    <!-- Add site button - quick access to add blocked websites -->
+    <button class="add-site-btn" id="addSiteBtn">
+      <img src="../icons/Add_Site.svg" alt="Add Site" />
+    </button>
+    
+    <!-- Main container holding all timer interface elements -->
+    <div class="container">
+      <!-- Header section with app title -->
+      <div class="header">
+        <h1>Pomodoro Timer</h1>
+      </div>
+
+      <!-- Session type selector tabs - Pomodoro, Short Break, Long Break -->
+      <div class="session-tabs">
+        <button class="session-tab active" data-session="pomodoro">
+          Pomodoro
+        </button>
+        <button class="session-tab" data-session="short-break">
+          Short Break
+        </button>
+        <button class="session-tab" data-session="long-break">
+          Long Break
+        </button>
+      </div>
+
+      <!-- Main timer display showing MM:SS countdown -->
+      <div class="timer-display" id="timerDisplay">25:00</div>
+
+      <!-- Visual progress bar showing session completion -->
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+
+      <!-- Timer control buttons - Start/Pause and Reset -->
+      <div class="timer-controls">
+        <button class="control-btn" id="startBtn">Start</button>
+        <button class="control-btn" id="resetBtn">Reset</button>
+      </div>
+
+      <!-- Session information and motivational text -->
+      <div class="session-info">
+        <div class="session-count">
+          Session #<span id="sessionCount">1</span>
+        </div>
+        <div id="sessionType">Time to focus!</div>
+      </div>
+    </div>
+
+    <!-- JavaScript file containing all timer functionality and Chrome extension logic -->
+    <script src="popup.js"></script>
+  </body>
+</html>
