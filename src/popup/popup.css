@@ -11,6 +11,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative; /* Enable absolute positioning for child elements */
 }
 
 /* Main content container - centers all timer elements */
@@ -180,16 +181,11 @@ body {
   width: 24px;
   height: 24px;
   padding: 0;
-  color: white; /* White icon for visibility */
-  font-size: 16px;
-  display: flex; /* Center the icon */
-  align-items: center;
-  justify-content: center;
 }
 
 /* Add site button hover effect */
 .add-site-btn:hover {
-  opacity: 1; /* Full opacity on hover */
+  opacity: 2; /* Full opacity on hover */
 }
 
 /* Theme color classes - applied to body for different session types */

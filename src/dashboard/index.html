@@ -40,7 +40,7 @@
     Main Dashboard Layout
     Full-screen layout with sidebar navigation and dynamic content area
 -->
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen theme-transition">
     <!-- Main Container - Full screen flex layout -->
     <div class="flex h-screen">
         <!-- 
@@ -55,15 +55,18 @@
                 Top Header Bar
                 Page title and global controls
             -->
-            <header class="bg-white shadow-sm border-b p-4">
+            <header class="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 p-4 theme-transition">
                 <div class="flex items-center justify-between">
-                    <h2 id="pageTitle" class="text-2xl font-bold text-gray-900">
+                    <h2 id="pageTitle" class="text-2xl font-bold text-gray-900 dark:text-white">
                         <!-- Content Title dynamically loaded by dashboard.js-->
                     </h2>
                     <!-- Header Controls -->
                     <div class="flex items-center space-x-4">
-                        <span class="text-sm text-gray-600">Local Mode</span>
-                        <button id="settingsButton" class="text-gray-600 hover:text-gray-900">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Local Mode</span>
+                        <button id="darkModeToggle" class="toggle-switch" title="Toggle dark mode">
+                            <span class="toggle-slider"></span>
+                        </button>
+                        <button id="settingsButton" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
                             <i class="fas fa-cog text-lg"></i>
                         </button>
                     </div>

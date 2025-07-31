@@ -3,12 +3,12 @@
   "name": "App Blocker",
   "version": "1.0",
   "description": "Block distracting websites to improve productivity",
-  "permissions": [
-    "storage",
-    "activeTab",
-    "webNavigation",
-    "tabs"
-  ],
+  "icons": {
+    "16": "src/assets/icons/Icon.png",
+    "48": "src/assets/icons/Icon.png",
+    "128": "src/assets/icons/Icon.png"
+  },
+  "permissions": ["storage", "activeTab", "webNavigation", "tabs"],
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_title": "Bolton Blocker"
@@ -16,14 +16,14 @@
   "background": {
     "service_worker": "src/background/background.js"
   },
-  
+
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["src/content/content.js"]
     }
   ],
-  "content_security_policy":{
+  "content_security_policy": {
     "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; object-src 'self'"
   }
 }

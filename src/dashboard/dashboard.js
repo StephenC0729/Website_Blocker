@@ -119,11 +119,11 @@ function updateNavigation(activePage) {
     document.querySelectorAll('.nav-link').forEach(link => {
         const page = link.getAttribute('data-page');
         if (page === activePage) {
-            // Active state styling
-            link.className = 'nav-link flex items-center px-3 py-2 bg-blue-100 text-blue-800 rounded-lg font-medium';
+            // Active state styling with dark mode support
+            link.className = 'nav-link nav-link-active';
         } else {
-            // Default state styling
-            link.className = 'nav-link flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors';
+            // Default state styling with dark mode support
+            link.className = 'nav-link nav-link-inactive';
         }
     });
 }
@@ -163,7 +163,39 @@ async function loadNavigation() {
 }
 
 /**
+ * Dark Mode Toggle Functionality
+ * Handles theme switching between light and dark modes
+ */
+function initializeDarkMode() {
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    
+    // Check for saved theme preference or default to light mode
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    
+    // Apply saved theme
+    if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+    
+    // Toggle dark mode on button click
+    darkModeToggle.addEventListener('click', function() {
+        document.documentElement.classList.toggle('dark');
+        
+        if (document.documentElement.classList.contains('dark')) {
+            localStorage.setItem('theme', 'dark');
+        } else {
+            localStorage.setItem('theme', 'light');
+        }
+    });
+}
+
+/**
  * Application Initialization
  * Loads navigation and sets up the dashboard when DOM is ready
  */
-document.addEventListener('DOMContentLoaded', loadNavigation);
+document.addEventListener('DOMContentLoaded', function() {
+    loadNavigation();
+    initializeDarkMode();
+});
