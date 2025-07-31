@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Dashboard button navigation - opens full dashboard in new tab
   document.getElementById('dashboardBtn').addEventListener('click', function() {
-    chrome.tabs.create({url: chrome.runtime.getURL('frontend/index.html')});
+    chrome.tabs.create({url: chrome.runtime.getURL('src/dashboard/index.html')});
   });
 
   // Initialize the Pomodoro Timer

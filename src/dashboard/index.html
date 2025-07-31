@@ -9,14 +9,14 @@
         External Dependencies
         CDN links for styling, charts, and icons
     -->
-    <!-- Tailwind CSS - Utility-first CSS framework -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS - Local version for extension compliance -->
+    <link rel="stylesheet" href="../assets/css/tailwind.css">
     
     <!-- Chart.js - Interactive charts for analytics visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Font Awesome - Icon library for UI elements -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Awesome - Local version for extension compliance -->
+    <link rel="stylesheet" href="../assets/css/font-awesome.css">
     
     <!-- Custom Styles -->
     <style>
@@ -57,10 +57,8 @@
             -->
             <header class="bg-white shadow-sm border-b p-4">
                 <div class="flex items-center justify-between">
-                    <!-- Dynamic Page Title -->
                     <h2 id="pageTitle" class="text-2xl font-bold text-gray-900">
-                        <i class="fas fa-chart-line text-blue-500 mr-2"></i>
-                        Productivity Dashboard
+                        <!-- Content Title dynamically loaded by dashboard.js-->
                     </h2>
                     <!-- Header Controls -->
                     <div class="flex items-center space-x-4">
@@ -82,204 +80,6 @@
         </div>
     </div>
 
-    <!-- 
-        Global Modals
-        Modal dialogs that can be used across different pages
-    -->
-    <!-- Add Category Modal - Shared across dashboard and blocklist pages -->
-    <div id="addCategoryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Add New Category</h3>
-            <!-- Category Form -->
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
-                    <input type="text" id="categoryName" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="e.g., Social Media">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Websites (one per line)</label>
-                    <textarea id="categoryWebsites" class="w-full border border-gray-300 rounded-md px-3 py-2" rows="4" placeholder="facebook.com&#10;twitter.com&#10;instagram.com"></textarea>
-                </div>
-            </div>
-            <!-- Modal Actions -->
-            <div class="flex justify-end space-x-3 mt-6">
-                <button id="cancelAddCategory" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Cancel</button>
-                <button id="saveCategory" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save Category</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 
-        JavaScript Application Logic
-        Handles dynamic content loading, navigation, and page management
-    -->
-    <script>
-        /**
-         * Page Configuration Object
-         * Defines available pages with their titles and content files
-         */
-        const pageConfig = {
-            dashboard: {
-                title: '<i class="fas fa-chart-line text-blue-500 mr-2"></i>Productivity Dashboard',
-                file: 'dashboard-content.html'
-            },
-            blocklist: {
-                title: '<i class="fas fa-ban text-red-500 mr-2"></i>Blocklist Set Management',
-                file: 'blocklist-content.html'
-            },
-            about: {
-                title: '<i class="fas fa-info-circle text-blue-500 mr-2"></i>About App Blocker',
-                file: 'about-content.html'
-            },
-            faq: {
-                title: '<i class="fas fa-question-circle text-blue-500 mr-2"></i>Frequently Asked Questions',
-                file: 'faq-content.html'
-            }
-        };
-
-        // Current active page state
-        let currentPage = 'dashboard';
-
-        /**
-         * Load Content Function
-         * Dynamically loads page content from separate HTML files
-         * @param {string} page - The page identifier to load
-         */
-        async function loadContent(page) {
-            try {
-                const config = pageConfig[page];
-                if (!config) return;
-
-                // Fetch the content file
-                const response = await fetch(config.file);
-                const contentHTML = await response.text();
-                
-                // Update DOM with new content
-                document.getElementById('content-container').innerHTML = contentHTML;
-                document.getElementById('pageTitle').innerHTML = config.title;
-
-                // Initialize page-specific functionality
-                if (page === 'dashboard') {
-                    setupDashboardFunctionality();
-                } else if (page === 'faq') {
-                    setupFAQFunctionality();
-                }
-
-                currentPage = page;
-            } catch (error) {
-                console.error('Error loading content:', error);
-            }
-        }
-
-        /**
-         * Setup Dashboard Functionality
-         * Initializes dashboard-specific features after content loads
-         */
-        function setupDashboardFunctionality() {
-            // Settings button toggle functionality
-            const settingsButton = document.getElementById('settingsButton');
-            if (settingsButton) {
-                settingsButton.addEventListener('click', function() {
-                    const settingsPanel = document.getElementById('settingsPanel');
-                    if (settingsPanel) {
-                        settingsPanel.classList.toggle('hidden');
-                    }
-                });
-            }
-        }
-
-        /**
-         * Setup FAQ Functionality
-         * Initializes accordion behavior for FAQ questions
-         */
-        function setupFAQFunctionality() {
-            // FAQ Accordion functionality
-            document.querySelectorAll('.faq-question').forEach((button) => {
-                button.addEventListener('click', () => {
-                    const answer = button.nextElementSibling;
-                    const icon = button.querySelector('i');
-
-                    // Close other FAQ items (accordion behavior)
-                    document.querySelectorAll('.faq-answer').forEach((otherAnswer) => {
-                        if (otherAnswer !== answer) {
-                            otherAnswer.classList.remove('open');
-                            const otherIcon = otherAnswer.previousElementSibling.querySelector('i');
-                            otherIcon.style.transform = 'rotate(0deg)';
-                        }
-                    });
-
-                    // Toggle current FAQ item
-                    answer.classList.toggle('open');
-
-                    // Rotate chevron icon for visual feedback
-                    if (answer.classList.contains('open')) {
-                        icon.style.transform = 'rotate(180deg)';
-                    } else {
-                        icon.style.transform = 'rotate(0deg)';
-                    }
-                });
-            });
-        }
-
-        /**
-         * Update Navigation Active State
-         * Updates visual state of navigation links to show current page
-         * @param {string} activePage - The currently active page
-         */
-        function updateNavigation(activePage) {
-            document.querySelectorAll('.nav-link').forEach(link => {
-                const page = link.getAttribute('data-page');
-                if (page === activePage) {
-                    // Active state styling
-                    link.className = 'nav-link flex items-center px-3 py-2 bg-blue-100 text-blue-800 rounded-lg font-medium';
-                } else {
-                    // Default state styling
-                    link.className = 'nav-link flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors';
-                }
-            });
-        }
-
-        /**
-         * Load Navigation
-         * Loads sidebar navigation and sets up event listeners
-         */
-        async function loadNavigation() {
-            try {
-                // Fetch and load navigation HTML
-                const response = await fetch('navigation.html');
-                const navigationHTML = await response.text();
-                document.getElementById('navigation-container').innerHTML = navigationHTML;
-                
-                // Setup authentication button (placeholder functionality)
-                document.getElementById('authButton').addEventListener('click', function() {
-                    alert('Authentication feature coming soon!');
-                });
-                
-                // Setup navigation link click handlers
-                document.querySelectorAll('.nav-link').forEach(link => {
-                    link.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        const page = this.getAttribute('data-page');
-                        loadContent(page);
-                        updateNavigation(page);
-                    });
-                });
-                
-                // Load default content (dashboard)
-                loadContent('dashboard');
-                
-            } catch (error) {
-                console.error('Error loading navigation:', error);
-            }
-        }
-
-        /**
-         * Application Initialization
-         * Loads navigation and sets up the dashboard when DOM is ready
-         */
-        document.addEventListener('DOMContentLoaded', loadNavigation);
-    </script>
-    
     <!-- Dashboard-specific JavaScript functionality -->
     <script src="dashboard.js"></script>
 </body>

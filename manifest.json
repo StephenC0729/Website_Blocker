@@ -10,17 +10,20 @@
     "tabs"
   ],
   "action": {
-    "default_popup": "frontend/popup.html",
-    "default_title": "App Blocker"
+    "default_popup": "src/popup/popup.html",
+    "default_title": "Bolton Blocker"
   },
   "background": {
-    "service_worker": "frontend/background.js"
+    "service_worker": "src/background/background.js"
   },
   
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["frontend/content.js"]
+      "js": ["src/content/content.js"]
     }
-  ]
+  ],
+  "content_security_policy":{
+    "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; object-src 'self'"
+  }
 }
