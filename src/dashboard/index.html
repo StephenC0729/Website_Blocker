@@ -84,6 +84,15 @@
     </div>
 
     <!-- Dashboard-specific JavaScript functionality -->
-    <script src="dashboard.js"></script>
+    <!-- Load utilities first as they're used by other modules -->
+    <script src="dashboard-utils.js"></script>
+    
+    <!-- Load individual functionality modules -->
+    <script src="faq-functionality.js"></script>
+    <script src="dashboard-timer.js"></script>
+    <script src="blocklist-functionality.js"></script>
+    
+    <!-- Load main orchestration file last -->
+    <script src="dashboard-main.js"></script>
 </body>
 </html>

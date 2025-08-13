@@ -77,6 +77,32 @@ class AppBlockerService {
                     sendResponse({ success: true });
                     break;
                 
+                // Category-based blocking system (separate from simple blocked sites)
+                case 'getCategorySites':
+                    const categorySites = await this.getCategorySites();
+                    sendResponse({ success: true, sites: categorySites });
+                    break;
+
+                case 'addCategorySite':
+                    await this.addCategorySite(request.url, request.categoryId);
+                    sendResponse({ success: true });
+                    break;
+
+                case 'removeCategorySite':
+                    await this.removeCategorySite(request.url, request.categoryId);
+                    sendResponse({ success: true });
+                    break;
+
+                case 'toggleCategoryBlocking':
+                    await this.toggleCategoryBlocking(request.categoryId, request.enabled);
+                    sendResponse({ success: true });
+                    break;
+
+                case 'deleteCategory':
+                    await this.deleteCategory(request.categoryId);
+                    sendResponse({ success: true });
+                    break;
+                
                 // Timer synchronization actions
                 case 'timerStarted':
                     await this.handleTimerStart(request);
@@ -172,18 +198,120 @@ class AppBlockerService {
         return url.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '');
     }
 
-    async checkAndBlockUrl(url, tabId) {
+    // Category-based blocking system (separate from simple blocking)
+    async getCategorySites() {
         try {
-            const sites = await this.getBlockedSites();
+            const result = await chrome.storage.local.get(['categorySites']);
+            return result.categorySites || {};
+        } catch (error) {
+            console.error('Error getting category sites:', error);
+            return {};
+        }
+    }
+
+    async addCategorySite(url, categoryId) {
+        try {
+            const categorySites = await this.getCategorySites();
             const cleanUrl = this.cleanUrl(url);
             
-            const isBlocked = sites.some(site => {
+            if (!categorySites[categoryId]) {
+                categorySites[categoryId] = { sites: [], enabled: true };
+            }
+            
+            if (!categorySites[categoryId].sites.includes(cleanUrl)) {
+                categorySites[categoryId].sites.push(cleanUrl);
+                await chrome.storage.local.set({ categorySites });
+            }
+        } catch (error) {
+            console.error('Error adding category site:', error);
+        }
+    }
+
+    async removeCategorySite(url, categoryId) {
+        try {
+            const categorySites = await this.getCategorySites();
+            const cleanUrl = this.cleanUrl(url);
+            
+            if (categorySites[categoryId]) {
+                categorySites[categoryId].sites = categorySites[categoryId].sites.filter(
+                    site => site !== cleanUrl
+                );
+                await chrome.storage.local.set({ categorySites });
+            }
+        } catch (error) {
+            console.error('Error removing category site:', error);
+        }
+    }
+
+    async toggleCategoryBlocking(categoryId, enabled) {
+        try {
+            const categorySites = await this.getCategorySites();
+            
+            if (categorySites[categoryId]) {
+                categorySites[categoryId].enabled = enabled;
+                await chrome.storage.local.set({ categorySites });
+            }
+        } catch (error) {
+            console.error('Error toggling category blocking:', error);
+        }
+    }
+
+    async deleteCategory(categoryId) {
+        try {
+            const categorySites = await this.getCategorySites();
+            
+            if (categorySites[categoryId]) {
+                delete categorySites[categoryId];
+                await chrome.storage.local.set({ categorySites });
+            }
+        } catch (error) {
+            console.error('Error deleting category:', error);
+        }
+    }
+
+    async getCategoryBlockedSites() {
+        try {
+            const categorySites = await this.getCategorySites();
+            const blockedSites = [];
+            
+            // Collect all sites from enabled categories
+            for (const [categoryId, categoryData] of Object.entries(categorySites)) {
+                if (categoryData.enabled) {
+                    blockedSites.push(...categoryData.sites);
+                }
+            }
+            
+            return blockedSites;
+        } catch (error) {
+            console.error('Error getting category blocked sites:', error);
+            return [];
+        }
+    }
+
+    async checkAndBlockUrl(url, tabId) {
+        try {
+            // Get both simple blocked sites and category blocked sites
+            const simpleSites = await this.getBlockedSites();
+            const categorySites = await this.getCategoryBlockedSites();
+            const cleanUrl = this.cleanUrl(url);
+            
+            // Check if URL is blocked by simple blocking system
+            const isSimpleBlocked = simpleSites.some(site => {
                 return cleanUrl.includes(site) || site.includes(cleanUrl);
             });
             
-            if (isBlocked) {
+            // Check if URL is blocked by category blocking system
+            const isCategoryBlocked = categorySites.some(site => {
+                return cleanUrl.includes(site) || site.includes(cleanUrl);
+            });
+            
+            // Block if either system has the site blocked
+            if (isSimpleBlocked || isCategoryBlocked) {
+                const blockingSystem = isSimpleBlocked ? 'simple' : 'category';
                 chrome.tabs.update(tabId, {
-                    url: chrome.runtime.getURL('blocked.html') + '?blocked=' + encodeURIComponent(url)
+                    url: chrome.runtime.getURL('src/pages/blocked.html') + 
+                         '?blocked=' + encodeURIComponent(url) + 
+                         '&system=' + blockingSystem
                 });
             }
         } catch (error) {
