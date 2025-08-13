@@ -26,9 +26,41 @@
                 <button id="longBreakTab" class="session-tab bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
                     Long Break
                 </button>
+                <button id="customTab" class="session-tab bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+                    Custom
+                </button>
             </div>
         </div>
         
+        <!-- Timer Input Section - Shows custom inputs for custom session, placeholder space for others -->
+        <div class="flex items-center justify-center mb-6">
+            <!-- Placeholder Space (visible for non-custom sessions) -->
+            <div id="placeholderSpace" class="bg-gray-50 rounded-lg p-4">
+                <div class="flex items-center space-x-4">
+                    <!-- Empty space to maintain consistent layout -->
+                    <div class="h-10"></div>
+                </div>
+            </div>
+            
+            <!-- Custom Timer Duration Input (Only visible for custom session) -->
+            <div id="customTimerInput" class="hidden">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-center space-x-4">
+                        <label class="text-sm font-medium text-gray-700">Custom Duration:</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="number" id="customMinutes" class="w-20 border border-gray-300 rounded-md px-3 py-2 text-center" value="30" min="1" max="999">
+                            <span class="text-sm text-gray-600">minutes</span>
+                            <input type="number" id="customSeconds" class="w-20 border border-gray-300 rounded-md px-3 py-2 text-center" value="0" min="0" max="59">
+                            <span class="text-sm text-gray-600">seconds</span>
+                        </div>
+                        <button id="setCustomTimer" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
+                            <i class="fas fa-check mr-2"></i>Set Timer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Timer Display Area -->
         <div class="flex items-center justify-center mb-6">
             <div class="text-center">

@@ -14,25 +14,26 @@ class PomodoroTimer {
       'long-break': { duration: 15 * 60, label: 'Time for a long break!' },
     };
 
-    // Timer state variables
-    this.currentSession = 'pomodoro'; // Current session type
-    this.timeLeft = this.sessions[this.currentSession].duration; // Remaining time in seconds
-    this.totalTime = this.sessions[this.currentSession].duration; // Total session duration for progress calculation
-    this.isRunning = false; // Timer running state
-    this.sessionCount = 1; // Total sessions completed
-    this.pomodoroCount = 0; // Completed pomodoro sessions (for long break calculation)
-    this.intervalId = null; // setInterval reference for cleanup
-
+    // Timer state variables - will be synced with Chrome Storage
+    this.currentSession = 'pomodoro';
+    this.timeLeft = this.sessions[this.currentSession].duration;
+    this.totalTime = this.sessions[this.currentSession].duration;
+    this.isRunning = false;
+    this.sessionCount = 1;
+    this.pomodoroCount = 0;
+    this.intervalId = null;
     // Initialize the timer interface
     this.init();
   }
 
   /**
    * Initialize the timer interface
-   * Sets up event listeners and displays initial state
+   * Sets up event listeners and syncs with background state
    */
-  init() {
+  async init() {
     this.setupEventListeners();
+    this.setupStorageListener();
+    await this.syncWithBackground();
     this.updateDisplay();
     this.updateSessionInfo();
   }
@@ -60,16 +61,22 @@ class PomodoroTimer {
 
   /**
    * Switch between session types (Pomodoro, Short Break, Long Break)
-   * Updates timer state, UI appearance, and resets countdown
+   * Updates timer state, UI appearance, and syncs with background
    * @param {string} sessionType - The session type to switch to
    */
-  switchSession(sessionType) {
+  async switchSession(sessionType) {
     // Stop timer if currently running
     if (this.isRunning) {
-      this.stopTimer();
+      await this.stopTimer();
     }
 
-    // Update session state
+    // Notify background script about session switch
+    chrome.runtime.sendMessage({
+      action: 'switchSession',
+      session: sessionType
+    });
+
+    // Update local state (will be synced from background)
     this.currentSession = sessionType;
     this.timeLeft = this.sessions[sessionType].duration;
     this.totalTime = this.sessions[sessionType].duration;
@@ -95,70 +102,79 @@ class PomodoroTimer {
    * Toggle timer between start and pause states
    * Changes button text and calls appropriate start/stop methods
    */
-  toggleTimer() {
+  async toggleTimer() {
     if (this.isRunning) {
-      this.stopTimer();
+      await this.stopTimer();
     } else {
-      this.startTimer();
+      await this.startTimer();
     }
   }
 
   /**
    * Start the countdown timer
-   * Sets up 1-second interval for countdown updates
-   * Sends message to background script for cross-tab synchronization
+   * Syncs with background script for cross-interface synchronization
    */
-  startTimer() {
-    this.isRunning = true;
-    document.getElementById('startBtn').textContent = 'Pause';
-
-    // Set up countdown interval - updates every second
-    this.intervalId = setInterval(() => {
-      this.timeLeft--;
-      this.updateDisplay(); // Update MM:SS display
-      this.updateProgress(); // Update progress bar
-
-      // Check if session is complete
-      if (this.timeLeft <= 0) {
-        this.timerComplete();
-      }
-    }, 1000);
-
-    // Notify background script that timer started (for website blocking)
+  async startTimer() {
+    // Notify background script that timer started
     chrome.runtime.sendMessage({
       action: 'timerStarted',
       session: this.currentSession,
       duration: this.totalTime,
+      timeLeft: this.timeLeft
     });
+
+    // Update local state
+    this.isRunning = true;
+    document.getElementById('startBtn').textContent = 'Pause';
+
+    // Start local countdown for smooth UI updates
+    this.intervalId = setInterval(() => {
+      this.timeLeft--;
+      this.updateDisplay();
+      this.updateProgress();
+
+      // Check if timer completed
+      if (this.timeLeft <= 0) {
+        this.timerComplete();
+      }
+    }, 1000);
   }
 
   /**
    * Stop/Pause the countdown timer
-   * Clears the interval and resets button text
-   * Notifies background script that timer stopped
+   * Syncs pause state with background script
    */
-  stopTimer() {
-    this.isRunning = false;
-    document.getElementById('startBtn').textContent = 'Start';
-
-    // Clear the countdown interval
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-    }
-
+  async stopTimer() {
     // Notify background script that timer stopped
     chrome.runtime.sendMessage({
       action: 'timerStopped',
     });
+
+    // Update local state
+    this.isRunning = false;
+    document.getElementById('startBtn').textContent = 'Start';
+
+    // Clear the local update interval
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
   }
 
   /**
    * Reset timer to the beginning of current session
-   * Stops timer and restores full duration
+   * Syncs reset state with background script
    */
-  resetTimer() {
-    this.stopTimer();
+  async resetTimer() {
+    await this.stopTimer();
+    
+    // Notify background script about timer reset
+    chrome.runtime.sendMessage({
+      action: 'timerReset',
+      session: this.currentSession
+    });
+
+    // Update local state (will be synced from background)
     this.timeLeft = this.sessions[this.currentSession].duration;
     this.totalTime = this.sessions[this.currentSession].duration;
     this.updateDisplay();
@@ -167,39 +183,23 @@ class PomodoroTimer {
 
   /**
    * Handle timer completion - automatic session switching
-   * Implements Pomodoro technique: 4 work sessions, then long break
-   * Plays notification and updates session counters
+   * Syncs completion with background script
    */
-  timerComplete() {
-    this.stopTimer();
+  async timerComplete() {
+    await this.stopTimer();
 
-    // Pomodoro technique logic for automatic session switching
-    if (this.currentSession === 'pomodoro') {
-      this.pomodoroCount++;
-      this.sessionCount++;
-
-      // After 4 pomodoros, take a long break; otherwise short break
-      if (this.pomodoroCount % 4 === 0) {
-        this.switchSession('long-break');
-      } else {
-        this.switchSession('short-break');
-      }
-    } else {
-      // After any break, return to pomodoro
-      this.switchSession('pomodoro');
-      this.sessionCount++;
-    }
-
-    // Notify user and update display
-    this.playNotification();
-    this.updateSessionInfo();
-
-    // Send completion data to background script for analytics
+    // Notify background script about timer completion
     chrome.runtime.sendMessage({
       action: 'timerComplete',
       session: this.currentSession,
       pomodoroCount: this.pomodoroCount,
     });
+
+    // Play notification
+    this.playNotification();
+
+    // Sync state from background (which handles the session switching logic)
+    await this.syncWithBackground();
   }
 
   /**
@@ -253,6 +253,223 @@ class PomodoroTimer {
   }
 
   /**
+   * Synchronization Methods for Background Communication
+   */
+  
+  /**
+   * Sync local state with background script
+   */
+  async syncWithBackground() {
+    try {
+      const response = await chrome.runtime.sendMessage({
+        action: 'getTimerState'
+      });
+      
+      if (response && response.success && response.timerState) {
+        console.log('Popup syncing with background state:', response.timerState);
+        this.applyTimerState(response.timerState);
+      } else {
+        // Fallback: try to get directly from storage
+        const result = await chrome.storage.local.get(['timerState']);
+        if (result.timerState) {
+          console.log('Popup syncing with storage state:', result.timerState);
+          this.applyTimerState(result.timerState);
+        }
+      }
+    } catch (error) {
+      console.error('Error syncing with background:', error);
+      // Fallback: try to get directly from storage
+      try {
+        const result = await chrome.storage.local.get(['timerState']);
+        if (result.timerState) {
+          console.log('Popup fallback sync with storage:', result.timerState);
+          this.applyTimerState(result.timerState);
+        }
+      } catch (storageError) {
+        console.error('Error syncing with storage:', storageError);
+      }
+    }
+  }
+
+  /**
+   * Apply timer state from background script
+   */
+  applyTimerState(timerState) {
+    const wasRunning = this.isRunning;
+    
+    console.log('Popup applying timer state:', {
+      wasRunning,
+      newIsRunning: timerState.isRunning,
+      currentSession: timerState.currentSession,
+      timeLeft: timerState.timeLeft,
+      startTimestamp: timerState.startTimestamp
+    });
+    
+    this.currentSession = timerState.currentSession;
+    this.totalTime = timerState.totalTime;
+    this.sessionCount = timerState.sessionCount;
+    this.pomodoroCount = timerState.pomodoroCount;
+
+    // Calculate current time if timer is running in background
+    if (timerState.isRunning && timerState.startTimestamp) {
+      const elapsed = Math.floor((Date.now() - timerState.startTimestamp) / 1000);
+      this.timeLeft = Math.max(0, timerState.timeLeft - elapsed);
+      console.log('Timer running - calculated timeLeft:', this.timeLeft, 'elapsed:', elapsed);
+    } else {
+      this.timeLeft = timerState.timeLeft;
+    }
+
+    this.isRunning = timerState.isRunning;
+
+    // Update sessions if they exist in the state
+    if (timerState.sessions) {
+      this.sessions = timerState.sessions;
+    }
+
+    // Start or stop local timer based on background state
+    if (this.isRunning && !wasRunning) {
+      // Timer was started from another interface - start local countdown
+      console.log('Starting local timer from sync');
+      this.startLocalTimer();
+    } else if (!this.isRunning && wasRunning) {
+      // Timer was stopped from another interface - stop local countdown
+      console.log('Stopping local timer from sync');
+      this.stopLocalTimer();
+    }
+
+    // Update UI to reflect current state
+    this.updateDisplay();
+    this.updateSessionInfo();
+    this.updateProgress();
+    this.updateSessionTabs();
+    this.updateTimerButton();
+  }
+
+  /**
+   * Update from background periodically when timer is running
+   */
+  async updateFromBackground() {
+    if (this.isRunning) {
+      try {
+        const response = await chrome.runtime.sendMessage({
+          action: 'getTimerState'
+        });
+        
+        if (response.success && response.timerState) {
+          const state = response.timerState;
+          
+          // Calculate current time based on timestamp
+          if (state.startTimestamp && state.isRunning) {
+            const elapsed = Math.floor((Date.now() - state.startTimestamp) / 1000);
+            const currentTimeLeft = Math.max(0, state.timeLeft - elapsed);
+            
+            this.timeLeft = currentTimeLeft;
+            this.updateDisplay();
+            this.updateProgress();
+            
+            // Check if timer completed
+            if (currentTimeLeft <= 0) {
+              this.timerComplete();
+            }
+          } else if (!state.isRunning) {
+            // Timer was stopped from another interface
+            this.applyTimerState(state);
+          }
+        }
+      } catch (error) {
+        console.error('Error updating from background:', error);
+      }
+    }
+  }
+
+  /**
+   * Setup storage change listener
+   */
+  setupStorageListener() {
+    // Listen for messages from background script
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message.action === 'timerStateUpdated') {
+        this.applyTimerState(message.timerState);
+      }
+    });
+
+    // Also listen for Chrome Storage changes directly
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName === 'local' && changes.timerState) {
+        this.applyTimerState(changes.timerState.newValue);
+      }
+    });
+  }
+
+
+  /**
+   * Update session tabs visual state
+   */
+  updateSessionTabs() {
+    document.querySelectorAll('.session-tab').forEach((tab) => {
+      tab.classList.remove('active');
+    });
+    
+    const activeTab = document.querySelector(`[data-session="${this.currentSession}"]`);
+    if (activeTab) {
+      activeTab.classList.add('active');
+    }
+    
+    // Update body theme
+    document.body.className = this.currentSession;
+  }
+
+  /**
+   * Update timer button state
+   */
+  updateTimerButton() {
+    const startBtn = document.getElementById('startBtn');
+    if (startBtn) {
+      startBtn.textContent = this.isRunning ? 'Pause' : 'Start';
+    }
+  }
+
+  /**
+   * Start local timer countdown (for sync from other interfaces)
+   */
+  startLocalTimer() {
+    if (this.intervalId) return; // Already running
+    
+    document.getElementById('startBtn').textContent = 'Pause';
+    
+    this.intervalId = setInterval(() => {
+      this.timeLeft--;
+      this.updateDisplay();
+      this.updateProgress();
+
+      if (this.timeLeft <= 0) {
+        this.timerComplete();
+      }
+    }, 1000);
+  }
+
+  /**
+   * Stop local timer countdown (for sync from other interfaces)
+   */
+  stopLocalTimer() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+    document.getElementById('startBtn').textContent = 'Start';
+  }
+
+  /**
+   * Cleanup when popup closes
+   */
+  cleanup() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+  }
+
+  /**
    * Placeholder for settings functionality
    * Will be implemented when settings panel is created
    */
@@ -280,5 +497,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Initialize the Pomodoro Timer
-  new PomodoroTimer();
+  const timer = new PomodoroTimer();
+
+  // Cleanup when popup is closed/hidden
+  window.addEventListener('beforeunload', () => {
+    timer.cleanup();
+  });
+  
+  // Cleanup when popup loses focus (Chrome extension specific)
+  window.addEventListener('blur', () => {
+    timer.cleanup();
+  });
 });
