@@ -692,6 +692,9 @@ function setupSimpleBlocklist() {
 
   if (!form || !input || !listEl) return; // UI not present
 
+  // Setup modal functionality
+  setupModalFunctionality();
+
   // Load existing sites
   refreshBlockedSites();
 
@@ -817,5 +820,175 @@ function setupSimpleBlocklist() {
         reject(e);
       }
     });
+  }
+}
+
+/**
+ * Setup Modal Functionality
+ * Handles Add Category and Add Website modal interactions
+ */
+function setupModalFunctionality() {
+  // Add New Category Button
+  const addCategoryButton = document.getElementById('addCategoryButton');
+  const addCategoryModal = document.getElementById('addCategoryModal');
+  const cancelAddCategory = document.getElementById('cancelAddCategory');
+  const saveCategory = document.getElementById('saveCategory');
+
+  // Add Website Button  
+  const addWebsiteButton = document.getElementById('addWebsiteButton');
+  const addWebsiteModal = document.getElementById('addWebsiteModal');
+  const cancelAddWebsite = document.getElementById('cancelAddWebsite');
+  const saveWebsite = document.getElementById('saveWebsite');
+
+  // Add Category Modal Events
+  if (addCategoryButton && addCategoryModal) {
+    addCategoryButton.addEventListener('click', () => {
+      addCategoryModal.classList.remove('hidden');
+    });
+  }
+
+  if (cancelAddCategory && addCategoryModal) {
+    cancelAddCategory.addEventListener('click', () => {
+      addCategoryModal.classList.add('hidden');
+      clearCategoryForm();
+    });
+  }
+
+  if (saveCategory && addCategoryModal) {
+    saveCategory.addEventListener('click', () => {
+      saveCategoryHandler();
+    });
+  }
+
+  // Add Website Modal Events
+  if (addWebsiteButton && addWebsiteModal) {
+    addWebsiteButton.addEventListener('click', () => {
+      addWebsiteModal.classList.remove('hidden');
+    });
+  }
+
+  if (cancelAddWebsite && addWebsiteModal) {
+    cancelAddWebsite.addEventListener('click', () => {
+      addWebsiteModal.classList.add('hidden');
+      clearWebsiteForm();
+    });
+  }
+
+  if (saveWebsite && addWebsiteModal) {
+    saveWebsite.addEventListener('click', () => {
+      saveWebsiteHandler();
+    });
+  }
+
+  // Click outside modal to close
+  if (addCategoryModal) {
+    addCategoryModal.addEventListener('click', (e) => {
+      if (e.target === addCategoryModal) {
+        addCategoryModal.classList.add('hidden');
+        clearCategoryForm();
+      }
+    });
+  }
+
+  if (addWebsiteModal) {
+    addWebsiteModal.addEventListener('click', (e) => {
+      if (e.target === addWebsiteModal) {
+        addWebsiteModal.classList.add('hidden');
+        clearWebsiteForm();
+      }
+    });
+  }
+
+  function clearCategoryForm() {
+    const categoryName = document.getElementById('categoryName');
+    const categoryIcon = document.getElementById('categoryIcon');
+    if (categoryName) categoryName.value = '';
+    if (categoryIcon) categoryIcon.selectedIndex = 0;
+  }
+
+  function clearWebsiteForm() {
+    const websiteUrl = document.getElementById('websiteUrl');
+    const websiteCategory = document.getElementById('websiteCategory');
+    if (websiteUrl) websiteUrl.value = '';
+    if (websiteCategory) websiteCategory.selectedIndex = 0;
+  }
+
+  function saveCategoryHandler() {
+    const categoryName = document.getElementById('categoryName');
+    const categoryIcon = document.getElementById('categoryIcon');
+    
+    if (!categoryName || !categoryName.value.trim()) {
+      alert('Please enter a category name');
+      return;
+    }
+
+    const name = categoryName.value.trim();
+    const icon = categoryIcon ? categoryIcon.value : 'fas fa-folder';
+
+    // Add the new category to the page (placeholder functionality)
+    addNewCategoryToPage(name, icon);
+    
+    // Close modal and clear form
+    addCategoryModal.classList.add('hidden');
+    clearCategoryForm();
+  }
+
+  function saveWebsiteHandler() {
+    const websiteUrl = document.getElementById('websiteUrl');
+    const websiteCategory = document.getElementById('websiteCategory');
+    
+    if (!websiteUrl || !websiteUrl.value.trim()) {
+      alert('Please enter a website URL');
+      return;
+    }
+
+    const url = websiteUrl.value.trim();
+    const category = websiteCategory ? websiteCategory.value : 'social';
+
+    // Add the website to the appropriate category (placeholder functionality)
+    addWebsiteToCategory(url, category);
+    
+    // Close modal and clear form
+    addWebsiteModal.classList.add('hidden');
+    clearWebsiteForm();
+  }
+
+  function addNewCategoryToPage(name, icon) {
+    const categoriesContainer = document.querySelector('.space-y-4');
+    const addCategoryButton = document.getElementById('addCategoryButton');
+    
+    if (!categoriesContainer || !addCategoryButton) return;
+
+    const newCategoryHTML = `
+      <div class="border border-gray-200 rounded-lg p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="font-medium text-gray-900 flex items-center">
+            <i class="${icon} text-blue-500 mr-2"></i>
+            ${escapeHtml(name)}
+          </h4>
+          <div class="flex items-center space-x-2">
+            <label class="flex items-center">
+              <input type="checkbox" checked class="rounded border-gray-300" />
+              <span class="ml-2 text-sm text-gray-600">Enabled</span>
+            </label>
+            <button class="text-gray-400 hover:text-red-500">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+          <!-- Websites will be added here -->
+        </div>
+      </div>
+    `;
+    
+    // Insert before the "Add New Category" button
+    addCategoryButton.parentElement.insertAdjacentHTML('beforebegin', newCategoryHTML);
+  }
+
+  function addWebsiteToCategory(url, categoryType) {
+    // This is placeholder functionality - in a real app, you'd save to storage
+    console.log(`Adding ${url} to ${categoryType} category`);
+    alert(`Website ${url} added to ${categoryType} category (placeholder functionality)`);
   }
 }

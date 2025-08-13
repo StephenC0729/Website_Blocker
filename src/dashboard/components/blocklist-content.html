@@ -13,7 +13,7 @@
     </div>
     <form
       id="addBlockedSiteForm"
-      class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4"
+      class="flex flex-col sm:flex-row sm:items-center gap-4 mb-4"
     >
       <div class="flex-1">
         <input
@@ -34,7 +34,8 @@
       </div>
     </form>
     <div id="blocklistFeedback" class="text-sm mb-3 hidden"></div>
-    <div id="blockedSitesEmpty" class="text-sm text-gray-500 hidden">
+    <div id="blockedSitesEmpty" class="text-sm text-gray-500 hidden flex items-center gap-2">
+      <i class="fas fa-info-circle text-gray-400"></i>
       No sites blocked yet. Add one above.
     </div>
     <ul id="blockedSitesList" class="divide-y divide-gray-200"></ul>
