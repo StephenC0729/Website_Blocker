@@ -102,6 +102,16 @@ class AppBlockerService {
                     await this.deleteCategory(request.categoryId);
                     sendResponse({ success: true });
                     break;
+
+                case 'saveCategoryMetadata':
+                    await this.saveCategoryMetadata(request.categoryId, request.metadata);
+                    sendResponse({ success: true });
+                    break;
+
+                case 'getCategoryMetadata':
+                    const categoryMetadata = await this.getCategoryMetadata();
+                    sendResponse({ success: true, categories: categoryMetadata });
+                    break;
                 
                 // Timer synchronization actions
                 case 'timerStarted':
@@ -258,11 +268,18 @@ class AppBlockerService {
 
     async deleteCategory(categoryId) {
         try {
+            // Delete from category sites
             const categorySites = await this.getCategorySites();
-            
             if (categorySites[categoryId]) {
                 delete categorySites[categoryId];
                 await chrome.storage.local.set({ categorySites });
+            }
+
+            // Delete from category metadata
+            const categoryMetadata = await this.getCategoryMetadata();
+            if (categoryMetadata[categoryId]) {
+                delete categoryMetadata[categoryId];
+                await chrome.storage.local.set({ categoryMetadata });
             }
         } catch (error) {
             console.error('Error deleting category:', error);
@@ -285,6 +302,27 @@ class AppBlockerService {
         } catch (error) {
             console.error('Error getting category blocked sites:', error);
             return [];
+        }
+    }
+
+    // Category metadata management (stores category names, icons, etc.)
+    async getCategoryMetadata() {
+        try {
+            const result = await chrome.storage.local.get(['categoryMetadata']);
+            return result.categoryMetadata || {};
+        } catch (error) {
+            console.error('Error getting category metadata:', error);
+            return {};
+        }
+    }
+
+    async saveCategoryMetadata(categoryId, metadata) {
+        try {
+            const categoryMetadata = await this.getCategoryMetadata();
+            categoryMetadata[categoryId] = metadata;
+            await chrome.storage.local.set({ categoryMetadata });
+        } catch (error) {
+            console.error('Error saving category metadata:', error);
         }
     }
 

@@ -193,7 +193,7 @@ function setupModalFunctionality() {
     if (websiteCategory) websiteCategory.selectedIndex = 0;
   }
 
-  function saveCategoryHandler() {
+  async function saveCategoryHandler() {
     const categoryName = document.getElementById('categoryName');
     const categoryIcon = document.getElementById('categoryIcon');
     
@@ -204,13 +204,37 @@ function setupModalFunctionality() {
 
     const name = categoryName.value.trim();
     const icon = categoryIcon ? categoryIcon.value : 'fas fa-folder';
+    const categoryId = name.toLowerCase().replace(/\s+/g, '-');
 
-    // Add the new category to the page (placeholder functionality)
-    addNewCategoryToPage(name, icon);
-    
-    // Close modal and clear form
-    addCategoryModal.classList.add('hidden');
-    clearCategoryForm();
+    try {
+      // Save category metadata to storage
+      await sendMessagePromise({
+        action: 'saveCategoryMetadata',
+        categoryId: categoryId,
+        metadata: {
+          name: name,
+          icon: icon,
+          created: Date.now()
+        }
+      });
+
+      // Add the new category to the page using the recreate function (ensures consistency)
+      recreateCategoryOnPage(categoryId, name, icon);
+      
+      // Close modal and clear form
+      addCategoryModal.classList.add('hidden');
+      clearCategoryForm();
+      
+      console.log(`Saved category ${name} with ID ${categoryId}`);
+      
+      // Verify the category was saved by trying to load it
+      const verifyResponse = await sendMessagePromise({ action: 'getCategoryMetadata' });
+      console.log('Verification - Categories in storage:', verifyResponse.categories);
+      
+    } catch (error) {
+      console.error('Error saving category:', error);
+      alert('Error creating category');
+    }
   }
 
   function saveWebsiteHandler() {
@@ -476,6 +500,135 @@ function setupModalFunctionality() {
       alert('Error deleting category');
     }
   }
+
+  async function loadExistingCategories() {
+    try {
+      console.log('Loading existing categories...');
+      
+      // Get both category metadata and category sites
+      const [metadataResponse, sitesResponse] = await Promise.all([
+        sendMessagePromise({ action: 'getCategoryMetadata' }),
+        sendMessagePromise({ action: 'getCategorySites' })
+      ]);
+
+      console.log('Metadata response:', metadataResponse);
+      console.log('Sites response:', sitesResponse);
+
+      if (!metadataResponse.success) {
+        console.error('Failed to load category metadata:', metadataResponse);
+        return;
+      }
+
+      if (!sitesResponse.success) {
+        console.error('Failed to load category sites:', sitesResponse);
+        return;
+      }
+
+      const categoryMetadata = metadataResponse.categories || {};
+      const categorySites = sitesResponse.sites || {};
+      
+      console.log('Category metadata loaded:', categoryMetadata);
+      console.log('Category sites loaded:', categorySites);
+
+      // Recreate each category
+      for (const [categoryId, metadata] of Object.entries(categoryMetadata)) {
+        // Create the category UI
+        recreateCategoryOnPage(categoryId, metadata.name, metadata.icon);
+
+        // Add websites to the category if any exist
+        const categoryData = categorySites[categoryId];
+        if (categoryData && categoryData.sites) {
+          for (const url of categoryData.sites) {
+            await addWebsiteToExistingCategory(categoryId, url);
+          }
+
+          // Set the enabled state
+          const categoryDiv = document.querySelector(`[data-category="${categoryId}"]`);
+          if (categoryDiv) {
+            const checkbox = categoryDiv.querySelector('.category-enabled-checkbox');
+            if (checkbox) {
+              checkbox.checked = categoryData.enabled !== false; // Default to true if not set
+            }
+          }
+        }
+      }
+
+      console.log(`Loaded ${Object.keys(categoryMetadata).length} categories`);
+    } catch (error) {
+      console.error('Error loading existing categories:', error);
+    }
+  }
+
+  function recreateCategoryOnPage(categoryId, name, icon) {
+    const addCategoryButton = document.getElementById('addCategoryButton');
+    
+    if (!addCategoryButton) {
+      console.error('Add Category button not found');
+      return;
+    }
+
+    const newCategoryHTML = `
+      <div class="border border-gray-200 rounded-lg p-4" data-category="${categoryId}">
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="font-medium text-gray-900 flex items-center">
+            <i class="${icon} text-blue-500 mr-2"></i>
+            ${escapeHtml(name)}
+          </h4>
+          <div class="flex items-center space-x-2">
+            <label class="flex items-center">
+              <input type="checkbox" checked class="rounded border-gray-300 category-enabled-checkbox" data-category="${categoryId}" />
+              <span class="ml-2 text-sm text-gray-600">Enabled</span>
+            </label>
+            <button class="text-gray-400 hover:text-red-500 delete-category-btn" data-category="${categoryId}">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+          <!-- Websites will be added here -->
+        </div>
+      </div>
+    `;
+    
+    // Insert the new category before the "Add New Category" button
+    addCategoryButton.insertAdjacentHTML('beforebegin', newCategoryHTML);
+    
+    // Add event listeners for the recreated category
+    setupCategoryEventListeners(categoryId);
+  }
+
+  async function addWebsiteToExistingCategory(categoryId, url) {
+    const categoryDiv = document.querySelector(`[data-category="${categoryId}"]`);
+    if (!categoryDiv) return;
+
+    const websitesGrid = categoryDiv.querySelector('.grid');
+    if (!websitesGrid) return;
+
+    // Create website element (similar to addWebsiteToCategory but without API calls)
+    const websiteId = `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const websiteHTML = `
+      <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded" data-website-id="${websiteId}" data-url="${escapeHtml(url)}">
+        <span class="text-sm">${escapeHtml(url)}</span>
+        <button class="text-red-500 hover:text-red-700 remove-website-btn" data-url="${url}" data-website-id="${websiteId}">
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      </div>
+    `;
+
+    // Add the website to the grid
+    websitesGrid.insertAdjacentHTML('beforeend', websiteHTML);
+    
+    // Add event listener for removal
+    const removeBtn = websitesGrid.querySelector(`[data-website-id="${websiteId}"] .remove-website-btn`);
+    if (removeBtn) {
+      removeBtn.addEventListener('click', async (e) => {
+        await removeWebsiteFromCategory(e.target.closest('[data-website-id]'));
+      });
+    }
+  }
+
+  // Load existing categories after all functions are defined
+  loadExistingCategories();
 }
 
 // Export functions if using modules, otherwise they're global
