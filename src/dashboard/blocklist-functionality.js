@@ -221,6 +221,9 @@ function setupModalFunctionality() {
       // Add the new category to the page using the recreate function (ensures consistency)
       recreateCategoryOnPage(categoryId, name, icon);
       
+      // Update the blocklist set selector with the new category
+      populateBlocklistSetSelector();
+      
       // Close modal and clear form
       addCategoryModal.classList.add('hidden');
       clearCategoryForm();
@@ -270,11 +273,17 @@ function setupModalFunctionality() {
   }
 
   function addNewCategoryToPage(name, icon) {
-    const addCategoryButton = document.getElementById('addCategoryButton');
+    const categoriesContainer = document.getElementById('categoriesContainer');
     
-    if (!addCategoryButton) {
-      console.error('Add Category button not found');
+    if (!categoriesContainer) {
+      console.error('Categories container not found');
       return;
+    }
+
+    // Hide the "no categories" message
+    const noCategoriesMessage = document.getElementById('noCategoriesMessage');
+    if (noCategoriesMessage) {
+      noCategoriesMessage.classList.add('hidden');
     }
 
     const categoryId = name.toLowerCase().replace(/\s+/g, '-');
@@ -301,8 +310,8 @@ function setupModalFunctionality() {
       </div>
     `;
     
-    // Insert the new category before the "Add New Category" button
-    addCategoryButton.insertAdjacentHTML('beforebegin', newCategoryHTML);
+    // Insert the new category into the categories container
+    categoriesContainer.insertAdjacentHTML('afterbegin', newCategoryHTML);
     
     // Add event listeners for the new category
     setupCategoryEventListeners(categoryId);
@@ -382,7 +391,7 @@ function setupModalFunctionality() {
       });
 
       // Create new website element with proper event handler
-      const websiteId = `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const websiteId = `website-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
       const websiteHTML = `
         <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded" data-website-id="${websiteId}" data-url="${escapeHtml(url)}">
           <span class="text-sm">${escapeHtml(url)}</span>
@@ -494,6 +503,18 @@ function setupModalFunctionality() {
       // Remove category from UI
       categoryDiv.remove();
       
+      // Update the blocklist set selector to remove deleted category
+      populateBlocklistSetSelector();
+      
+      // Check if there are any remaining categories, if not show the empty message
+      const remainingCategories = document.querySelectorAll('#categoriesContainer > div.border');
+      if (remainingCategories.length === 0) {
+        const noCategoriesMessage = document.getElementById('noCategoriesMessage');
+        if (noCategoriesMessage) {
+          noCategoriesMessage.classList.remove('hidden');
+        }
+      }
+      
       console.log(`Deleted category ${categoryId} and all its websites`);
     } catch (error) {
       console.error('Error deleting category:', error);
@@ -560,11 +581,17 @@ function setupModalFunctionality() {
   }
 
   function recreateCategoryOnPage(categoryId, name, icon) {
-    const addCategoryButton = document.getElementById('addCategoryButton');
+    const categoriesContainer = document.getElementById('categoriesContainer');
     
-    if (!addCategoryButton) {
-      console.error('Add Category button not found');
+    if (!categoriesContainer) {
+      console.error('Categories container not found');
       return;
+    }
+
+    // Hide the "no categories" message
+    const noCategoriesMessage = document.getElementById('noCategoriesMessage');
+    if (noCategoriesMessage) {
+      noCategoriesMessage.classList.add('hidden');
     }
 
     const newCategoryHTML = `
@@ -590,8 +617,8 @@ function setupModalFunctionality() {
       </div>
     `;
     
-    // Insert the new category before the "Add New Category" button
-    addCategoryButton.insertAdjacentHTML('beforebegin', newCategoryHTML);
+    // Insert the new category into the categories container
+    categoriesContainer.insertAdjacentHTML('afterbegin', newCategoryHTML);
     
     // Add event listeners for the recreated category
     setupCategoryEventListeners(categoryId);
@@ -605,7 +632,7 @@ function setupModalFunctionality() {
     if (!websitesGrid) return;
 
     // Create website element (similar to addWebsiteToCategory but without API calls)
-    const websiteId = `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const websiteId = `website-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     const websiteHTML = `
       <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded" data-website-id="${websiteId}" data-url="${escapeHtml(url)}">
         <span class="text-sm">${escapeHtml(url)}</span>
@@ -627,8 +654,51 @@ function setupModalFunctionality() {
     }
   }
 
+  // Function to populate blocklist set selector from localStorage
+  async function populateBlocklistSetSelector() {
+    const selector = document.getElementById('blocklistSetSelector');
+    if (!selector) return;
+
+    try {
+      // Get category metadata from localStorage
+      const response = await sendMessagePromise({ action: 'getCategoryMetadata' });
+      
+      if (response.success && response.categories) {
+        const categories = response.categories;
+        
+        // Clear existing options except 'Off'
+        const offOption = selector.querySelector('option[value="off"]');
+        selector.innerHTML = '';
+        if (offOption) {
+          selector.appendChild(offOption);
+        } else {
+          // Add 'Off' option if it doesn't exist
+          const offOpt = document.createElement('option');
+          offOpt.value = 'off';
+          offOpt.textContent = 'Off';
+          selector.appendChild(offOpt);
+        }
+        
+        // Add category options dynamically
+        for (const [categoryId, metadata] of Object.entries(categories)) {
+          const option = document.createElement('option');
+          option.value = categoryId;
+          option.textContent = metadata.name;
+          selector.appendChild(option);
+        }
+        
+        console.log(`Populated blocklist selector with ${Object.keys(categories).length} categories`);
+      }
+    } catch (error) {
+      console.error('Error populating blocklist set selector:', error);
+    }
+  }
+
   // Load existing categories after all functions are defined
   loadExistingCategories();
+  
+  // Populate blocklist set selector from localStorage
+  populateBlocklistSetSelector();
 }
 
 // Export functions if using modules, otherwise they're global
