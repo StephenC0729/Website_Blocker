@@ -1,0 +1,160 @@
+import { get, set } from './storage.js';
+
+export async function getTimerState() {
+    try {
+        const result = await get(['timerState']);
+        return result.timerState;
+    } catch (error) {
+        console.error('Error getting timer state:', error);
+        return null;
+    }
+}
+
+export async function updateTimerState(updates) {
+    try {
+        const currentState = await getTimerState();
+        const newState = { ...currentState, ...updates };
+        await set({ timerState: newState });
+        
+        chrome.runtime.sendMessage({
+            action: 'timerStateUpdated',
+            timerState: newState
+        }).catch(() => {
+            // Ignore errors if no listeners
+        });
+    } catch (error) {
+        console.error('Error updating timer state:', error);
+    }
+}
+
+export async function handleTimerStart(request) {
+    try {
+        const now = Date.now();
+        await updateTimerState({
+            isRunning: true,
+            startTimestamp: now,
+            currentSession: request.session || 'pomodoro',
+            totalTime: request.duration || 25 * 60,
+            timeLeft: request.timeLeft || request.duration || 25 * 60
+        });
+    } catch (error) {
+        console.error('Error handling timer start:', error);
+    }
+}
+
+export async function handleTimerStop() {
+    try {
+        const timerState = await getTimerState();
+        if (timerState.isRunning && timerState.startTimestamp) {
+            const elapsed = Math.floor((Date.now() - timerState.startTimestamp) / 1000);
+            const newTimeLeft = Math.max(0, timerState.timeLeft - elapsed);
+            
+            await updateTimerState({
+                isRunning: false,
+                timeLeft: newTimeLeft,
+                startTimestamp: null
+            });
+        }
+    } catch (error) {
+        console.error('Error handling timer stop:', error);
+    }
+}
+
+export async function handleTimerReset(request) {
+    try {
+        const timerState = await getTimerState();
+        const session = request.session || timerState.currentSession;
+        const duration = timerState.sessions[session]?.duration || 25 * 60;
+        
+        await updateTimerState({
+            isRunning: false,
+            timeLeft: duration,
+            totalTime: duration,
+            startTimestamp: null,
+            currentSession: session
+        });
+    } catch (error) {
+        console.error('Error handling timer reset:', error);
+    }
+}
+
+export async function handleTimerComplete(request) {
+    try {
+        const timerState = await getTimerState();
+        let updates = {
+            isRunning: false,
+            timeLeft: 0,
+            startTimestamp: null
+        };
+
+        if (request.session === 'pomodoro') {
+            const newPomodoroCount = timerState.pomodoroCount + 1;
+            const newSessionCount = timerState.sessionCount + 1;
+            
+            let nextSession;
+            let nextDuration;
+            if (newPomodoroCount % 4 === 0) {
+                nextSession = 'long-break';
+                nextDuration = timerState.sessions['long-break'].duration;
+            } else {
+                nextSession = 'short-break';
+                nextDuration = timerState.sessions['short-break'].duration;
+            }
+
+            updates = {
+                ...updates,
+                pomodoroCount: newPomodoroCount,
+                sessionCount: newSessionCount,
+                currentSession: nextSession,
+                timeLeft: nextDuration,
+                totalTime: nextDuration
+            };
+        } else if (request.session !== 'custom') {
+            const duration = timerState.sessions.pomodoro.duration;
+            updates = {
+                ...updates,
+                sessionCount: timerState.sessionCount + 1,
+                currentSession: 'pomodoro',
+                timeLeft: duration,
+                totalTime: duration
+            };
+        }
+
+        await updateTimerState(updates);
+    } catch (error) {
+        console.error('Error handling timer complete:', error);
+    }
+}
+
+export async function handleSessionSwitch(request) {
+    try {
+        const timerState = await getTimerState();
+        const session = request.session;
+        let duration = timerState.sessions[session]?.duration;
+        
+        if (session === 'custom' && request.customDuration) {
+            duration = request.customDuration;
+            const sessions = { ...timerState.sessions };
+            sessions.custom.duration = duration;
+            
+            await updateTimerState({
+                sessions,
+                currentSession: session,
+                timeLeft: duration,
+                totalTime: duration,
+                isRunning: false,
+                startTimestamp: null
+            });
+        } else if (duration) {
+            await updateTimerState({
+                currentSession: session,
+                timeLeft: duration,
+                totalTime: duration,
+                isRunning: false,
+                startTimestamp: null
+            });
+        }
+    } catch (error) {
+        console.error('Error handling session switch:', error);
+    }
+}

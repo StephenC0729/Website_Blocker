@@ -114,3 +114,46 @@ timerState: {
 ---
 
 Archive created automatically for future reference.
+
+## Planned Background Service Split (MV3 modules)
+
+Goals
+
+- Separate concerns: messaging/router, storage helpers, blocklist, categories, timer.
+- Improve testability and readability without over-splitting.
+- Keep background as an ES module entry with explicit imports.
+
+Proposed file layout
+
+- `src/background/index.js` — background entry; registers startup/installed listeners and message listener; delegates to router.
+- `src/background/messaging.js` — action constants and `handleMessage(request, sender)` that dispatches to services and returns {success|error}.
+- `src/background/storage.js` — thin helpers around `chrome.storage.local` (get/set/merge) and default initialization.
+- `src/background/blocklist.service.js` — simple blocklist: `get/add/remove/update`, `cleanUrl`.
+- `src/background/categories.service.js` — category CRUD: `get/add/remove/toggle/delete`, metadata `get/save`, `getCategoryBlockedSites`.
+- `src/background/timer.service.js` — timer state: `getTimerState`, `updateTimerState`, `handleTimerStart/Stop/Reset/Complete/Switch`.
+
+Action constants (example)
+
+- TIMER: `timerStarted`, `timerStopped`, `timerReset`, `timerComplete`, `switchSession`, `getTimerState`
+- BLOCKLIST: `getBlockedSites`, `addBlockedSite`, `removeBlockedSite`, `updateBlockedSite`
+- CATEGORIES: `getCategorySites`, `addCategorySite`, `removeCategorySite`, `toggleCategoryBlocking`, `deleteCategory`, `saveCategoryMetadata`, `getCategoryMetadata`
+
+Manifest changes (MV3)
+
+- Update background to use modules: `"background": { "service_worker": "src/background/index.js", "type": "module" }`.
+- No other permission changes required.
+
+Incremental migration steps
+
+1. Create `index.js`, `messaging.js`, `storage.js`, and the three `*.service.js` files with exports matching current methods.
+2. Move logic out of `src/background/background.js` into services; keep method names to minimize churn.
+3. Build a router in `messaging.js` that maps `request.action` to service functions and handles try/catch + `sendResponse`.
+4. In `index.js`, set up listeners and call `initializeStorage()` via `storage.js` on startup/installed.
+5. Update `manifest.json` background to add `type: module` and point to `index.js`.
+6. Test: trigger each action (blocklist, categories, timer) from popup/dashboard and verify state updates + messages broadcast.
+
+Notes
+
+- Shared helpers like `cleanUrl` can move to `src/shared/utils/url.js` if needed by content script too.
+- Keep action strings centralized to avoid typos; optionally export an `ACTIONS` object from `messaging.js`.
+- Current background already contains category CRUD and timer logic; this split is structural, not feature work.

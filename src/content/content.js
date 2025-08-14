@@ -1,10 +1,13 @@
 class ContentBlocker {
     constructor() {
+        this.overlayCreated = false;
         this.init();
     }
 
     async init() {
         await this.checkIfBlockedSite();
+        // Also check for category-based blocking
+        await this.checkCategoryBlockedSite();
     }
 
     async checkIfBlockedSite() {
@@ -20,8 +23,8 @@ class ContentBlocker {
                     return cleanCurrentUrl.includes(site) || site.includes(cleanCurrentUrl);
                 });
                 
-                if (isBlocked) {
-                    this.redirectToBlockedPage();
+                if (isBlocked && !this.overlayCreated) {
+                    this.showBlockingOverlay('simple');
                 }
             }
         } catch (error) {
@@ -29,9 +32,170 @@ class ContentBlocker {
         }
     }
 
-    redirectToBlockedPage() {
-        const blockedPageUrl = chrome.runtime.getURL('blocked.html') + '?blocked=' + encodeURIComponent(window.location.href);
-        window.location.replace(blockedPageUrl);
+    async checkCategoryBlockedSite() {
+        try {
+            const currentUrl = window.location.hostname;
+            const response = await chrome.runtime.sendMessage({ 
+                action: 'getCategorySites' 
+            });
+            
+            if (response.success && response.sites) {
+                const cleanCurrentUrl = this.cleanUrl(currentUrl);
+                let isBlocked = false;
+                
+                // Check all enabled categories
+                for (const [categoryId, categoryData] of Object.entries(response.sites)) {
+                    if (categoryData.enabled && categoryData.sites) {
+                        const categoryBlocked = categoryData.sites.some(site => {
+                            return cleanCurrentUrl.includes(site) || site.includes(cleanCurrentUrl);
+                        });
+                        if (categoryBlocked) {
+                            isBlocked = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (isBlocked && !this.overlayCreated) {
+                    this.showBlockingOverlay('category');
+                }
+            }
+        } catch (error) {
+            console.error('Error checking category blocked sites:', error);
+        }
+    }
+
+    showBlockingOverlay(blockingSystem) {
+        // Prevent multiple overlays
+        if (this.overlayCreated) return;
+        this.overlayCreated = true;
+
+        // Create overlay container
+        const overlay = document.createElement('div');
+        overlay.id = 'website-blocker-overlay';
+        overlay.style.cssText = `
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background: rgba(0, 0, 0, 0.8) !important;
+            z-index: 2147483647 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+            color: white !important;
+            text-align: center !important;
+        `;
+
+        // Create content container
+        const content = document.createElement('div');
+        content.style.cssText = `
+            max-width: 500px !important;
+            padding: 40px !important;
+        `;
+
+        // Create motivational message
+        const message = document.createElement('h1');
+        message.textContent = 'Stay focused on your goals...';
+        message.style.cssText = `
+            font-size: 2.5rem !important;
+            font-weight: 300 !important;
+            margin-bottom: 40px !important;
+            line-height: 1.2 !important;
+        `;
+
+        // Create tree/focus icon
+        const iconContainer = document.createElement('div');
+        iconContainer.style.cssText = `
+            width: 120px !important;
+            height: 120px !important;
+            margin: 0 auto 40px auto !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border: 3px solid rgba(255, 255, 255, 0.2) !important;
+        `;
+
+        const icon = document.createElement('div');
+        icon.innerHTML = '🎯';
+        icon.style.cssText = `
+            font-size: 4rem !important;
+        `;
+
+        // Create timer display (optional - could sync with actual timer)
+        const timerDisplay = document.createElement('div');
+        timerDisplay.textContent = 'Focus session in progress';
+        timerDisplay.style.cssText = `
+            font-size: 1.2rem !important;
+            margin-bottom: 40px !important;
+            opacity: 0.8 !important;
+        `;
+
+
+        // Assemble the overlay
+        iconContainer.appendChild(icon);
+        content.appendChild(message);
+        content.appendChild(iconContainer);
+        content.appendChild(timerDisplay);
+        overlay.appendChild(content);
+
+        // Add blocked site info
+        const siteInfo = document.createElement('div');
+        siteInfo.textContent = `Blocked: ${window.location.hostname}`;
+        siteInfo.style.cssText = `
+            position: absolute !important;
+            bottom: 20px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            font-size: 0.9rem !important;
+            opacity: 0.6 !important;
+        `;
+        overlay.appendChild(siteInfo);
+
+        // Add to page
+        document.body.appendChild(overlay);
+
+        // Prevent scrolling on the underlying page
+        document.body.style.overflow = 'hidden';
+
+        // Disable interaction with the underlying page
+        this.disablePageInteraction();
+    }
+
+    disablePageInteraction() {
+        // Add event listeners to capture and prevent interaction
+        const preventEvent = (e) => {
+            if (e.target.closest('#website-blocker-overlay')) {
+                return; // Allow interaction with overlay
+            }
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        };
+
+        // Prevent various interactions
+        document.addEventListener('click', preventEvent, true);
+        document.addEventListener('keydown', preventEvent, true);
+        document.addEventListener('keyup', preventEvent, true);
+        document.addEventListener('keypress', preventEvent, true);
+        document.addEventListener('mousedown', preventEvent, true);
+        document.addEventListener('mouseup', preventEvent, true);
+        document.addEventListener('touchstart', preventEvent, true);
+        document.addEventListener('touchend', preventEvent, true);
+    }
+
+    removeOverlay() {
+        const overlay = document.getElementById('website-blocker-overlay');
+        if (overlay) {
+            overlay.remove();
+            document.body.style.overflow = '';
+            this.overlayCreated = false;
+        }
     }
 
     cleanUrl(url) {

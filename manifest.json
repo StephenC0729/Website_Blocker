@@ -14,7 +14,8 @@
     "default_title": "Bolton Blocker"
   },
   "background": {
-    "service_worker": "src/background/background.js"
+    "service_worker": "src/background/index.js",
+    "type": "module"
   },
 
   "content_scripts": [
