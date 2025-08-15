@@ -280,12 +280,6 @@ function setupModalFunctionality() {
       return;
     }
 
-    // Hide the "no categories" message
-    const noCategoriesMessage = document.getElementById('noCategoriesMessage');
-    if (noCategoriesMessage) {
-      noCategoriesMessage.classList.add('hidden');
-    }
-
     const categoryId = name.toLowerCase().replace(/\s+/g, '-');
     const newCategoryHTML = `
       <div class="border border-gray-200 rounded-lg p-4" data-category="${categoryId}">
@@ -295,10 +289,6 @@ function setupModalFunctionality() {
             ${escapeHtml(name)}
           </h4>
           <div class="flex items-center space-x-2">
-            <label class="flex items-center">
-              <input type="checkbox" checked class="rounded border-gray-300 category-enabled-checkbox" data-category="${categoryId}" />
-              <span class="ml-2 text-sm text-gray-600">Enabled</span>
-            </label>
             <button class="text-gray-400 hover:text-red-500 delete-category-btn" data-category="${categoryId}">
               <i class="fas fa-trash"></i>
             </button>
@@ -310,8 +300,8 @@ function setupModalFunctionality() {
       </div>
     `;
     
-    // Insert the new category into the categories container
-    categoriesContainer.insertAdjacentHTML('afterbegin', newCategoryHTML);
+    // Insert the new category AFTER the General category (at the end)
+    categoriesContainer.insertAdjacentHTML('beforeend', newCategoryHTML);
     
     // Add event listeners for the new category
     setupCategoryEventListeners(categoryId);
@@ -506,15 +496,6 @@ function setupModalFunctionality() {
       // Update the blocklist set selector to remove deleted category
       populateBlocklistSetSelector();
       
-      // Check if there are any remaining categories, if not show the empty message
-      const remainingCategories = document.querySelectorAll('#categoriesContainer > div.border');
-      if (remainingCategories.length === 0) {
-        const noCategoriesMessage = document.getElementById('noCategoriesMessage');
-        if (noCategoriesMessage) {
-          noCategoriesMessage.classList.remove('hidden');
-        }
-      }
-      
       console.log(`Deleted category ${categoryId} and all its websites`);
     } catch (error) {
       console.error('Error deleting category:', error);
@@ -588,12 +569,6 @@ function setupModalFunctionality() {
       return;
     }
 
-    // Hide the "no categories" message
-    const noCategoriesMessage = document.getElementById('noCategoriesMessage');
-    if (noCategoriesMessage) {
-      noCategoriesMessage.classList.add('hidden');
-    }
-
     const newCategoryHTML = `
       <div class="border border-gray-200 rounded-lg p-4" data-category="${categoryId}">
         <div class="flex items-center justify-between mb-3">
@@ -602,10 +577,6 @@ function setupModalFunctionality() {
             ${escapeHtml(name)}
           </h4>
           <div class="flex items-center space-x-2">
-            <label class="flex items-center">
-              <input type="checkbox" checked class="rounded border-gray-300 category-enabled-checkbox" data-category="${categoryId}" />
-              <span class="ml-2 text-sm text-gray-600">Enabled</span>
-            </label>
             <button class="text-gray-400 hover:text-red-500 delete-category-btn" data-category="${categoryId}">
               <i class="fas fa-trash"></i>
             </button>
@@ -617,8 +588,8 @@ function setupModalFunctionality() {
       </div>
     `;
     
-    // Insert the new category into the categories container
-    categoriesContainer.insertAdjacentHTML('afterbegin', newCategoryHTML);
+    // Insert the new category AFTER the General category (at the end)
+    categoriesContainer.insertAdjacentHTML('beforeend', newCategoryHTML);
     
     // Add event listeners for the recreated category
     setupCategoryEventListeners(categoryId);
@@ -666,25 +637,28 @@ function setupModalFunctionality() {
       if (response.success && response.categories) {
         const categories = response.categories;
         
-        // Clear existing options except 'Off'
-        const offOption = selector.querySelector('option[value="off"]');
+        // Clear existing options except 'General'
+        const generalOption = selector.querySelector('option[value="general"]');
         selector.innerHTML = '';
-        if (offOption) {
-          selector.appendChild(offOption);
+        if (generalOption) {
+          selector.appendChild(generalOption);
         } else {
-          // Add 'Off' option if it doesn't exist
-          const offOpt = document.createElement('option');
-          offOpt.value = 'off';
-          offOpt.textContent = 'Off';
-          selector.appendChild(offOpt);
+          // Add 'General' option if it doesn't exist
+          const generalOpt = document.createElement('option');
+          generalOpt.value = 'general';
+          generalOpt.textContent = 'General';
+          generalOpt.selected = true;
+          selector.appendChild(generalOpt);
         }
         
-        // Add category options dynamically
+        // Add category options dynamically (excluding general since it's already added)
         for (const [categoryId, metadata] of Object.entries(categories)) {
-          const option = document.createElement('option');
-          option.value = categoryId;
-          option.textContent = metadata.name;
-          selector.appendChild(option);
+          if (categoryId !== 'general') {
+            const option = document.createElement('option');
+            option.value = categoryId;
+            option.textContent = metadata.name;
+            selector.appendChild(option);
+          }
         }
         
         console.log(`Populated blocklist selector with ${Object.keys(categories).length} categories`);
