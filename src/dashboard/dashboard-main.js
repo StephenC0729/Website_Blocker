@@ -63,7 +63,7 @@ async function loadContent(page) {
     } else if (page === 'faq') {
       setupFAQFunctionality();
     } else if (page === 'blocklist') {
-      setupSimpleBlocklist();
+      setupModalFunctionality();
     }
 
     currentPage = page;

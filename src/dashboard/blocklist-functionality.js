@@ -4,103 +4,49 @@
  */
 
 /**
- * Simple Blocklist (MVP) Logic
- * Uses existing background actions: getBlockedSites, addBlockedSite, removeBlockedSite
+ * Migration function to move simple blocklist data to General category
  */
-function setupSimpleBlocklist() {
-  const form = document.getElementById('addBlockedSiteForm');
-  const input = document.getElementById('addSiteInput');
-  const listEl = document.getElementById('blockedSitesList');
-  const emptyEl = document.getElementById('blockedSitesEmpty');
-  const feedbackEl = document.getElementById('blocklistFeedback');
-
-  if (!form || !input || !listEl) return; // UI not present
-
-  // Setup modal functionality
-  setupModalFunctionality();
-
-  // Load existing sites
-  refreshBlockedSites();
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const raw = (input.value || '').trim();
-    if (!raw) return showFeedback('Please enter a site.', 'error');
-    const normalized = normalizeDomain(raw);
-    if (!normalized) return showFeedback('Invalid domain.', 'error');
-    try {
-      await sendMessagePromise({ action: 'addBlockedSite', url: normalized });
-      input.value = '';
-      showFeedback(`Added ${normalized}`, 'success');
-      refreshBlockedSites();
-    } catch (err) {
-      showFeedback('Error adding site.', 'error');
-      console.error(err);
+async function migrateSimpleBlocklistToGeneral() {
+  try {
+    // Get existing simple blocklist data
+    const response = await sendMessagePromise({ action: 'getBlockedSites' });
+    if (!response.success || !response.sites || response.sites.length === 0) {
+      console.log('No simple blocklist data to migrate');
+      return;
     }
-  });
 
-  async function refreshBlockedSites() {
-    try {
-      const res = await sendMessagePromise({ action: 'getBlockedSites' });
-      if (!res || !res.success) throw new Error('Failed');
-      const sites = res.sites || [];
-      listEl.innerHTML = '';
-      if (!sites.length) {
-        emptyEl && emptyEl.classList.remove('hidden');
-      } else {
-        emptyEl && emptyEl.classList.add('hidden');
+    console.log('Migrating simple blocklist sites to General category:', response.sites);
+    
+    // Ensure General category metadata exists
+    await sendMessagePromise({
+      action: 'saveCategoryMetadata',
+      categoryId: 'general',
+      metadata: {
+        name: 'General',
+        icon: 'fas fa-globe',
+        created: Date.now()
       }
-      sites.sort((a, b) => a.localeCompare(b, 'en')); // deterministic order
-      sites.forEach((site) => {
-        const li = document.createElement('li');
-        li.className = 'flex items-center justify-between py-2';
-        li.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-800">${escapeHtml(
-                          site
-                        )}</span>
-                    </div>
-                    <button data-site="${site}" class="text-red-500 hover:text-red-700 text-xs font-medium remove-blocked-site">Remove</button>
-                `;
-        listEl.appendChild(li);
+    });
+    
+    // Add each site to the General category
+    for (const site of response.sites) {
+      await sendMessagePromise({ 
+        action: 'addCategorySite', 
+        url: site, 
+        categoryId: 'general' 
       });
-      // Attach remove handlers
-      listEl.querySelectorAll('.remove-blocked-site').forEach((btn) => {
-        btn.addEventListener('click', async () => {
-          const site = btn.getAttribute('data-site');
-          try {
-            await sendMessagePromise({
-              action: 'removeBlockedSite',
-              url: site,
-            });
-            showFeedback(`Removed ${site}`, 'success');
-            refreshBlockedSites();
-          } catch (err) {
-            console.error(err);
-            showFeedback('Error removing site.', 'error');
-          }
-        });
-      });
-    } catch (err) {
-      console.error('Error loading blocked sites', err);
-      showFeedback('Error loading blocked sites.', 'error');
+      console.log(`Migrated ${site} to General category`);
     }
-  }
 
-  function showFeedback(message, type) {
-    if (!feedbackEl) return;
-    feedbackEl.textContent = message;
-    feedbackEl.className =
-      'text-sm mb-3 ' +
-      (type === 'success' ? 'text-green-600' : 'text-red-600');
-    feedbackEl.classList.remove('hidden');
-    clearTimeout(showFeedback._t);
-    showFeedback._t = setTimeout(
-      () => feedbackEl.classList.add('hidden'),
-      3500
-    );
+    // Optionally clear the old simple blocklist (uncomment if desired)
+    // await sendMessagePromise({ action: 'clearBlockedSites' });
+    
+    console.log('Migration completed successfully');
+  } catch (error) {
+    console.error('Error during migration:', error);
   }
 }
+
 
 /**
  * Setup Modal Functionality
@@ -272,40 +218,6 @@ function setupModalFunctionality() {
     clearWebsiteForm();
   }
 
-  function addNewCategoryToPage(name, icon) {
-    const categoriesContainer = document.getElementById('categoriesContainer');
-    
-    if (!categoriesContainer) {
-      console.error('Categories container not found');
-      return;
-    }
-
-    const categoryId = name.toLowerCase().replace(/\s+/g, '-');
-    const newCategoryHTML = `
-      <div class="border border-gray-200 rounded-lg p-4" data-category="${categoryId}">
-        <div class="flex items-center justify-between mb-3">
-          <h4 class="font-medium text-gray-900 flex items-center">
-            <i class="${icon} text-blue-500 mr-2"></i>
-            ${escapeHtml(name)}
-          </h4>
-          <div class="flex items-center space-x-2">
-            <button class="text-gray-400 hover:text-red-500 delete-category-btn" data-category="${categoryId}">
-              <i class="fas fa-trash"></i>
-            </button>
-          </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-          <!-- Websites will be added here -->
-        </div>
-      </div>
-    `;
-    
-    // Insert the new category AFTER the General category (at the end)
-    categoriesContainer.insertAdjacentHTML('beforeend', newCategoryHTML);
-    
-    // Add event listeners for the new category
-    setupCategoryEventListeners(categoryId);
-  }
 
   function populateCategoryDropdown() {
     const categorySelect = document.getElementById('websiteCategory');
@@ -385,7 +297,7 @@ function setupModalFunctionality() {
       const websiteHTML = `
         <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded" data-website-id="${websiteId}" data-url="${escapeHtml(url)}">
           <span class="text-sm">${escapeHtml(url)}</span>
-          <button class="text-red-500 hover:text-red-700 remove-website-btn" data-url="${url}" data-website-id="${websiteId}">
+          <button class="text-red-500 hover:text-red-700 remove-website-btn" data-url="${url}">
             <i class="fas fa-times text-xs"></i>
           </button>
         </div>
@@ -413,6 +325,11 @@ function setupModalFunctionality() {
   async function removeWebsiteFromCategory(websiteElement) {
     const url = websiteElement.getAttribute('data-url');
     if (!url) return;
+
+    // Show confirmation popup before removing
+    if (!confirm(`Are you sure you want to remove "${url}" from this category?`)) {
+      return;
+    }
 
     // Find the category this website belongs to
     const categoryDiv = websiteElement.closest('[data-category]');
@@ -532,30 +449,49 @@ function setupModalFunctionality() {
       console.log('Category metadata loaded:', categoryMetadata);
       console.log('Category sites loaded:', categorySites);
 
-      // Recreate each category
-      for (const [categoryId, metadata] of Object.entries(categoryMetadata)) {
-        // Create the category UI
-        recreateCategoryOnPage(categoryId, metadata.name, metadata.icon);
-
-        // Add websites to the category if any exist
-        const categoryData = categorySites[categoryId];
-        if (categoryData && categoryData.sites) {
-          for (const url of categoryData.sites) {
-            await addWebsiteToExistingCategory(categoryId, url);
-          }
-
-          // Set the enabled state
-          const categoryDiv = document.querySelector(`[data-category="${categoryId}"]`);
-          if (categoryDiv) {
-            const checkbox = categoryDiv.querySelector('.category-enabled-checkbox');
-            if (checkbox) {
-              checkbox.checked = categoryData.enabled !== false; // Default to true if not set
+      // First, handle the default "General" category that's hardcoded in HTML
+      const generalCategoryData = categorySites['general'];
+      if (generalCategoryData && generalCategoryData.sites) {
+        const generalCategoryDiv = document.querySelector('[data-category="general"]');
+        if (generalCategoryDiv) {
+          const websitesGrid = generalCategoryDiv.querySelector('.grid');
+          if (websitesGrid) {
+            // Clear existing content in the general category
+            websitesGrid.innerHTML = '';
+            // Add websites to the General category
+            for (const url of generalCategoryData.sites) {
+              await addWebsiteToExistingCategory('general', url);
             }
           }
         }
       }
 
-      console.log(`Loaded ${Object.keys(categoryMetadata).length} categories`);
+      // Recreate each custom category (non-general)
+      for (const [categoryId, metadata] of Object.entries(categoryMetadata)) {
+        if (categoryId !== 'general') { // Skip general since it's handled above
+          // Create the category UI
+          recreateCategoryOnPage(categoryId, metadata.name, metadata.icon);
+
+          // Add websites to the category if any exist
+          const categoryData = categorySites[categoryId];
+          if (categoryData && categoryData.sites) {
+            for (const url of categoryData.sites) {
+              await addWebsiteToExistingCategory(categoryId, url);
+            }
+
+            // Set the enabled state
+            const categoryDiv = document.querySelector(`[data-category="${categoryId}"]`);
+            if (categoryDiv) {
+              const checkbox = categoryDiv.querySelector('.category-enabled-checkbox');
+              if (checkbox) {
+                checkbox.checked = categoryData.enabled !== false; // Default to true if not set
+              }
+            }
+          }
+        }
+      }
+
+      console.log(`Loaded ${Object.keys(categoryMetadata).length} categories plus General category`);
     } catch (error) {
       console.error('Error loading existing categories:', error);
     }
@@ -607,7 +543,7 @@ function setupModalFunctionality() {
     const websiteHTML = `
       <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded" data-website-id="${websiteId}" data-url="${escapeHtml(url)}">
         <span class="text-sm">${escapeHtml(url)}</span>
-        <button class="text-red-500 hover:text-red-700 remove-website-btn" data-url="${url}" data-website-id="${websiteId}">
+        <button class="text-red-500 hover:text-red-700 remove-website-btn" data-url="${url}">
           <i class="fas fa-times text-xs"></i>
         </button>
       </div>
@@ -668,6 +604,9 @@ function setupModalFunctionality() {
     }
   }
 
+  // Migrate simple blocklist data to General category (run once)
+  migrateSimpleBlocklistToGeneral();
+  
   // Load existing categories after all functions are defined
   loadExistingCategories();
   
@@ -678,7 +617,7 @@ function setupModalFunctionality() {
 // Export functions if using modules, otherwise they're global
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    setupSimpleBlocklist,
-    setupModalFunctionality
+    setupModalFunctionality,
+    migrateSimpleBlocklistToGeneral
   };
 }
