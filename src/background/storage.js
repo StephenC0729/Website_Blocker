@@ -1,3 +1,8 @@
+/**
+ * Retrieve data from Chrome extension local storage
+ * @param {string|string[]|Object} keys - Keys to retrieve from storage
+ * @returns {Promise<Object>} Retrieved data object
+ */
 export async function get(keys) {
     try {
         return await chrome.storage.local.get(keys);
@@ -7,6 +12,10 @@ export async function get(keys) {
     }
 }
 
+/**
+ * Store data in Chrome extension local storage
+ * @param {Object} data - Data object to store
+ */
 export async function set(data) {
     try {
         await chrome.storage.local.set(data);
@@ -15,6 +24,10 @@ export async function set(data) {
     }
 }
 
+/**
+ * Merge new data with existing storage data and save the result
+ * @param {Object} data - Data to merge with existing storage
+ */
 export async function merge(data) {
     try {
         const existing = await chrome.storage.local.get(Object.keys(data));
@@ -25,13 +38,13 @@ export async function merge(data) {
     }
 }
 
+/**
+ * Initialize extension storage with default values for timerState
+ * Sets up default pomodoro timer configuration
+ */
 export async function initializeStorage() {
     try {
-        const result = await chrome.storage.local.get(['blockedSites', 'timerState']);
-        
-        if (!result.blockedSites) {
-            await chrome.storage.local.set({ blockedSites: [] });
-        }
+        const result = await chrome.storage.local.get(['timerState']);
         
         if (!result.timerState) {
             await chrome.storage.local.set({ 

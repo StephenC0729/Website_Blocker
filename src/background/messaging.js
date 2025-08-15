@@ -1,15 +1,12 @@
-import * as blocklistService from './blocklist.service.js';
+// Central messaging handler for browser extension background script
+// Coordinates communication between content scripts, popup, and dashboard with backend services
 import * as categoriesService from './categories.service.js';
 import * as timerService from './timer.service.js';
 
+// Action constants for message routing - defines all supported message types
 export const ACTIONS = {
-    // Blocklist actions
-    GET_BLOCKED_SITES: 'getBlockedSites',
-    ADD_BLOCKED_SITE: 'addBlockedSite',
-    REMOVE_BLOCKED_SITE: 'removeBlockedSite',
-    UPDATE_BLOCKED_SITE: 'updateBlockedSite',
     
-    // Category actions
+    // Category actions - manage grouped site blocking by categories
     GET_CATEGORY_SITES: 'getCategorySites',
     ADD_CATEGORY_SITE: 'addCategorySite',
     REMOVE_CATEGORY_SITE: 'removeCategorySite',
@@ -18,7 +15,7 @@ export const ACTIONS = {
     SAVE_CATEGORY_METADATA: 'saveCategoryMetadata',
     GET_CATEGORY_METADATA: 'getCategoryMetadata',
     
-    // Timer actions
+    // Timer actions - handle focus/break session management
     TIMER_STARTED: 'timerStarted',
     TIMER_STOPPED: 'timerStopped',
     TIMER_RESET: 'timerReset',
@@ -27,29 +24,18 @@ export const ACTIONS = {
     GET_TIMER_STATE: 'getTimerState'
 };
 
-export async function handleMessage(request, sender, sendResponse) {
+/**
+ * Main message handler for browser extension runtime messages
+ * Routes messages from content scripts, popup, and dashboard to appropriate services
+ * @param {Object} request - Message object containing action and payload data
+ * @param {Object} sender - Sender information (tab, frame, etc.)
+ * @param {Function} sendResponse - Callback function to send response back to sender
+ */
+export async function handleMessage(request, _sender, sendResponse) {
     try {
         switch (request.action) {
-            case ACTIONS.GET_BLOCKED_SITES:
-                const sites = await blocklistService.getBlockedSites();
-                sendResponse({ success: true, sites });
-                break;
             
-            case ACTIONS.ADD_BLOCKED_SITE:
-                await blocklistService.addBlockedSite(request.url);
-                sendResponse({ success: true });
-                break;
-            
-            case ACTIONS.REMOVE_BLOCKED_SITE:
-                await blocklistService.removeBlockedSite(request.url);
-                sendResponse({ success: true });
-                break;
-            
-            case ACTIONS.UPDATE_BLOCKED_SITE:
-                await blocklistService.updateBlockedSite(request.oldUrl, request.newUrl);
-                sendResponse({ success: true });
-                break;
-            
+            // Category management cases
             case ACTIONS.GET_CATEGORY_SITES:
                 const categorySites = await categoriesService.getCategorySites();
                 sendResponse({ success: true, sites: categorySites });
@@ -85,6 +71,7 @@ export async function handleMessage(request, sender, sendResponse) {
                 sendResponse({ success: true, categories: categoryMetadata });
                 break;
             
+            // Timer management cases
             case ACTIONS.TIMER_STARTED:
                 await timerService.handleTimerStart(request);
                 sendResponse({ success: true });
@@ -115,10 +102,12 @@ export async function handleMessage(request, sender, sendResponse) {
                 sendResponse({ success: true, timerState });
                 break;
             
+            // Fallback for unrecognized actions
             default:
                 sendResponse({ error: 'Unknown action' });
         }
     } catch (error) {
+        // Log errors and send error response back to sender
         console.error('Background message handler error:', error);
         sendResponse({ error: error.message });
     }

@@ -1,37 +1,24 @@
+/**
+ * ContentBlocker class handles website blocking functionality by checking if the current site
+ * should be blocked and displaying a blocking overlay when necessary.
+ */
 class ContentBlocker {
     constructor() {
         this.overlayCreated = false;
         this.init();
     }
 
+    /**
+     * Initialize the content blocker by checking category-based blocking
+     */
     async init() {
-        await this.checkIfBlockedSite();
-        // Also check for category-based blocking
         await this.checkCategoryBlockedSite();
     }
 
-    async checkIfBlockedSite() {
-        try {
-            const currentUrl = window.location.hostname;
-            const response = await chrome.runtime.sendMessage({ 
-                action: 'getBlockedSites' 
-            });
-            
-            if (response.success && response.sites) {
-                const cleanCurrentUrl = this.cleanUrl(currentUrl);
-                const isBlocked = response.sites.some(site => {
-                    return cleanCurrentUrl.includes(site) || site.includes(cleanCurrentUrl);
-                });
-                
-                if (isBlocked && !this.overlayCreated) {
-                    this.showBlockingOverlay('simple');
-                }
-            }
-        } catch (error) {
-            console.error('Error checking blocked sites:', error);
-        }
-    }
 
+    /**
+     * Check if the current site is blocked by any enabled category and show overlay if blocked
+     */
     async checkCategoryBlockedSite() {
         try {
             const currentUrl = window.location.hostname;
@@ -47,7 +34,9 @@ class ContentBlocker {
                 for (const [categoryId, categoryData] of Object.entries(response.sites)) {
                     if (categoryData.enabled && categoryData.sites) {
                         const categoryBlocked = categoryData.sites.some(site => {
-                            return cleanCurrentUrl.includes(site) || site.includes(cleanCurrentUrl);
+                            // Either exact match or current URL is a subdomain of blocked site
+                            return cleanCurrentUrl === site || 
+                                   (cleanCurrentUrl.endsWith('.' + site) && !site.includes('.'));
                         });
                         if (categoryBlocked) {
                             isBlocked = true;
@@ -57,7 +46,7 @@ class ContentBlocker {
                 }
                 
                 if (isBlocked && !this.overlayCreated) {
-                    this.showBlockingOverlay('category');
+                    this.showBlockingOverlay();
                 }
             }
         } catch (error) {
@@ -65,7 +54,10 @@ class ContentBlocker {
         }
     }
 
-    showBlockingOverlay(blockingSystem) {
+    /**
+     * Display a full-screen blocking overlay with motivational message and focus icon
+     */
+    showBlockingOverlay() {
         // Prevent multiple overlays
         if (this.overlayCreated) return;
         this.overlayCreated = true;
@@ -167,6 +159,9 @@ class ContentBlocker {
         this.disablePageInteraction();
     }
 
+    /**
+     * Disable all user interaction with the underlying webpage while keeping overlay functional
+     */
     disablePageInteraction() {
         // Add event listeners to capture and prevent interaction
         const preventEvent = (e) => {
@@ -189,6 +184,9 @@ class ContentBlocker {
         document.addEventListener('touchend', preventEvent, true);
     }
 
+    /**
+     * Remove the blocking overlay and restore normal page interaction
+     */
     removeOverlay() {
         const overlay = document.getElementById('website-blocker-overlay');
         if (overlay) {
@@ -198,11 +196,17 @@ class ContentBlocker {
         }
     }
 
+    /**
+     * Clean and normalize URL for comparison by removing protocol, www, and path
+     * @param {string} url - The URL to clean
+     * @returns {string} The cleaned URL (domain only)
+     */
     cleanUrl(url) {
         return url.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '');
     }
 }
 
+// Initialize ContentBlocker when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         new ContentBlocker();

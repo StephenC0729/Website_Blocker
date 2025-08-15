@@ -2,17 +2,17 @@
 <div class="flex-1 p-6 overflow-auto min-h-full">
   <!-- Organized Blocklist Management -->
   <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-    <!-- Header Section with Set Selector -->
+    <!-- Header Section with Category Selector -->
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-4">
         <h3 class="text-lg font-semibold text-gray-900 flex items-center">
           <i class="fas fa-layer-group text-blue-500 mr-2"></i>
-          Organized Blocklist Sets
+          Organized Blocklist Categories
         </h3>
         <div class="flex items-center space-x-3">
-          <span class="text-sm text-gray-600">Active Set:</span>
+          <span class="text-sm text-gray-600">Active Category:</span>
           <select
-            id="blocklistSetSelector"
+            id="blocklistCategorySelector"
             class="border border-gray-300 rounded-md px-3 py-2 text-sm font-medium"
           >
             <option value="general" selected>General</option>
@@ -32,16 +32,16 @@
     <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
       <p class="text-sm text-blue-800">
         <i class="fas fa-info-circle mr-2"></i>
-        Create organized blocklist sets for different contexts (work, study, etc.). 
-        Select a set above to activate it, then configure its categories below.
-        <strong>Currently configuring: <span id="currentSetName">Set 1</span></strong>
+        Create organized blocklist categories for different contexts (work, study, etc.). 
+        Select a category above to view and manage its websites.
+        <strong>Currently viewing: <span id="currentCategoryName">General</span></strong>
       </p>
     </div>
 
     <!-- Website Categories Section -->
     <div class="space-y-4">
       <div class="flex items-center justify-between">
-        <h4 class="font-medium text-gray-900">Categories in this Set</h4>
+        <h4 class="font-medium text-gray-900">Website Categories</h4>
         <button
           id="addCategoryButton"
           class="bg-green-600 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-green-700 flex items-center"

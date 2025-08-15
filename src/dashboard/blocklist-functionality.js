@@ -3,49 +3,6 @@
  * Handles blocklist management and modal interactions
  */
 
-/**
- * Migration function to move simple blocklist data to General category
- */
-async function migrateSimpleBlocklistToGeneral() {
-  try {
-    // Get existing simple blocklist data
-    const response = await sendMessagePromise({ action: 'getBlockedSites' });
-    if (!response.success || !response.sites || response.sites.length === 0) {
-      console.log('No simple blocklist data to migrate');
-      return;
-    }
-
-    console.log('Migrating simple blocklist sites to General category:', response.sites);
-    
-    // Ensure General category metadata exists
-    await sendMessagePromise({
-      action: 'saveCategoryMetadata',
-      categoryId: 'general',
-      metadata: {
-        name: 'General',
-        icon: 'fas fa-globe',
-        created: Date.now()
-      }
-    });
-    
-    // Add each site to the General category
-    for (const site of response.sites) {
-      await sendMessagePromise({ 
-        action: 'addCategorySite', 
-        url: site, 
-        categoryId: 'general' 
-      });
-      console.log(`Migrated ${site} to General category`);
-    }
-
-    // Optionally clear the old simple blocklist (uncomment if desired)
-    // await sendMessagePromise({ action: 'clearBlockedSites' });
-    
-    console.log('Migration completed successfully');
-  } catch (error) {
-    console.error('Error during migration:', error);
-  }
-}
 
 
 /**
@@ -167,8 +124,8 @@ function setupModalFunctionality() {
       // Add the new category to the page using the recreate function (ensures consistency)
       recreateCategoryOnPage(categoryId, name, icon);
       
-      // Update the blocklist set selector with the new category
-      populateBlocklistSetSelector();
+      // Update the blocklist category selector with the new category
+      populateBlocklistCategorySelector();
       
       // Close modal and clear form
       addCategoryModal.classList.add('hidden');
@@ -410,8 +367,8 @@ function setupModalFunctionality() {
       // Remove category from UI
       categoryDiv.remove();
       
-      // Update the blocklist set selector to remove deleted category
-      populateBlocklistSetSelector();
+      // Update the blocklist category selector to remove deleted category
+      populateBlocklistCategorySelector();
       
       console.log(`Deleted category ${categoryId} and all its websites`);
     } catch (error) {
@@ -561,9 +518,9 @@ function setupModalFunctionality() {
     }
   }
 
-  // Function to populate blocklist set selector from localStorage
-  async function populateBlocklistSetSelector() {
-    const selector = document.getElementById('blocklistSetSelector');
+  // Function to populate blocklist category selector from localStorage
+  async function populateBlocklistCategorySelector() {
+    const selector = document.getElementById('blocklistCategorySelector');
     if (!selector) return;
 
     try {
@@ -597,27 +554,50 @@ function setupModalFunctionality() {
           }
         }
         
-        console.log(`Populated blocklist selector with ${Object.keys(categories).length} categories`);
+        console.log(`Populated category selector with ${Object.keys(categories).length} categories`);
       }
     } catch (error) {
-      console.error('Error populating blocklist set selector:', error);
+      console.error('Error populating blocklist category selector:', error);
     }
   }
 
-  // Migrate simple blocklist data to General category (run once)
-  migrateSimpleBlocklistToGeneral();
+  // Function to setup category selector change listener
+  function setupCategorySelectorListener() {
+    const selector = document.getElementById('blocklistCategorySelector');
+    if (!selector) return;
+
+    selector.addEventListener('change', (e) => {
+      updateCurrentCategoryName(e.target.selectedOptions[0].textContent);
+    });
+
+    // Set initial value
+    if (selector.selectedOptions.length > 0) {
+      updateCurrentCategoryName(selector.selectedOptions[0].textContent);
+    }
+  }
+
+  // Function to update the current category name display
+  function updateCurrentCategoryName(categoryName) {
+    const currentCategoryNameSpan = document.getElementById('currentCategoryName');
+    if (currentCategoryNameSpan) {
+      currentCategoryNameSpan.textContent = categoryName;
+    }
+  }
+
   
   // Load existing categories after all functions are defined
   loadExistingCategories();
   
-  // Populate blocklist set selector from localStorage
-  populateBlocklistSetSelector();
+  // Populate blocklist category selector from localStorage
+  populateBlocklistCategorySelector();
+  
+  // Setup category selector change listener
+  setupCategorySelectorListener();
 }
 
 // Export functions if using modules, otherwise they're global
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    setupModalFunctionality,
-    migrateSimpleBlocklistToGeneral
+    setupModalFunctionality
   };
 }

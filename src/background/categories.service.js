@@ -1,6 +1,14 @@
+/**
+ * Category-based website blocking service
+ * Manages websites grouped into categories with individual enable/disable controls
+ */
 import { get, set } from './storage.js';
-import { cleanUrl } from './blocklist.service.js';
+import { cleanUrl } from './url-utils.js';
 
+/**
+ * Retrieve all category sites data from storage
+ * @returns {Promise<Object>} Object containing all categories with their sites and settings
+ */
 export async function getCategorySites() {
     try {
         const result = await get(['categorySites']);
@@ -11,6 +19,11 @@ export async function getCategorySites() {
     }
 }
 
+/**
+ * Add a website to a specific category
+ * @param {string} url - The URL to add
+ * @param {string} categoryId - The category ID to add the site to
+ */
 export async function addCategorySite(url, categoryId) {
     try {
         const categorySites = await getCategorySites();
@@ -29,6 +42,11 @@ export async function addCategorySite(url, categoryId) {
     }
 }
 
+/**
+ * Remove a website from a specific category
+ * @param {string} url - The URL to remove
+ * @param {string} categoryId - The category ID to remove the site from
+ */
 export async function removeCategorySite(url, categoryId) {
     try {
         const categorySites = await getCategorySites();
@@ -45,6 +63,11 @@ export async function removeCategorySite(url, categoryId) {
     }
 }
 
+/**
+ * Enable or disable blocking for an entire category
+ * @param {string} categoryId - The category ID to toggle
+ * @param {boolean} enabled - Whether to enable or disable the category
+ */
 export async function toggleCategoryBlocking(categoryId, enabled) {
     try {
         const categorySites = await getCategorySites();
@@ -58,6 +81,10 @@ export async function toggleCategoryBlocking(categoryId, enabled) {
     }
 }
 
+/**
+ * Delete an entire category and all its associated sites and metadata
+ * @param {string} categoryId - The category ID to delete
+ */
 export async function deleteCategory(categoryId) {
     try {
         const categorySites = await getCategorySites();
@@ -76,6 +103,10 @@ export async function deleteCategory(categoryId) {
     }
 }
 
+/**
+ * Get a flat array of all blocked sites from enabled categories
+ * @returns {Promise<string[]>} Array of blocked site URLs
+ */
 export async function getCategoryBlockedSites() {
     try {
         const categorySites = await getCategorySites();
@@ -94,6 +125,10 @@ export async function getCategoryBlockedSites() {
     }
 }
 
+/**
+ * Retrieve category metadata (names, descriptions, etc.) from storage
+ * @returns {Promise<Object>} Object containing metadata for all categories
+ */
 export async function getCategoryMetadata() {
     try {
         const result = await get(['categoryMetadata']);
@@ -104,6 +139,11 @@ export async function getCategoryMetadata() {
     }
 }
 
+/**
+ * Save metadata for a specific category (name, description, etc.)
+ * @param {string} categoryId - The category ID to save metadata for
+ * @param {Object} metadata - The metadata object to save
+ */
 export async function saveCategoryMetadata(categoryId, metadata) {
     try {
         const categoryMetadata = await getCategoryMetadata();

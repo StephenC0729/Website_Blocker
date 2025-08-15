@@ -15,7 +15,7 @@ const pageConfig = {
   },
   blocklist: {
     title:
-      '<i class="fas fa-ban text-red-500 mr-2"></i>Blocklist Set Management',
+      '<i class="fas fa-ban text-red-500 mr-2"></i>Blocklist Category Management',
     file: 'components/blocklist-content.html',
   },
   about: {
