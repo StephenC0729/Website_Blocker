@@ -236,9 +236,7 @@ function setupModalFunctionality() {
       return;
     }
 
-    // Check if category is enabled before adding to actual blocklist
-    const categoryCheckbox = targetCategory.querySelector('.category-enabled-checkbox');
-    const isCategoryEnabled = categoryCheckbox ? categoryCheckbox.checked : true;
+    // Categories no longer have enabled checkboxes - all are managed via active category selection
 
     try {
       // Add to category-specific blocklist
@@ -271,7 +269,7 @@ function setupModalFunctionality() {
         });
       }
       
-      console.log(`Added ${url} to ${categoryName} category (blocking: ${isCategoryEnabled})`);
+      console.log(`Added ${url} to ${categoryName} category`);
       
     } catch (error) {
       console.error('Error adding website:', error);
@@ -316,15 +314,7 @@ function setupModalFunctionality() {
   }
 
   function setupCategoryEventListeners(categoryId) {
-    // Enable/disable checkbox handler
-    const checkbox = document.querySelector(`[data-category="${categoryId}"] .category-enabled-checkbox`);
-    if (checkbox) {
-      checkbox.addEventListener('change', async (e) => {
-        await toggleCategoryBlocking(categoryId, e.target.checked);
-      });
-    }
-
-    // Delete category handler
+    // Delete category handler (removed enable/disable checkbox since we use active category selection)
     const deleteBtn = document.querySelector(`[data-category="${categoryId}"] .delete-category-btn`);
     if (deleteBtn) {
       deleteBtn.addEventListener('click', async () => {
@@ -333,21 +323,6 @@ function setupModalFunctionality() {
     }
   }
 
-  async function toggleCategoryBlocking(categoryId, isEnabled) {
-    try {
-      // Use the category-specific toggle API
-      await sendMessagePromise({ 
-        action: 'toggleCategoryBlocking', 
-        categoryId: categoryId, 
-        enabled: isEnabled 
-      });
-      
-      console.log(`Category ${categoryId} ${isEnabled ? 'enabled' : 'disabled'} blocking`);
-    } catch (error) {
-      console.error('Error toggling category blocking:', error);
-      alert('Error updating category blocking');
-    }
-  }
 
   async function deleteCategoryHandler(categoryId) {
     if (!confirm('Are you sure you want to delete this category and all its websites?')) {
@@ -434,15 +409,6 @@ function setupModalFunctionality() {
           if (categoryData && categoryData.sites) {
             for (const url of categoryData.sites) {
               await addWebsiteToExistingCategory(categoryId, url);
-            }
-
-            // Set the enabled state
-            const categoryDiv = document.querySelector(`[data-category="${categoryId}"]`);
-            if (categoryDiv) {
-              const checkbox = categoryDiv.querySelector('.category-enabled-checkbox');
-              if (checkbox) {
-                checkbox.checked = categoryData.enabled !== false; // Default to true if not set
-              }
             }
           }
         }
@@ -562,18 +528,42 @@ function setupModalFunctionality() {
   }
 
   // Function to setup category selector change listener
-  function setupCategorySelectorListener() {
+  async function setupCategorySelectorListener() {
     const selector = document.getElementById('blocklistCategorySelector');
     if (!selector) return;
 
-    selector.addEventListener('change', (e) => {
-      updateCurrentCategoryName(e.target.selectedOptions[0].textContent);
-    });
-
-    // Set initial value
-    if (selector.selectedOptions.length > 0) {
-      updateCurrentCategoryName(selector.selectedOptions[0].textContent);
+    // Load and set the initial active category
+    try {
+      const response = await sendMessagePromise({ action: 'getActiveCategory' });
+      if (response.success && response.activeCategory) {
+        selector.value = response.activeCategory;
+        const selectedOption = selector.options[selector.selectedIndex];
+        if (selectedOption) {
+          updateCurrentCategoryName(selectedOption.textContent);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading active category:', error);
     }
+
+    selector.addEventListener('change', async (e) => {
+      const selectedCategory = e.target.value;
+      const selectedCategoryName = e.target.selectedOptions[0].textContent;
+      
+      try {
+        // Update the active category in storage
+        await sendMessagePromise({ 
+          action: 'setActiveCategory', 
+          categoryId: selectedCategory 
+        });
+        
+        updateCurrentCategoryName(selectedCategoryName);
+        console.log(`Active category set to: ${selectedCategoryName} (${selectedCategory})`);
+      } catch (error) {
+        console.error('Error setting active category:', error);
+        alert('Error updating active category');
+      }
+    });
   }
 
   // Function to update the current category name display
@@ -585,14 +575,27 @@ function setupModalFunctionality() {
   }
 
   
-  // Load existing categories after all functions are defined
-  loadExistingCategories();
+  // Migrate category data on dashboard load (for existing users)
+  async function initializeDashboard() {
+    try {
+      // Run migration to clean up old enabled fields
+      await sendMessagePromise({ action: 'migrateCategoryData' });
+      
+      // Load existing categories after migration
+      loadExistingCategories();
+      
+      // Populate blocklist category selector from localStorage
+      populateBlocklistCategorySelector();
+      
+      // Setup category selector change listener
+      setupCategorySelectorListener();
+    } catch (error) {
+      console.error('Error initializing dashboard:', error);
+    }
+  }
   
-  // Populate blocklist category selector from localStorage
-  populateBlocklistCategorySelector();
-  
-  // Setup category selector change listener
-  setupCategorySelectorListener();
+  // Initialize dashboard
+  initializeDashboard();
 }
 
 // Export functions if using modules, otherwise they're global

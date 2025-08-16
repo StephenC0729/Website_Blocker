@@ -30,7 +30,7 @@ export async function addCategorySite(url, categoryId) {
         const cleanedUrl = cleanUrl(url);
         
         if (!categorySites[categoryId]) {
-            categorySites[categoryId] = { sites: [], enabled: true };
+            categorySites[categoryId] = { sites: [] };
         }
         
         if (!categorySites[categoryId].sites.includes(cleanedUrl)) {
@@ -104,8 +104,55 @@ export async function deleteCategory(categoryId) {
 }
 
 /**
+ * Get the active category ID from storage
+ * @returns {Promise<string>} The active category ID
+ */
+export async function getActiveCategory() {
+    try {
+        const result = await get(['activeCategory']);
+        return result.activeCategory || 'general'; // Default to 'general' category
+    } catch (error) {
+        console.error('Error getting active category:', error);
+        return 'general';
+    }
+}
+
+/**
+ * Set the active category ID in storage
+ * @param {string} categoryId - The category ID to set as active
+ */
+export async function setActiveCategory(categoryId) {
+    try {
+        await set({ activeCategory: categoryId });
+    } catch (error) {
+        console.error('Error setting active category:', error);
+    }
+}
+
+/**
+ * Get sites from the currently active category only
+ * @returns {Promise<string[]>} Array of sites from the active category
+ */
+export async function getActiveCategorySites() {
+    try {
+        const activeCategory = await getActiveCategory();
+        const categorySites = await getCategorySites();
+        
+        if (categorySites[activeCategory] && categorySites[activeCategory].sites) {
+            return categorySites[activeCategory].sites;
+        }
+        
+        return [];
+    } catch (error) {
+        console.error('Error getting active category sites:', error);
+        return [];
+    }
+}
+
+/**
  * Get a flat array of all blocked sites from enabled categories
  * @returns {Promise<string[]>} Array of blocked site URLs
+ * @deprecated Use getActiveCategorySites() for single active category blocking
  */
 export async function getCategoryBlockedSites() {
     try {
@@ -151,5 +198,46 @@ export async function saveCategoryMetadata(categoryId, metadata) {
         await set({ categoryMetadata });
     } catch (error) {
         console.error('Error saving category metadata:', error);
+    }
+}
+
+/**
+ * Migrate existing category data from enabled system to active category system
+ * Removes 'enabled' field from all categories and sets default active category
+ */
+export async function migrateCategoryData() {
+    try {
+        const categorySites = await getCategorySites();
+        let dataChanged = false;
+        
+        // Remove 'enabled' field from all categories
+        for (const [, categoryData] of Object.entries(categorySites)) {
+            if (categoryData.hasOwnProperty('enabled')) {
+                delete categoryData.enabled;
+                dataChanged = true;
+            }
+        }
+        
+        // Save cleaned data if any changes were made
+        if (dataChanged) {
+            await set({ categorySites });
+            console.log('Migrated category data: removed enabled fields');
+        }
+        
+        // Set default active category if none exists
+        const activeCategory = await getActiveCategory();
+        if (!activeCategory || activeCategory === 'general') {
+            // Ensure 'general' category exists or pick the first available category
+            if (categorySites['general'] || Object.keys(categorySites).length === 0) {
+                await setActiveCategory('general');
+            } else {
+                const firstCategory = Object.keys(categorySites)[0];
+                await setActiveCategory(firstCategory);
+            }
+            console.log(`Set default active category: ${await getActiveCategory()}`);
+        }
+        
+    } catch (error) {
+        console.error('Error migrating category data:', error);
     }
 }

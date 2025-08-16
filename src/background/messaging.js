@@ -14,6 +14,10 @@ export const ACTIONS = {
     DELETE_CATEGORY: 'deleteCategory',
     SAVE_CATEGORY_METADATA: 'saveCategoryMetadata',
     GET_CATEGORY_METADATA: 'getCategoryMetadata',
+    GET_ACTIVE_CATEGORY: 'getActiveCategory',
+    SET_ACTIVE_CATEGORY: 'setActiveCategory',
+    GET_ACTIVE_CATEGORY_SITES: 'getActiveCategorySites',
+    MIGRATE_CATEGORY_DATA: 'migrateCategoryData',
     
     // Timer actions - handle focus/break session management
     TIMER_STARTED: 'timerStarted',
@@ -69,6 +73,26 @@ export async function handleMessage(request, _sender, sendResponse) {
             case ACTIONS.GET_CATEGORY_METADATA:
                 const categoryMetadata = await categoriesService.getCategoryMetadata();
                 sendResponse({ success: true, categories: categoryMetadata });
+                break;
+
+            case ACTIONS.GET_ACTIVE_CATEGORY:
+                const activeCategory = await categoriesService.getActiveCategory();
+                sendResponse({ success: true, activeCategory });
+                break;
+
+            case ACTIONS.SET_ACTIVE_CATEGORY:
+                await categoriesService.setActiveCategory(request.categoryId);
+                sendResponse({ success: true });
+                break;
+
+            case ACTIONS.GET_ACTIVE_CATEGORY_SITES:
+                const activeCategorySites = await categoriesService.getActiveCategorySites();
+                sendResponse({ success: true, sites: activeCategorySites });
+                break;
+
+            case ACTIONS.MIGRATE_CATEGORY_DATA:
+                await categoriesService.migrateCategoryData();
+                sendResponse({ success: true });
                 break;
             
             // Timer management cases

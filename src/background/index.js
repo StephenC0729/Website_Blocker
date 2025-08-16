@@ -3,12 +3,15 @@
 
 import { initializeStorage } from './storage.js';
 import { handleMessage } from './messaging.js';
+import { migrateCategoryData } from './categories.service.js';
 
 // Extension installation/update event - fires on first install or version updates
-chrome.runtime.onInstalled.addListener((details) => {
+chrome.runtime.onInstalled.addListener(async (details) => {
     console.log('App Blocker extension installed/updated:', details.reason);
     // Initialize default storage values for new installations
     initializeStorage();
+    // Migrate category data from old enabled system to new active category system
+    await migrateCategoryData();
 });
 
 // Message listener for communication between extension components (popup, content scripts, etc.)

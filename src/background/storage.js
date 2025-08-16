@@ -24,19 +24,6 @@ export async function set(data) {
     }
 }
 
-/**
- * Merge new data with existing storage data and save the result
- * @param {Object} data - Data to merge with existing storage
- */
-export async function merge(data) {
-    try {
-        const existing = await chrome.storage.local.get(Object.keys(data));
-        const merged = { ...existing, ...data };
-        await chrome.storage.local.set(merged);
-    } catch (error) {
-        console.error('Storage merge error:', error);
-    }
-}
 
 /**
  * Initialize extension storage with default values for timerState

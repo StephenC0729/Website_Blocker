@@ -17,33 +17,24 @@ class ContentBlocker {
 
 
     /**
-     * Check if the current site is blocked by any enabled category and show overlay if blocked
+     * Check if the current site is blocked by the active category and show overlay if blocked
      */
     async checkCategoryBlockedSite() {
         try {
             const currentUrl = window.location.hostname;
             const response = await chrome.runtime.sendMessage({ 
-                action: 'getCategorySites' 
+                action: 'getActiveCategorySites' 
             });
             
             if (response.success && response.sites) {
                 const cleanCurrentUrl = this.cleanUrl(currentUrl);
-                let isBlocked = false;
                 
-                // Check all enabled categories
-                for (const [categoryId, categoryData] of Object.entries(response.sites)) {
-                    if (categoryData.enabled && categoryData.sites) {
-                        const categoryBlocked = categoryData.sites.some(site => {
-                            // Either exact match or current URL is a subdomain of blocked site
-                            return cleanCurrentUrl === site || 
-                                   (cleanCurrentUrl.endsWith('.' + site) && !site.includes('.'));
-                        });
-                        if (categoryBlocked) {
-                            isBlocked = true;
-                            break;
-                        }
-                    }
-                }
+                // Check if current site is in the active category's blocked sites
+                const isBlocked = response.sites.some(site => {
+                    // Either exact match or current URL is a subdomain of blocked site
+                    return cleanCurrentUrl === site || 
+                           (cleanCurrentUrl.endsWith('.' + site) && !site.includes('.'));
+                });
                 
                 if (isBlocked && !this.overlayCreated) {
                     this.showBlockingOverlay();
@@ -184,17 +175,6 @@ class ContentBlocker {
         document.addEventListener('touchend', preventEvent, true);
     }
 
-    /**
-     * Remove the blocking overlay and restore normal page interaction
-     */
-    removeOverlay() {
-        const overlay = document.getElementById('website-blocker-overlay');
-        if (overlay) {
-            overlay.remove();
-            document.body.style.overflow = '';
-            this.overlayCreated = false;
-        }
-    }
 
     /**
      * Clean and normalize URL for comparison by removing protocol, www, and path

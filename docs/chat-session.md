@@ -136,4 +136,50 @@ Desired options going forward:
 
 Dev tip:
 
-- Reload the unpacked extension in chrome://extensions after code changes; reloading a page alone won’t update content/background scripts or packaged pages.
+- Reload the unpacked extension in chrome://extensions after code changes; reloading a page alone won't update content/background scripts or packaged pages.
+
+
+## Unused Functions Analysis — 2025-08-16
+
+After comprehensive analysis of all JavaScript files in the project, the following functions appear to be unused and could potentially be removed:
+
+### Confirmed Unused Functions:
+
+1. **`merge` function** - `src/background/storage.js:31`
+   - Purpose: Merges new data with existing storage data
+   - Status: Exported but never called anywhere in the codebase
+   - Safe to remove: Yes
+
+2. **`getCategoryBlockedSites` function** - `src/background/categories.service.js:110` 
+   - Purpose: Returns flat array of blocked sites from enabled categories
+   - Status: Exported but not referenced in messaging.js or any other files
+   - Safe to remove: Yes, unless planned for future content script integration
+
+3. **`openSettings` method** - `src/popup/popup.js:476`
+   - Purpose: Placeholder for settings functionality in PomodoroTimer class
+   - Status: Defined but never called, shows alert "Settings feature coming soon!"
+   - Safe to remove: Yes, until actual settings implementation
+
+4. **`removeOverlay` method** - `src/content/content.js:190`
+   - Purpose: Removes blocking overlay and restores normal page interaction
+   - Status: Defined but no code path currently calls it
+   - Safe to remove: No - needed for future overlay dismissal features
+
+5. **`updateFromBackground` methods** - `src/popup/popup.js:351` and `src/dashboard/dashboard-timer.js:302`
+   - Purpose: Periodic background state synchronization for timer updates
+   - Status: Defined but never invoked by any timer or interval logic
+   - Safe to remove: No - likely needed for cross-interface timer synchronization
+
+### Module Export Patterns (Not Browser Extension Compatible):
+
+6. **Module exports in dashboard files**
+   - Files: `dashboard-main.js`, `dashboard-timer.js`, `dashboard-utils.js`, `blocklist-functionality.js`, `faq-functionality.js`
+   - All contain `module.exports` blocks for Node.js compatibility
+   - Status: Not used since project uses browser globals, not CommonJS modules
+   - Safe to remove: Yes - these are browser extension files, not Node.js modules
+
+### Summary:
+- **Safe to remove**: `merge()`, `getCategoryBlockedSites()`, `openSettings()`, and all `module.exports` blocks
+- **Keep for future features**: `removeOverlay()`, `updateFromBackground()` methods
+- The codebase is generally well-structured with clear usage patterns through Chrome extension messaging and event listeners
+- Most unused functions appear to be either utility functions prepared for future features or placeholder implementations
