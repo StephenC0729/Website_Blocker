@@ -45,3 +45,7 @@ pids
 # Temporary files
 *.tmp
 *.temp
+
+# Swark output
+.swark-output/
+swark-output/
