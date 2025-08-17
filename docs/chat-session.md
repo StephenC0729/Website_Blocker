@@ -17,8 +17,8 @@ Date: 2025-08-13
 
 ## Implemented Features
 
-- Flat blocklist of domains (string array) with navigation interception (`webNavigation.onBeforeNavigate`).
-- Redundant content script enforcement to catch late redirects.
+- Category-based website blocking system with active category selection via `categorySites` and `categoryMetadata` storage.
+- Content script overlay blocking that displays full-screen blocking interface when accessing blocked sites.
 - Pomodoro timer (popup + dashboard) with sessions: pomodoro, short break, long break, custom (dashboard only) using timestamp-based sync.
 - Dark mode toggle (basic).
 
