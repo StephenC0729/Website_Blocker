@@ -275,16 +275,35 @@ class DashboardTimer {
    * Apply timer state from background script
    */
   applyTimerState(timerState) {
+    const wasRunning = this.isRunning;
+    
     this.currentSession = timerState.currentSession;
-    this.timeLeft = timerState.timeLeft;
     this.totalTime = timerState.totalTime;
-    this.isRunning = timerState.isRunning;
     this.sessionCount = timerState.sessionCount;
     this.pomodoroCount = timerState.pomodoroCount;
+
+    // Calculate current time if timer is running in background
+    if (timerState.isRunning && timerState.startTimestamp) {
+      const elapsed = Math.floor((Date.now() - timerState.startTimestamp) / 1000);
+      this.timeLeft = Math.max(0, timerState.timeLeft - elapsed);
+    } else {
+      this.timeLeft = timerState.timeLeft;
+    }
+
+    this.isRunning = timerState.isRunning;
 
     // Update sessions if they exist in the state
     if (timerState.sessions) {
       this.sessions = timerState.sessions;
+    }
+
+    // Start or stop local timer based on background state
+    if (this.isRunning && !wasRunning) {
+      // Timer was started from another interface - start local countdown
+      this.startLocalTimer();
+    } else if (!this.isRunning && wasRunning) {
+      // Timer was stopped from another interface - stop local countdown
+      this.stopLocalTimer();
     }
 
     // Update UI to reflect current state
@@ -431,6 +450,47 @@ class DashboardTimer {
     const seconds =
       parseInt(document.getElementById('customSeconds').value) || 0;
     return minutes * 60 + seconds;
+  }
+
+  /**
+   * Start local timer countdown (for sync from other interfaces)
+   * Does NOT send background messages - only manages local interval
+   */
+  startLocalTimer() {
+    if (this.intervalId) return; // Already running
+    
+    const startBtn = document.getElementById('startButton');
+    const pauseBtn = document.getElementById('pauseButton');
+    
+    if (startBtn) startBtn.classList.add('hidden');
+    if (pauseBtn) pauseBtn.classList.remove('hidden');
+    
+    this.intervalId = setInterval(() => {
+      this.timeLeft--;
+      this.updateDisplay();
+      this.updateProgress();
+
+      if (this.timeLeft <= 0) {
+        this.timerComplete();
+      }
+    }, 1000);
+  }
+
+  /**
+   * Stop local timer countdown (for sync from other interfaces)
+   * Does NOT send background messages - only clears local interval
+   */
+  stopLocalTimer() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+    
+    const startBtn = document.getElementById('startButton');
+    const pauseBtn = document.getElementById('pauseButton');
+    
+    if (startBtn) startBtn.classList.remove('hidden');
+    if (pauseBtn) pauseBtn.classList.add('hidden');
   }
 
   /**
