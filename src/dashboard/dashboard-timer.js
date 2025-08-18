@@ -25,6 +25,7 @@ class DashboardTimer {
     this.sessionCount = 1;
     this.pomodoroCount = 0;
     this.intervalId = null;
+    this._alignTimeout = null;
     this.init();
   }
 
@@ -165,10 +166,14 @@ class DashboardTimer {
     if (startBtn) startBtn.classList.remove('hidden');
     if (pauseBtn) pauseBtn.classList.add('hidden');
 
-    // Clear the local update interval
+    // Clear the local update interval and alignment timeout
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
+    }
+    if (this._alignTimeout) {
+      clearTimeout(this._alignTimeout);
+      this._alignTimeout = null;
     }
   }
 
@@ -282,10 +287,9 @@ class DashboardTimer {
     this.sessionCount = timerState.sessionCount;
     this.pomodoroCount = timerState.pomodoroCount;
 
-    // Calculate current time if timer is running in background
-    if (timerState.isRunning && timerState.startTimestamp) {
-      const elapsed = Math.floor((Date.now() - timerState.startTimestamp) / 1000);
-      this.timeLeft = Math.max(0, timerState.timeLeft - elapsed);
+    // Calculate current time if timer is running in background using endTimestamp
+    if (timerState.isRunning && timerState.endTimestamp) {
+      this.timeLeft = Math.max(0, Math.ceil((timerState.endTimestamp - Date.now()) / 1000));
     } else {
       this.timeLeft = timerState.timeLeft;
     }
@@ -328,12 +332,9 @@ class DashboardTimer {
         if (response.success && response.timerState) {
           const state = response.timerState;
 
-          // Calculate current time based on timestamp
-          if (state.startTimestamp && state.isRunning) {
-            const elapsed = Math.floor(
-              (Date.now() - state.startTimestamp) / 1000
-            );
-            const currentTimeLeft = Math.max(0, state.timeLeft - elapsed);
+          // Calculate current time based on endTimestamp
+          if (state.endTimestamp && state.isRunning) {
+            const currentTimeLeft = Math.max(0, Math.ceil((state.endTimestamp - Date.now()) / 1000));
 
             this.timeLeft = currentTimeLeft;
             this.updateDisplay();
@@ -453,7 +454,7 @@ class DashboardTimer {
   }
 
   /**
-   * Start local timer countdown (for sync from other interfaces)
+   * Start local timer countdown with whole-second boundary alignment
    * Does NOT send background messages - only manages local interval
    */
   startLocalTimer() {
@@ -465,25 +466,38 @@ class DashboardTimer {
     if (startBtn) startBtn.classList.add('hidden');
     if (pauseBtn) pauseBtn.classList.remove('hidden');
     
-    this.intervalId = setInterval(() => {
-      this.timeLeft--;
+    // Calculate endTimestamp from current state
+    const endTs = Date.now() + (this.timeLeft * 1000);
+    
+    const updateFromEndTs = () => {
+      const remainingMs = Math.max(0, endTs - Date.now());
+      this.timeLeft = Math.ceil(remainingMs / 1000);
       this.updateDisplay();
       this.updateProgress();
-
-      if (this.timeLeft <= 0) {
-        this.timerComplete();
-      }
-    }, 1000);
+      if (remainingMs <= 0) this.timerComplete();
+    };
+    
+    // Align to the next whole-second boundary
+    const firstDelay = (endTs - Date.now()) % 1000 || 1000;
+    this.stopLocalTimer(); // clear any interval/timeout
+    this._alignTimeout = setTimeout(() => {
+      updateFromEndTs(); // immediate tick on boundary
+      this.intervalId = setInterval(updateFromEndTs, 1000);
+    }, firstDelay);
   }
 
   /**
    * Stop local timer countdown (for sync from other interfaces)
-   * Does NOT send background messages - only clears local interval
+   * Does NOT send background messages - only clears local interval and alignment timeout
    */
   stopLocalTimer() {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
+    }
+    if (this._alignTimeout) {
+      clearTimeout(this._alignTimeout);
+      this._alignTimeout = null;
     }
     
     const startBtn = document.getElementById('startButton');
@@ -500,6 +514,10 @@ class DashboardTimer {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
+    }
+    if (this._alignTimeout) {
+      clearTimeout(this._alignTimeout);
+      this._alignTimeout = null;
     }
   }
 }

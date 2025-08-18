@@ -22,6 +22,7 @@ class PomodoroTimer {
     this.sessionCount = 1;
     this.pomodoroCount = 0;
     this.intervalId = null;
+    this._alignTimeout = null;
     // Initialize the timer interface
     this.init();
   }
@@ -34,8 +35,7 @@ class PomodoroTimer {
     this.setupEventListeners();
     this.setupStorageListener();
     await this.syncWithBackground();
-    this.updateDisplay();
-    this.updateSessionInfo();
+    // UI updates now happen in applyTimerState after sync completes
   }
 
   /**
@@ -154,10 +154,14 @@ class PomodoroTimer {
     this.isRunning = false;
     document.getElementById('startBtn').textContent = 'Start';
 
-    // Clear the local update interval
+    // Clear the local update interval and alignment timeout
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
+    }
+    if (this._alignTimeout) {
+      clearTimeout(this._alignTimeout);
+      this._alignTimeout = null;
     }
   }
 
@@ -257,10 +261,19 @@ class PomodoroTimer {
    */
   
   /**
-   * Sync local state with background script
+   * Sync local state with optimized strategy: storage first, then background fallback
    */
   async syncWithBackground() {
     try {
+      // Strategy: Try storage first (faster), then background as fallback
+      const result = await chrome.storage.local.get(['timerState']);
+      if (result.timerState) {
+        console.log('Popup syncing with storage state:', result.timerState);
+        this.applyTimerState(result.timerState);
+        return;
+      }
+      
+      // Fallback: get from background script if storage is empty
       const response = await chrome.runtime.sendMessage({
         action: 'getTimerState'
       });
@@ -268,26 +281,12 @@ class PomodoroTimer {
       if (response && response.success && response.timerState) {
         console.log('Popup syncing with background state:', response.timerState);
         this.applyTimerState(response.timerState);
-      } else {
-        // Fallback: try to get directly from storage
-        const result = await chrome.storage.local.get(['timerState']);
-        if (result.timerState) {
-          console.log('Popup syncing with storage state:', result.timerState);
-          this.applyTimerState(result.timerState);
-        }
       }
     } catch (error) {
-      console.error('Error syncing with background:', error);
-      // Fallback: try to get directly from storage
-      try {
-        const result = await chrome.storage.local.get(['timerState']);
-        if (result.timerState) {
-          console.log('Popup fallback sync with storage:', result.timerState);
-          this.applyTimerState(result.timerState);
-        }
-      } catch (storageError) {
-        console.error('Error syncing with storage:', storageError);
-      }
+      console.error('Error syncing with background/storage:', error);
+      // If all fails, ensure UI still renders with default state
+      this.updateDisplay();
+      this.updateSessionInfo();
     }
   }
 
@@ -302,7 +301,7 @@ class PomodoroTimer {
       newIsRunning: timerState.isRunning,
       currentSession: timerState.currentSession,
       timeLeft: timerState.timeLeft,
-      startTimestamp: timerState.startTimestamp
+      endTimestamp: timerState.endTimestamp
     });
     
     this.currentSession = timerState.currentSession;
@@ -310,11 +309,10 @@ class PomodoroTimer {
     this.sessionCount = timerState.sessionCount;
     this.pomodoroCount = timerState.pomodoroCount;
 
-    // Calculate current time if timer is running in background
-    if (timerState.isRunning && timerState.startTimestamp) {
-      const elapsed = Math.floor((Date.now() - timerState.startTimestamp) / 1000);
-      this.timeLeft = Math.max(0, timerState.timeLeft - elapsed);
-      console.log('Timer running - calculated timeLeft:', this.timeLeft, 'elapsed:', elapsed);
+    // Calculate current time if timer is running in background using endTimestamp
+    if (timerState.isRunning && timerState.endTimestamp) {
+      this.timeLeft = Math.max(0, Math.ceil((timerState.endTimestamp - Date.now()) / 1000));
+      console.log('Timer running - calculated timeLeft:', this.timeLeft, 'from endTimestamp:', timerState.endTimestamp);
     } else {
       this.timeLeft = timerState.timeLeft;
     }
@@ -343,6 +341,9 @@ class PomodoroTimer {
     this.updateProgress();
     this.updateSessionTabs();
     this.updateTimerButton();
+    
+    // Immediate tick after state applied - eliminates waiting for first interval
+    this.immediateDisplayUpdate();
   }
 
   /**
@@ -358,10 +359,9 @@ class PomodoroTimer {
         if (response.success && response.timerState) {
           const state = response.timerState;
           
-          // Calculate current time based on timestamp
-          if (state.startTimestamp && state.isRunning) {
-            const elapsed = Math.floor((Date.now() - state.startTimestamp) / 1000);
-            const currentTimeLeft = Math.max(0, state.timeLeft - elapsed);
+          // Calculate current time based on endTimestamp
+          if (state.endTimestamp && state.isRunning) {
+            const currentTimeLeft = Math.max(0, Math.ceil((state.endTimestamp - Date.now()) / 1000));
             
             this.timeLeft = currentTimeLeft;
             this.updateDisplay();
@@ -430,22 +430,31 @@ class PomodoroTimer {
   }
 
   /**
-   * Start local timer countdown (for sync from other interfaces)
+   * Start local timer countdown with whole-second boundary alignment
    */
   startLocalTimer() {
     if (this.intervalId) return; // Already running
     
     document.getElementById('startBtn').textContent = 'Pause';
     
-    this.intervalId = setInterval(() => {
-      this.timeLeft--;
+    // Calculate endTimestamp from current state
+    const endTs = Date.now() + (this.timeLeft * 1000);
+    
+    const updateFromEndTs = () => {
+      const remainingMs = Math.max(0, endTs - Date.now());
+      this.timeLeft = Math.ceil(remainingMs / 1000);
       this.updateDisplay();
       this.updateProgress();
-
-      if (this.timeLeft <= 0) {
-        this.timerComplete();
-      }
-    }, 1000);
+      if (remainingMs <= 0) this.timerComplete();
+    };
+    
+    // Align to the next whole-second boundary
+    const firstDelay = (endTs - Date.now()) % 1000 || 1000;
+    this.stopLocalTimer(); // clear any interval/timeout
+    this._alignTimeout = setTimeout(() => {
+      updateFromEndTs(); // immediate tick on boundary
+      this.intervalId = setInterval(updateFromEndTs, 1000);
+    }, firstDelay);
   }
 
   /**
@@ -456,7 +465,22 @@ class PomodoroTimer {
       clearInterval(this.intervalId);
       this.intervalId = null;
     }
+    if (this._alignTimeout) {
+      clearTimeout(this._alignTimeout);
+      this._alignTimeout = null;
+    }
     document.getElementById('startBtn').textContent = 'Start';
+  }
+
+  /**
+   * Immediate display update after state sync - eliminates tick wait
+   */
+  immediateDisplayUpdate() {
+    if (this.isRunning) {
+      // For running timers, ensure display shows exact current time
+      this.updateDisplay();
+      this.updateProgress();
+    }
   }
 
   /**
@@ -466,6 +490,10 @@ class PomodoroTimer {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
+    }
+    if (this._alignTimeout) {
+      clearTimeout(this._alignTimeout);
+      this._alignTimeout = null;
     }
   }
 

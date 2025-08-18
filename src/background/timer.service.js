@@ -30,12 +30,16 @@ export async function updateTimerState(updates) {
 export async function handleTimerStart(request) {
     try {
         const now = Date.now();
+        const timeLeft = request.timeLeft || request.duration || 25 * 60;
+        const endTimestamp = now + (timeLeft * 1000);
+        
         await updateTimerState({
             isRunning: true,
             startTimestamp: now,
+            endTimestamp: endTimestamp,
             currentSession: request.session || 'pomodoro',
             totalTime: request.duration || 25 * 60,
-            timeLeft: request.timeLeft || request.duration || 25 * 60
+            timeLeft: timeLeft
         });
     } catch (error) {
         console.error('Error handling timer start:', error);
@@ -45,14 +49,15 @@ export async function handleTimerStart(request) {
 export async function handleTimerStop() {
     try {
         const timerState = await getTimerState();
-        if (timerState.isRunning && timerState.startTimestamp) {
-            const elapsed = Math.floor((Date.now() - timerState.startTimestamp) / 1000);
-            const newTimeLeft = Math.max(0, timerState.timeLeft - elapsed);
+        if (timerState.isRunning && timerState.endTimestamp) {
+            const now = Date.now();
+            const newTimeLeft = Math.max(0, Math.ceil((timerState.endTimestamp - now) / 1000));
             
             await updateTimerState({
                 isRunning: false,
                 timeLeft: newTimeLeft,
-                startTimestamp: null
+                startTimestamp: null,
+                endTimestamp: null
             });
         }
     } catch (error) {
@@ -71,6 +76,7 @@ export async function handleTimerReset(request) {
             timeLeft: duration,
             totalTime: duration,
             startTimestamp: null,
+            endTimestamp: null,
             currentSession: session
         });
     } catch (error) {
@@ -84,7 +90,8 @@ export async function handleTimerComplete(request) {
         let updates = {
             isRunning: false,
             timeLeft: 0,
-            startTimestamp: null
+            startTimestamp: null,
+            endTimestamp: null
         };
 
         if (request.session === 'pomodoro') {
@@ -143,7 +150,8 @@ export async function handleSessionSwitch(request) {
                 timeLeft: duration,
                 totalTime: duration,
                 isRunning: false,
-                startTimestamp: null
+                startTimestamp: null,
+                endTimestamp: null
             });
         } else if (duration) {
             await updateTimerState({
@@ -151,7 +159,8 @@ export async function handleSessionSwitch(request) {
                 timeLeft: duration,
                 totalTime: duration,
                 isRunning: false,
-                startTimestamp: null
+                startTimestamp: null,
+                endTimestamp: null
             });
         }
     } catch (error) {
