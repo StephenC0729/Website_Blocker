@@ -259,40 +259,8 @@ class DashboardTimer {
   playNotification(messageOverride) {
     // Play audio notification (always, regardless of browser notification permission)
     this.playAudioNotification();
-    
-    // Debug logging
-    console.log('Notification permission:', Notification.permission);
-    console.log('Message override:', messageOverride);
-    
-    // Show browser notification if permission granted
-    if (Notification.permission === 'granted') {
-      const bodyMessage =
-        messageOverride || this.sessions[this.currentSession].label;
-      const iconUrl = chrome.runtime.getURL('src/assets/icons/Icon.png');
-      
-      console.log('Creating notification with body:', bodyMessage);
-      
-      const notification = new Notification('Productivity Timer', {
-        body: bodyMessage,
-        icon: iconUrl,
-        requireInteraction: false,
-        silent: false
-      });
-      
-      notification.onclick = () => {
-        console.log('Notification clicked');
-        notification.close();
-      };
-      
-      notification.onerror = (error) => {
-        console.error('Notification error:', error);
-      };
-      
-      console.log('Notification created:', notification);
-    } else {
-      console.log('Notification permission not granted:', Notification.permission);
-    }
   }
+
 
   playAudioNotification() {
     try {
@@ -642,13 +610,6 @@ function setupDashboardFunctionality() {
     });
   }
 
-  // Request notification permission
-  if (
-    Notification.permission !== 'granted' &&
-    Notification.permission !== 'denied'
-  ) {
-    Notification.requestPermission();
-  }
 }
 
 // Export functions if using modules, otherwise they're global

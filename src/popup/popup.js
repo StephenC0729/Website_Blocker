@@ -259,18 +259,8 @@ class PomodoroTimer {
   playNotification(messageOverride) {
     // Play audio notification (always, regardless of browser notification permission)
     this.playAudioNotification();
-
-    // Show browser notification if permission granted
-    if (Notification.permission === 'granted') {
-      const bodyMessage =
-        messageOverride || this.sessions[this.currentSession].label;
-      const iconUrl = chrome.runtime.getURL('src/assets/icons/Icon.png');
-      new Notification('Pomodoro Timer', {
-        body: bodyMessage,
-        icon: iconUrl,
-      });
-    }
   }
+
 
   playAudioNotification() {
     try {
@@ -560,13 +550,6 @@ class PomodoroTimer {
  * Sets up notification permissions and dashboard navigation
  */
 document.addEventListener('DOMContentLoaded', () => {
-  // Request notification permission if not already granted or denied
-  if (
-    Notification.permission !== 'granted' &&
-    Notification.permission !== 'denied'
-  ) {
-    Notification.requestPermission();
-  }
 
   // Dashboard button navigation - opens full dashboard in new tab
   document
