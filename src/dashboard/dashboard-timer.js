@@ -35,6 +35,7 @@ class DashboardTimer {
     await this.syncWithBackground();
     this.updateDisplay();
     this.updateSessionInfo();
+    this.setupDebugControls();
   }
 
   setupEventListeners() {
@@ -203,8 +204,18 @@ class DashboardTimer {
       pomodoroCount: this.pomodoroCount,
     });
 
-    // Play notification
-    this.playNotification();
+    // Determine next session label for a more accurate notification
+    let nextLabel = null;
+    if (this.currentSession === 'pomodoro') {
+      const nextIsLong = (this.pomodoroCount + 1) % 4 === 0;
+      const nextKey = nextIsLong ? 'long-break' : 'short-break';
+      nextLabel = this.sessions[nextKey]?.label || 'Break time!';
+    } else if (this.currentSession !== 'custom') {
+      nextLabel = this.sessions['pomodoro']?.label || 'Time to focus!';
+    }
+
+    // Play notification (use next session message when available)
+    this.playNotification(nextLabel);
 
     // Sync state from background (which handles the session switching logic)
     await this.syncWithBackground();
@@ -245,13 +256,94 @@ class DashboardTimer {
       sessionTypeEl.textContent = this.sessions[this.currentSession].label;
   }
 
-  playNotification() {
+  playNotification(messageOverride) {
+    // Play audio notification (always, regardless of browser notification permission)
+    this.playAudioNotification();
+    
+    // Debug logging
+    console.log('Notification permission:', Notification.permission);
+    console.log('Message override:', messageOverride);
+    
+    // Show browser notification if permission granted
     if (Notification.permission === 'granted') {
-      const sessionLabel = this.sessions[this.currentSession].label;
-      new Notification('Productivity Timer', {
-        body: sessionLabel,
-        icon: '/src/assets/icons/Icon.png',
+      const bodyMessage =
+        messageOverride || this.sessions[this.currentSession].label;
+      const iconUrl = chrome.runtime.getURL('src/assets/icons/Icon.png');
+      
+      console.log('Creating notification with body:', bodyMessage);
+      
+      const notification = new Notification('Productivity Timer', {
+        body: bodyMessage,
+        icon: iconUrl,
+        requireInteraction: false,
+        silent: false
       });
+      
+      notification.onclick = () => {
+        console.log('Notification clicked');
+        notification.close();
+      };
+      
+      notification.onerror = (error) => {
+        console.error('Notification error:', error);
+      };
+      
+      console.log('Notification created:', notification);
+    } else {
+      console.log('Notification permission not granted:', Notification.permission);
+    }
+  }
+
+  playAudioNotification() {
+    try {
+      const audioUrl = chrome.runtime.getURL('src/assets/sounds/notification.mp3');
+      const audio = new Audio(audioUrl);
+      audio.volume = 0.7; // Adjust volume (0.0 to 1.0)
+      audio.play().catch(error => {
+        console.log('Audio notification failed (user interaction may be required):', error);
+      });
+    } catch (error) {
+      console.error('Error playing audio notification:', error);
+    }
+  }
+
+  /**
+   * Debug-only: inject a fast-forward button when enabled via localStorage
+   * Enable with: localStorage.setItem('DEBUG_TIMER', 'true')
+   */
+  setupDebugControls() {
+    try {
+      const debugEnabled = localStorage.getItem('DEBUG_TIMER') === 'true';
+      if (!debugEnabled) return;
+
+      const buttonsRow = document.querySelector(
+        '.flex.space-x-4.justify-center'
+      );
+      if (!buttonsRow || document.getElementById('fastForwardButton')) return;
+
+      const ffBtn = document.createElement('button');
+      ffBtn.id = 'fastForwardButton';
+      ffBtn.className =
+        'bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors';
+      ffBtn.innerHTML = '<i class="fas fa-forward mr-2"></i>FF';
+      ffBtn.title = 'Fast-forward to session end (debug)';
+      ffBtn.addEventListener('click', () => this.fastForwardToEnd());
+
+      buttonsRow.appendChild(ffBtn);
+    } catch (error) {
+      console.error('Error setting up dashboard debug controls:', error);
+    }
+  }
+
+  /**
+   * Debug-only: immediately complete the current session (triggers notification)
+   */
+  async fastForwardToEnd() {
+    try {
+      this.timeLeft = 0;
+      await this.timerComplete();
+    } catch (error) {
+      console.error('Error fast-forwarding dashboard timer:', error);
     }
   }
 
@@ -281,7 +373,7 @@ class DashboardTimer {
    */
   applyTimerState(timerState) {
     const wasRunning = this.isRunning;
-    
+
     this.currentSession = timerState.currentSession;
     this.totalTime = timerState.totalTime;
     this.sessionCount = timerState.sessionCount;
@@ -289,7 +381,10 @@ class DashboardTimer {
 
     // Calculate current time if timer is running in background using endTimestamp
     if (timerState.isRunning && timerState.endTimestamp) {
-      this.timeLeft = Math.max(0, Math.ceil((timerState.endTimestamp - Date.now()) / 1000));
+      this.timeLeft = Math.max(
+        0,
+        Math.ceil((timerState.endTimestamp - Date.now()) / 1000)
+      );
     } else {
       this.timeLeft = timerState.timeLeft;
     }
@@ -334,7 +429,10 @@ class DashboardTimer {
 
           // Calculate current time based on endTimestamp
           if (state.endTimestamp && state.isRunning) {
-            const currentTimeLeft = Math.max(0, Math.ceil((state.endTimestamp - Date.now()) / 1000));
+            const currentTimeLeft = Math.max(
+              0,
+              Math.ceil((state.endTimestamp - Date.now()) / 1000)
+            );
 
             this.timeLeft = currentTimeLeft;
             this.updateDisplay();
@@ -459,16 +557,16 @@ class DashboardTimer {
    */
   startLocalTimer() {
     if (this.intervalId) return; // Already running
-    
+
     const startBtn = document.getElementById('startButton');
     const pauseBtn = document.getElementById('pauseButton');
-    
+
     if (startBtn) startBtn.classList.add('hidden');
     if (pauseBtn) pauseBtn.classList.remove('hidden');
-    
+
     // Calculate endTimestamp from current state
-    const endTs = Date.now() + (this.timeLeft * 1000);
-    
+    const endTs = Date.now() + this.timeLeft * 1000;
+
     const updateFromEndTs = () => {
       const remainingMs = Math.max(0, endTs - Date.now());
       this.timeLeft = Math.ceil(remainingMs / 1000);
@@ -476,7 +574,7 @@ class DashboardTimer {
       this.updateProgress();
       if (remainingMs <= 0) this.timerComplete();
     };
-    
+
     // Align to the next whole-second boundary
     const firstDelay = (endTs - Date.now()) % 1000 || 1000;
     this.stopLocalTimer(); // clear any interval/timeout
@@ -499,10 +597,10 @@ class DashboardTimer {
       clearTimeout(this._alignTimeout);
       this._alignTimeout = null;
     }
-    
+
     const startBtn = document.getElementById('startButton');
     const pauseBtn = document.getElementById('pauseButton');
-    
+
     if (startBtn) startBtn.classList.remove('hidden');
     if (pauseBtn) pauseBtn.classList.add('hidden');
   }
@@ -558,6 +656,6 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     DashboardTimer,
     setupDashboardFunctionality,
-    dashboardTimer
+    dashboardTimer,
   };
 }

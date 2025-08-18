@@ -24,6 +24,12 @@
       "js": ["src/content/content.js"]
     }
   ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/assets/sounds/*"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; object-src 'self'"
   }

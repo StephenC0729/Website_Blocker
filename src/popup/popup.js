@@ -73,7 +73,7 @@ class PomodoroTimer {
     // Notify background script about session switch
     chrome.runtime.sendMessage({
       action: 'switchSession',
-      session: sessionType
+      session: sessionType,
     });
 
     // Update local state (will be synced from background)
@@ -120,7 +120,7 @@ class PomodoroTimer {
       action: 'timerStarted',
       session: this.currentSession,
       duration: this.totalTime,
-      timeLeft: this.timeLeft
+      timeLeft: this.timeLeft,
     });
 
     // Update local state
@@ -171,11 +171,11 @@ class PomodoroTimer {
    */
   async resetTimer() {
     await this.stopTimer();
-    
+
     // Notify background script about timer reset
     chrome.runtime.sendMessage({
       action: 'timerReset',
-      session: this.currentSession
+      session: this.currentSession,
     });
 
     // Update local state (will be synced from background)
@@ -199,8 +199,18 @@ class PomodoroTimer {
       pomodoroCount: this.pomodoroCount,
     });
 
-    // Play notification
-    this.playNotification();
+    // Determine next session label for a more accurate notification
+    let nextLabel = null;
+    if (this.currentSession === 'pomodoro') {
+      const nextIsLong = (this.pomodoroCount + 1) % 4 === 0;
+      const nextKey = nextIsLong ? 'long-break' : 'short-break';
+      nextLabel = this.sessions[nextKey]?.label || 'Break time!';
+    } else if (this.currentSession !== 'custom') {
+      nextLabel = this.sessions['pomodoro']?.label || 'Time to focus!';
+    }
+
+    // Play notification (use next session message when available)
+    this.playNotification(nextLabel);
 
     // Sync state from background (which handles the session switching logic)
     await this.syncWithBackground();
@@ -246,20 +256,44 @@ class PomodoroTimer {
    * Play browser notification when session completes
    * Only shows if user has granted notification permission
    */
-  playNotification() {
+  playNotification(messageOverride) {
+    // Play audio notification (always, regardless of browser notification permission)
+    this.playAudioNotification();
+
+    // Show browser notification if permission granted
     if (Notification.permission === 'granted') {
-      const sessionLabel = this.sessions[this.currentSession].label;
+      const bodyMessage =
+        messageOverride || this.sessions[this.currentSession].label;
+      const iconUrl = chrome.runtime.getURL('src/assets/icons/Icon.png');
       new Notification('Pomodoro Timer', {
-        body: sessionLabel,
-        icon: '/icon.png',
+        body: bodyMessage,
+        icon: iconUrl,
       });
+    }
+  }
+
+  playAudioNotification() {
+    try {
+      const audioUrl = chrome.runtime.getURL(
+        'src/assets/sounds/notification.mp3'
+      );
+      const audio = new Audio(audioUrl);
+      audio.volume = 0.7; // Adjust volume (0.0 to 1.0)
+      audio.play().catch((error) => {
+        console.log(
+          'Audio notification failed (user interaction may be required):',
+          error
+        );
+      });
+    } catch (error) {
+      console.error('Error playing audio notification:', error);
     }
   }
 
   /**
    * Synchronization Methods for Background Communication
    */
-  
+
   /**
    * Sync local state with optimized strategy: storage first, then background fallback
    */
@@ -272,14 +306,17 @@ class PomodoroTimer {
         this.applyTimerState(result.timerState);
         return;
       }
-      
+
       // Fallback: get from background script if storage is empty
       const response = await chrome.runtime.sendMessage({
-        action: 'getTimerState'
+        action: 'getTimerState',
       });
-      
+
       if (response && response.success && response.timerState) {
-        console.log('Popup syncing with background state:', response.timerState);
+        console.log(
+          'Popup syncing with background state:',
+          response.timerState
+        );
         this.applyTimerState(response.timerState);
       }
     } catch (error) {
@@ -295,15 +332,15 @@ class PomodoroTimer {
    */
   applyTimerState(timerState) {
     const wasRunning = this.isRunning;
-    
+
     console.log('Popup applying timer state:', {
       wasRunning,
       newIsRunning: timerState.isRunning,
       currentSession: timerState.currentSession,
       timeLeft: timerState.timeLeft,
-      endTimestamp: timerState.endTimestamp
+      endTimestamp: timerState.endTimestamp,
     });
-    
+
     this.currentSession = timerState.currentSession;
     this.totalTime = timerState.totalTime;
     this.sessionCount = timerState.sessionCount;
@@ -311,8 +348,16 @@ class PomodoroTimer {
 
     // Calculate current time if timer is running in background using endTimestamp
     if (timerState.isRunning && timerState.endTimestamp) {
-      this.timeLeft = Math.max(0, Math.ceil((timerState.endTimestamp - Date.now()) / 1000));
-      console.log('Timer running - calculated timeLeft:', this.timeLeft, 'from endTimestamp:', timerState.endTimestamp);
+      this.timeLeft = Math.max(
+        0,
+        Math.ceil((timerState.endTimestamp - Date.now()) / 1000)
+      );
+      console.log(
+        'Timer running - calculated timeLeft:',
+        this.timeLeft,
+        'from endTimestamp:',
+        timerState.endTimestamp
+      );
     } else {
       this.timeLeft = timerState.timeLeft;
     }
@@ -341,7 +386,7 @@ class PomodoroTimer {
     this.updateProgress();
     this.updateSessionTabs();
     this.updateTimerButton();
-    
+
     // Immediate tick after state applied - eliminates waiting for first interval
     this.immediateDisplayUpdate();
   }
@@ -353,20 +398,23 @@ class PomodoroTimer {
     if (this.isRunning) {
       try {
         const response = await chrome.runtime.sendMessage({
-          action: 'getTimerState'
+          action: 'getTimerState',
         });
-        
+
         if (response.success && response.timerState) {
           const state = response.timerState;
-          
+
           // Calculate current time based on endTimestamp
           if (state.endTimestamp && state.isRunning) {
-            const currentTimeLeft = Math.max(0, Math.ceil((state.endTimestamp - Date.now()) / 1000));
-            
+            const currentTimeLeft = Math.max(
+              0,
+              Math.ceil((state.endTimestamp - Date.now()) / 1000)
+            );
+
             this.timeLeft = currentTimeLeft;
             this.updateDisplay();
             this.updateProgress();
-            
+
             // Check if timer completed
             if (currentTimeLeft <= 0) {
               this.timerComplete();
@@ -401,7 +449,6 @@ class PomodoroTimer {
     });
   }
 
-
   /**
    * Update session tabs visual state
    */
@@ -409,12 +456,14 @@ class PomodoroTimer {
     document.querySelectorAll('.session-tab').forEach((tab) => {
       tab.classList.remove('active');
     });
-    
-    const activeTab = document.querySelector(`[data-session="${this.currentSession}"]`);
+
+    const activeTab = document.querySelector(
+      `[data-session="${this.currentSession}"]`
+    );
     if (activeTab) {
       activeTab.classList.add('active');
     }
-    
+
     // Update body theme
     document.body.className = this.currentSession;
   }
@@ -434,12 +483,12 @@ class PomodoroTimer {
    */
   startLocalTimer() {
     if (this.intervalId) return; // Already running
-    
+
     document.getElementById('startBtn').textContent = 'Pause';
-    
+
     // Calculate endTimestamp from current state
-    const endTs = Date.now() + (this.timeLeft * 1000);
-    
+    const endTs = Date.now() + this.timeLeft * 1000;
+
     const updateFromEndTs = () => {
       const remainingMs = Math.max(0, endTs - Date.now());
       this.timeLeft = Math.ceil(remainingMs / 1000);
@@ -447,7 +496,7 @@ class PomodoroTimer {
       this.updateProgress();
       if (remainingMs <= 0) this.timerComplete();
     };
-    
+
     // Align to the next whole-second boundary
     const firstDelay = (endTs - Date.now()) % 1000 || 1000;
     this.stopLocalTimer(); // clear any interval/timeout
@@ -520,9 +569,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Dashboard button navigation - opens full dashboard in new tab
-  document.getElementById('dashboardBtn').addEventListener('click', function() {
-    chrome.tabs.create({url: chrome.runtime.getURL('src/dashboard/index.html')});
-  });
+  document
+    .getElementById('dashboardBtn')
+    .addEventListener('click', function () {
+      chrome.tabs.create({
+        url: chrome.runtime.getURL('src/dashboard/index.html'),
+      });
+    });
 
   // Initialize the Pomodoro Timer
   const timer = new PomodoroTimer();
@@ -531,7 +584,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('beforeunload', () => {
     timer.cleanup();
   });
-  
+
   // Cleanup when popup loses focus (Chrome extension specific)
   window.addEventListener('blur', () => {
     timer.cleanup();
