@@ -545,6 +545,53 @@ class PomodoroTimer {
 }
 
 /**
+ * Check if current site is already blocked in general category
+ * Updates button appearance based on blocking status
+ */
+async function checkCurrentSiteStatus() {
+  const addSiteBtn = document.getElementById('addSiteBtn');
+  
+  try {
+    // Get current active tab
+    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+    
+    // Skip check for non-http(s) URLs
+    if (!tab.url.startsWith('http://') && !tab.url.startsWith('https://')) {
+      return;
+    }
+    
+    // Get category sites from storage
+    const response = await chrome.runtime.sendMessage({
+      action: 'getCategorySites'
+    });
+    
+    if (response.success && response.sites) {
+      const generalCategory = response.sites.general;
+      
+      // Check if current site is in general category
+      if (generalCategory && generalCategory.sites) {
+        // Use same URL cleaning logic as background (basic domain extraction)
+        const currentDomain = tab.url
+          .replace(/^https?:\/\//, '')
+          .replace(/^www\./, '')
+          .replace(/\/.*$/, '');
+        
+        const isBlocked = generalCategory.sites.some(blockedSite => 
+          blockedSite === currentDomain
+        );
+        
+        if (isBlocked) {
+          // Site is already blocked - show white tick
+          addSiteBtn.innerHTML = '<i class="fas fa-check" style="color: white;"></i>';
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error checking site status:', error);
+  }
+}
+
+/**
  * Add current tab to blocklist in general category
  * Sets general as active category and reloads tab for immediate blocking
  */
@@ -554,7 +601,6 @@ async function addCurrentSiteToBlocklist() {
   try {
     // Disable button while processing
     addSiteBtn.disabled = true;
-    addSiteBtn.textContent = 'Adding...';
     
     // Get current active tab
     const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
@@ -580,12 +626,9 @@ async function addCurrentSiteToBlocklist() {
     // Reload the tab to apply blocking
     await chrome.tabs.reload(tab.id);
     
-    // Success feedback
-    addSiteBtn.textContent = 'Added!';
-    setTimeout(() => {
-      addSiteBtn.textContent = 'Add Site';
-      addSiteBtn.disabled = false;
-    }, 1500);
+    // Success feedback - show white tick permanently to indicate site is blocked
+    addSiteBtn.innerHTML = '<i class="fas fa-check" style="color: white;"></i>';
+    addSiteBtn.disabled = false;
     
   } catch (error) {
     // Error feedback
@@ -616,6 +659,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('addSiteBtn').addEventListener('click', async () => {
     await addCurrentSiteToBlocklist();
   });
+
+  // Check if current site is already blocked and update button appearance
+  checkCurrentSiteStatus();
 
   // Initialize the Pomodoro Timer
   const timer = new PomodoroTimer();
