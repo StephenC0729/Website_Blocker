@@ -186,8 +186,6 @@
   │   │           └── settings.css
   │   │
   │   ├── pages/
-  │   │   ├── blocked.html           # Blocked site page
-  │   │   ├── blocked.js
   │   │   ├── options.html           # Extension options page
   │   │   ├── options.js
   │   │   └── login.html             # Future auth page

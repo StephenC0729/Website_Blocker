@@ -36,6 +36,10 @@ Core Dashboard Features:
 - [ ] Lockdown mode: prevent settings changes during active sessions
 - [ ] Different blocking rules for work vs break periods
 - [ ] Updated notifications when a session ends
+  - [ ] Different notification sounds for different session types (work/break)
+  - [ ] User-configurable notification preferences in Settings Management
+  - [ ] Optional browser notifications in addition to audio
+  - [ ] Notification scheduling based on session completion patterns
 
 3. Enhanced Blocking System
 

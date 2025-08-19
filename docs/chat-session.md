@@ -10,7 +10,7 @@ Date: 2025-08-13
 ## High-Level Architecture Summary
 
 - Background service worker manages blocklist + timer state via `chrome.storage.local` (keys: `blockedSites`, `timerState`).
-- Content script checks current hostname and redirects to blocked page if needed.
+- Content script checks current hostname and shows overlay blocking interface if site is blocked.
 - Popup implements a Pomodoro timer UI synced with background state.
 - Dashboard provides expanded timer + planned analytics & blocklist management (many features still static scaffolding).
 - AuthManager (localStorage-based) exists but not integrated into dashboard/popup flows.
@@ -55,7 +55,7 @@ Date: 2025-08-13
 ## Edge Cases to Handle
 
 - Concurrent popup + dashboard controlling timer
-- Rapid domain redirects (ensure minimal flicker)
+- Overlay display timing (ensure minimal flicker when blocking activates)
 - Subdomain matching (decide exact vs substring)
 - Schedule crossing midnight boundaries
 - Storage write contention (batch or debounce updates)
