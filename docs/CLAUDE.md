@@ -33,8 +33,12 @@ Core Dashboard Features:
 - [x] Full Pomodoro timer interface
 - [x] Session type switching (work/short break/long break)
 - [x] Timer configuration and settings
+- [ ] **Timer-Blocking Integration**: Optional unified mode linking Pomodoro timer with blocking categories
+  - [ ] Toggle to enable/disable unified mode (maintains backward compatibility)
+  - [ ] Automatic category activation during focus sessions
+  - [ ] Category switching during break periods
+  - [ ] Per-category timer integration settings
 - [ ] Lockdown mode: prevent settings changes during active sessions
-- [ ] Different blocking rules for work vs break periods
 - [ ] Updated notifications when a session ends
   - [ ] Different notification sounds for different session types (work/break)
   - [ ] User-configurable notification preferences in Settings Management
@@ -50,11 +54,15 @@ Core Dashboard Features:
   - [x] Custom website lists for that specific category
 - [x] Website blocking categories management with full CRUD operations
 - [x] Add/remove/edit blocked sites by category within each custom category
-- [ ] Integration with Pomodoro timer: different sets can be automatically activated during work vs break periods
+- [ ] Enhanced timer integration with blocking categories (see Timer-Blocking Integration in Advanced Timer Management)
 
 4. Settings Management
 
 - [ ] Timer configurations (work/break durations)
+- [ ] **Timer-Blocking Integration Settings**
+  - [ ] Toggle unified mode on/off
+  - [ ] Configure which categories activate for focus/break sessions
+  - [ ] Integration behavior preferences
 - [ ] Blocking preferences and schedules
 - [ ] Notification settings
 - [ ] UI preferences and themes

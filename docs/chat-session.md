@@ -33,13 +33,6 @@ Date: 2025-08-13
 - Settings persistence beyond timer defaults
 - React component architecture / build pipeline
 
-## Issues / Inconsistencies Identified
-
-1. Duplicate timer logic between popup and dashboard (risk of divergence).
-2. Static blocklist UI markup (no dynamic data binding to storage).
-3. No analytics or history logging despite UI placeholders (empty charts, session history list).
-4. Auth system unconnected to any restricted actions.
-
 ## Recommended Next Steps (Ordered)
 
 1. Extract shared timer client module to remove duplicate logic.
@@ -59,19 +52,6 @@ Date: 2025-08-13
 - Subdomain matching (decide exact vs substring)
 - Schedule crossing midnight boundaries
 - Storage write contention (batch or debounce updates)
-
-## Proposed New Shared Utilities
-
-- `src/shared/utils/url.js` for `cleanUrl`
-- `src/shared/services/timerClient.js`
-- `src/shared/services/blockSetService.js`
-- `src/shared/services/analyticsService.js`
-
-
-## Follow-Up Options
-
-- Add dynamic rendering to blocklist page
-- Add analytics logging scaffold
 
 ## Domain matching analysis — 2025-08-16
 
@@ -181,3 +161,50 @@ After comprehensive analysis of all JavaScript files in the project, the followi
 - Optionally filter the categories list to only the selected active category for clarity (or add a toggle to show all).
 - Broadcast active category changes and listen in content scripts to re-evaluate blocking without reload (e.g., message `activeCategoryChanged`).
 - Consider adding metadata for `general` in storage on migration for consistency.
+
+## Timer-Blocking Integration Plan — 2025-08-19
+
+### Feature Overview
+Implement optional unified mode that links Pomodoro timer with blocking categories, while maintaining backward compatibility with independent operation.
+
+### Architecture Plan
+
+**Feature flag**: `settings.unifiedModeEnabled: boolean` in storage.js. Default `false`.
+
+**Single orchestrator in background**: A tiny coordinator that listens for timer start/stop and applies/releases the chosen blocklist category when unified mode is ON. Independent behavior remains untouched when OFF.
+
+**Stable contracts**:
+- Messages: `settings:getUnifiedMode`, `settings:setUnifiedMode`, `focus:start`, `focus:stop`, `categories:apply`, `categories:release`
+- Session state: `{ mode: 'independent' | 'unified', phase: 'idle' | 'focus' | 'break', activeCategoryId, timerSessionId }`
+
+**UI gating in popup**:
+- Add a toggle "Unify timer and blocklist"
+- When ON: show a single "Start Focus" control and selected category; gray out separate controls or funnel them through the orchestrator
+- When OFF: keep current separate controls
+
+**Edge cases**:
+- Switching modes mid-session: confirm and either end/transition the current session, or defer the switch until it ends
+- Changing category mid-focus: decide whether to re-apply immediately or lock during focus (recommended: lock or warn)
+
+**Forward-compatible with analytics**: include mode on all future events so you can compare unified vs independent behavior later.
+
+### Implementation Considerations
+
+**Category Mapping Configuration**:
+- `settings.focusCategoryId` and `settings.breakCategoryId` in storage
+- UI in settings panel to select categories for each phase
+
+**Error Resilience**: 
+- If `categories:apply` fails during `focus:start`, fallback to independent mode for that session
+- User notification of the issue
+
+**Notification Enhancement**: 
+- In unified mode, notifications could mention active category: "Focus session complete with Social Media blocked"
+
+### Implementation Priority
+1. Storage structure + feature flag
+2. Background orchestrator 
+3. UI toggle and gating
+4. Edge case handling
+
+This design will provide rich session data with mode/phase/category context for future analytics implementation.
