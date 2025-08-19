@@ -164,55 +164,8 @@
             <canvas id="weeklyChart" width="400" height="200"></canvas>
         </div>
 
-        <!-- 
-            Category Breakdown Chart Card
-            Pie chart showing distribution of blocked website categories
-        -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                <i class="fas fa-chart-pie text-orange-500 mr-2"></i>
-                Blocked Categories
-            </h3>
-            <!-- Chart.js Canvas for Category Pie Chart -->
-            <canvas id="categoryChart" width="400" height="200"></canvas>
-        </div>
     </div>
 
-    <!-- 
-        Website Blocking Management Section
-        Controls for managing blocked websites and categories
-    -->
-    <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
-        <!-- Blocking Section Header with Controls -->
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-semibold text-gray-900">
-                <i class="fas fa-shield-alt text-red-500 mr-2"></i>
-                Website Blocking
-            </h3>
-            <div class="flex items-center space-x-4">
-                <!-- Blocking Mode Selector -->
-                <div class="flex items-center">
-                    <span class="text-sm text-gray-600 mr-2">Mode:</span>
-                    <select id="blockingMode" class="border border-gray-300 rounded-md px-3 py-1 text-sm">
-                        <option value="pomodoro">Pomodoro Mode</option>
-                        <option value="strict">Strict Mode</option>
-                    </select>
-                </div>
-                <!-- Add Category Button -->
-                <button id="addCategoryButton" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
-                    <i class="fas fa-plus mr-2"></i>Add Category
-                </button>
-            </div>
-        </div>
-
-        <!-- 
-            Categories List Container
-            Dynamic list of website blocking categories populated by JavaScript
-        -->
-        <div id="categoriesList" class="space-y-4">
-            <!-- Website categories (Social Media, Entertainment, etc.) will be populated here by JavaScript -->
-        </div>
-    </div>
 
     <!-- 
         Settings Panel (Initially Hidden)
