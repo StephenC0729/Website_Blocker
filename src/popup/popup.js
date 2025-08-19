@@ -261,7 +261,6 @@ class PomodoroTimer {
     this.playAudioNotification();
   }
 
-
   playAudioNotification() {
     try {
       const audioUrl = chrome.runtime.getURL(
@@ -546,11 +545,64 @@ class PomodoroTimer {
 }
 
 /**
+ * Add current tab to blocklist in general category
+ * Sets general as active category and reloads tab for immediate blocking
+ */
+async function addCurrentSiteToBlocklist() {
+  const addSiteBtn = document.getElementById('addSiteBtn');
+  
+  try {
+    // Disable button while processing
+    addSiteBtn.disabled = true;
+    addSiteBtn.textContent = 'Adding...';
+    
+    // Get current active tab
+    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+    
+    // Guard against non-http(s) URLs
+    if (!tab.url.startsWith('http://') && !tab.url.startsWith('https://')) {
+      throw new Error('Cannot block non-web pages');
+    }
+    
+    // Add to general category (background will normalize URL with cleanUrl)
+    await chrome.runtime.sendMessage({
+      action: 'addCategorySite',
+      url: tab.url,
+      categoryId: 'general'
+    });
+    
+    // Set general as active category for immediate blocking
+    await chrome.runtime.sendMessage({
+      action: 'setActiveCategory',
+      categoryId: 'general'
+    });
+    
+    // Reload the tab to apply blocking
+    await chrome.tabs.reload(tab.id);
+    
+    // Success feedback
+    addSiteBtn.textContent = 'Added!';
+    setTimeout(() => {
+      addSiteBtn.textContent = 'Add Site';
+      addSiteBtn.disabled = false;
+    }, 1500);
+    
+  } catch (error) {
+    // Error feedback
+    console.error('Error adding site:', error);
+    addSiteBtn.textContent = 'Error';
+    setTimeout(() => {
+      addSiteBtn.textContent = 'Add Site';  
+      addSiteBtn.disabled = false;
+    }, 2000);
+  }
+}
+
+/**
  * Initialize popup when DOM is fully loaded
  * Sets up notification permissions and dashboard navigation
  */
 document.addEventListener('DOMContentLoaded', () => {
-
   // Dashboard button navigation - opens full dashboard in new tab
   document
     .getElementById('dashboardBtn')
@@ -559,6 +611,11 @@ document.addEventListener('DOMContentLoaded', () => {
         url: chrome.runtime.getURL('src/dashboard/index.html'),
       });
     });
+
+  // Add Site button - adds current tab to general category and blocks immediately
+  document.getElementById('addSiteBtn').addEventListener('click', async () => {
+    await addCurrentSiteToBlocklist();
+  });
 
   // Initialize the Pomodoro Timer
   const timer = new PomodoroTimer();
