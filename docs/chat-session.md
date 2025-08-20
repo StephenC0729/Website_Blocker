@@ -194,3 +194,39 @@ Verified unified toggle, settings, orchestrator, and message routing exist and a
 
 **Expected Outcome**: Seamless real-time blocking updates as timer phases change, eliminating need for manual page reloads.
 
+## Unified Mode UX Optimization Plan — 2025-08-21
+
+### Current State Analysis
+The unified mode feature exists in the popup with both toggle control and detailed category selection dropdowns (`popup.html:27-72`). While functional, this creates UI clutter and suboptimal user experience.
+
+### Recommended Split Implementation
+
+**Popup Page (Quick Controls)**:
+- ✅ Keep unified mode toggle switch - frequently used on/off control
+- 🔄 Remove detailed category selection dropdowns to reduce clutter  
+- 🔄 Show current active categories when unified mode is enabled
+- 🔄 Streamline interface for mobile-friendly popup experience
+
+**Dashboard Page (Detailed Configuration)**:
+- 🔄 Move category selection controls (Focus Category, Break Category) to dashboard settings
+- 🔄 Add advanced unified mode configuration options:
+  - Per-category timer integration settings
+  - Automatic switching preferences  
+  - Integration behavior customization
+- 🔄 Implement progressive disclosure for power users
+
+### Implementation Benefits
+1. **Frequency-Based Design**: Toggle (daily use) vs Configuration (set-and-forget)
+2. **Space Optimization**: Cleaner popup interface with reduced vertical space usage
+3. **User Mental Model**: Popup = "Do something now", Dashboard = "Configure how things work"  
+4. **Progressive Disclosure**: Simple toggle for new users, detailed config for power users
+5. **Mobile-Friendly**: Simplified popup works better in constrained popup window
+
+### Tasks
+- [ ] Move category selection dropdowns from popup to dashboard settings page
+- [ ] Add "current categories" display to popup when unified mode is active
+- [ ] Implement advanced unified mode settings in dashboard
+- [ ] Update unified orchestrator to read configuration from dashboard settings
+- [ ] Ensure settings persistence across popup/dashboard interfaces
+- [ ] Test user flow from popup toggle to dashboard configuration
+
