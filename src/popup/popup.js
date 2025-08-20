@@ -34,6 +34,7 @@ class PomodoroTimer {
   async init() {
     this.setupEventListeners();
     this.setupStorageListener();
+    await this.initializeUnifiedMode();
     await this.syncWithBackground();
     // UI updates now happen in applyTimerState after sync completes
   }
@@ -46,6 +47,7 @@ class PomodoroTimer {
     const sessionTabs = document.querySelectorAll('.session-tab');
     const startBtn = document.getElementById('startBtn');
     const resetBtn = document.getElementById('resetBtn');
+    const unifiedModeToggle = document.getElementById('unifiedModeToggle');
 
     // Session tab switching - allows user to select Pomodoro/Break types
     sessionTabs.forEach((tab) => {
@@ -57,6 +59,20 @@ class PomodoroTimer {
     // Timer control buttons
     startBtn.addEventListener('click', () => this.toggleTimer());
     resetBtn.addEventListener('click', () => this.resetTimer());
+
+    // Unified mode toggle
+    unifiedModeToggle.addEventListener('change', (e) => {
+      this.toggleUnifiedMode(e.target.checked);
+    });
+
+    // Category selection change handlers
+    document.getElementById('focusCategory').addEventListener('change', (e) => {
+      this.updateSettings({ focusCategoryId: e.target.value });
+    });
+
+    document.getElementById('breakCategory').addEventListener('change', (e) => {
+      this.updateSettings({ breakCategoryId: e.target.value || null });
+    });
   }
 
   /**
@@ -115,6 +131,17 @@ class PomodoroTimer {
    * Syncs with background script for cross-interface synchronization
    */
   async startTimer() {
+    // Check if unified mode and handle focus start
+    const settings = await this.getSettings();
+    if (settings.unifiedModeEnabled && this.currentSession === 'pomodoro') {
+      chrome.runtime.sendMessage({
+        action: 'focusStart',
+        sessionId: Date.now().toString(),
+        session: this.currentSession,
+        duration: this.totalTime
+      });
+    }
+
     // Notify background script that timer started
     chrome.runtime.sendMessage({
       action: 'timerStarted',
@@ -126,6 +153,8 @@ class PomodoroTimer {
     // Update local state
     this.isRunning = true;
     document.getElementById('startBtn').textContent = 'Pause';
+
+    // Note: Unified mode UI no longer hides during timer
 
     // Start local countdown for smooth UI updates
     this.intervalId = setInterval(() => {
@@ -145,6 +174,14 @@ class PomodoroTimer {
    * Syncs pause state with background script
    */
   async stopTimer() {
+    // Check if unified mode and handle focus stop
+    const settings = await this.getSettings();
+    if (settings.unifiedModeEnabled && this.currentSession === 'pomodoro') {
+      chrome.runtime.sendMessage({
+        action: 'focusStop'
+      });
+    }
+
     // Notify background script that timer stopped
     chrome.runtime.sendMessage({
       action: 'timerStopped',
@@ -153,6 +190,8 @@ class PomodoroTimer {
     // Update local state
     this.isRunning = false;
     document.getElementById('startBtn').textContent = 'Start';
+
+    // Note: Unified mode UI no longer hides during timer
 
     // Clear the local update interval and alignment timeout
     if (this.intervalId) {
@@ -376,6 +415,8 @@ class PomodoroTimer {
     this.updateSessionTabs();
     this.updateTimerButton();
 
+    // Note: Unified mode UI no longer changes based on timer state
+
     // Immediate tick after state applied - eliminates waiting for first interval
     this.immediateDisplayUpdate();
   }
@@ -532,6 +573,156 @@ class PomodoroTimer {
     if (this._alignTimeout) {
       clearTimeout(this._alignTimeout);
       this._alignTimeout = null;
+    }
+  }
+
+  /**
+   * Initialize unified mode functionality
+   */
+  async initializeUnifiedMode() {
+    try {
+      const settings = await this.getSettings();
+      const categories = await this.getCategories();
+      
+      // Update UI state
+      document.getElementById('unifiedModeToggle').checked = settings.unifiedModeEnabled;
+      this.updateUnifiedModeUI(settings.unifiedModeEnabled);
+      
+      // Populate category selects
+      this.populateCategorySelects(categories, settings);
+    } catch (error) {
+      console.error('Error initializing unified mode:', error);
+    }
+  }
+
+  /**
+   * Update unified mode UI visibility and controls
+   * @param {boolean} isEnabled - Whether unified mode is enabled
+   */
+  updateUnifiedModeUI(isEnabled) {
+    const unifiedControls = document.getElementById('unifiedControls');
+    const sessionTabs = document.getElementById('sessionTabs');
+    
+    if (isEnabled) {
+      unifiedControls.style.display = 'block';
+      // Gray out session tabs in unified mode (still functional but visually indicates unified control)
+      sessionTabs.style.opacity = '0.7';
+    } else {
+      unifiedControls.style.display = 'none';
+      sessionTabs.style.opacity = '1';
+    }
+  }
+
+  /**
+   * Populate category selection dropdowns
+   */
+  populateCategorySelects(categories, settings) {
+    const focusSelect = document.getElementById('focusCategory');
+    const breakSelect = document.getElementById('breakCategory');
+    
+    if (!focusSelect || !breakSelect) {
+      console.error('Missing category select elements:', { focusSelect, breakSelect });
+      return;
+    }
+    
+    // Clear existing options except defaults
+    focusSelect.innerHTML = '<option value="general">General</option>';
+    breakSelect.innerHTML = '<option value="">None (restore previous)</option><option value="general">General</option>';
+    
+    // Add categories
+    Object.entries(categories).forEach(([categoryId, metadata]) => {
+      if (categoryId !== 'general') {
+        const option1 = new Option(metadata.name, categoryId);
+        const option2 = new Option(metadata.name, categoryId);
+        focusSelect.add(option1);
+        breakSelect.add(option2);
+      }
+    });
+    
+    // Set current selections
+    focusSelect.value = settings.focusCategoryId || 'general';
+    breakSelect.value = settings.breakCategoryId || '';
+  }
+
+  /**
+   * Toggle unified mode
+   */
+  async toggleUnifiedMode(enabled) {
+    try {
+      await chrome.runtime.sendMessage({
+        action: 'setUnifiedMode',
+        enabled: enabled
+      });
+      
+      this.updateUnifiedModeUI(enabled);
+    } catch (error) {
+      console.error('Error toggling unified mode:', error);
+      // Revert toggle on error
+      document.getElementById('unifiedModeToggle').checked = !enabled;
+    }
+  }
+
+  /**
+   * Update settings
+   */
+  async updateSettings(newSettings) {
+    try {
+      const currentSettings = await this.getSettings();
+      await chrome.runtime.sendMessage({
+        action: 'setSettings',
+        settings: { ...currentSettings, ...newSettings }
+      });
+    } catch (error) {
+      console.error('Error updating settings:', error);
+    }
+  }
+
+  /**
+   * Get current settings from background
+   */
+  async getSettings() {
+    try {
+      const response = await chrome.runtime.sendMessage({
+        action: 'getSettings'
+      });
+      
+      if (response.success) {
+        return response.settings;
+      }
+      
+      // Return defaults if no settings
+      return {
+        unifiedModeEnabled: false,
+        focusCategoryId: 'general',
+        breakCategoryId: null
+      };
+    } catch (error) {
+      console.error('Error getting settings:', error);
+      return {
+        unifiedModeEnabled: false,
+        focusCategoryId: 'general',
+        breakCategoryId: null
+      };
+    }
+  }
+
+  /**
+   * Get categories from background
+   */
+  async getCategories() {
+    try {
+      const response = await chrome.runtime.sendMessage({
+        action: 'getCategoryMetadata'
+      });
+      
+      if (response.success) {
+        return response.categories || {};
+      }
+      
+      return {};
+    } catch (error) {
+      console.error('Error getting categories:', error);
+      return {};
     }
   }
 

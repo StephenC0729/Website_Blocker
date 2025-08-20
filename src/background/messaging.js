@@ -2,6 +2,8 @@
 // Coordinates communication between content scripts, popup, and dashboard with backend services
 import * as categoriesService from './categories.service.js';
 import * as timerService from './timer.service.js';
+import * as settingsService from './settings.service.js';
+import * as unifiedOrchestrator from './unified-orchestrator.js';
 
 // Action constants for message routing - defines all supported message types
 export const ACTIONS = {
@@ -18,6 +20,8 @@ export const ACTIONS = {
     SET_ACTIVE_CATEGORY: 'setActiveCategory',
     GET_ACTIVE_CATEGORY_SITES: 'getActiveCategorySites',
     MIGRATE_CATEGORY_DATA: 'migrateCategoryData',
+    CATEGORIES_APPLY: 'categoriesApply',
+    CATEGORIES_RELEASE: 'categoriesRelease',
     
     // Timer actions - handle focus/break session management
     TIMER_STARTED: 'timerStarted',
@@ -25,7 +29,15 @@ export const ACTIONS = {
     TIMER_RESET: 'timerReset',
     TIMER_COMPLETE: 'timerComplete',
     SWITCH_SESSION: 'switchSession',
-    GET_TIMER_STATE: 'getTimerState'
+    GET_TIMER_STATE: 'getTimerState',
+    FOCUS_START: 'focusStart',
+    FOCUS_STOP: 'focusStop',
+    
+    // Settings actions - unified mode configuration
+    GET_UNIFIED_MODE: 'getUnifiedMode',
+    SET_UNIFIED_MODE: 'setUnifiedMode',
+    GET_SETTINGS: 'getSettings',
+    SET_SETTINGS: 'setSettings'
 };
 
 /**
@@ -124,6 +136,60 @@ export async function handleMessage(request, _sender, sendResponse) {
             case ACTIONS.GET_TIMER_STATE:
                 const timerState = await timerService.getTimerState();
                 sendResponse({ success: true, timerState });
+                break;
+            
+            // Unified mode and settings cases
+            case ACTIONS.GET_SETTINGS:
+                const settings = await settingsService.getSettings();
+                sendResponse({ success: true, settings });
+                break;
+            
+            case ACTIONS.SET_SETTINGS:
+                const oldSettings = await settingsService.getSettings();
+                await settingsService.setSettings(request.settings);
+                
+                // Handle mode switch if unified mode changed
+                if (oldSettings.unifiedModeEnabled !== request.settings.unifiedModeEnabled) {
+                    await unifiedOrchestrator.handleModeSwitch(request.settings.unifiedModeEnabled);
+                }
+                sendResponse({ success: true });
+                break;
+            
+            case ACTIONS.GET_UNIFIED_MODE:
+                const unifiedMode = await settingsService.getUnifiedMode();
+                sendResponse({ success: true, unifiedMode });
+                break;
+            
+            case ACTIONS.SET_UNIFIED_MODE:
+                const currentSettings = await settingsService.getSettings();
+                await settingsService.setUnifiedMode(request.enabled);
+                
+                // Handle mode switch
+                if (currentSettings.unifiedModeEnabled !== request.enabled) {
+                    await unifiedOrchestrator.handleModeSwitch(request.enabled);
+                }
+                sendResponse({ success: true });
+                break;
+            
+            // Unified orchestrator cases
+            case ACTIONS.FOCUS_START:
+                await unifiedOrchestrator.handleFocusStart(request);
+                sendResponse({ success: true });
+                break;
+            
+            case ACTIONS.FOCUS_STOP:
+                await unifiedOrchestrator.handleFocusStop();
+                sendResponse({ success: true });
+                break;
+            
+            case ACTIONS.CATEGORIES_APPLY:
+                await unifiedOrchestrator.applyCategory(request.categoryId);
+                sendResponse({ success: true });
+                break;
+            
+            case ACTIONS.CATEGORIES_RELEASE:
+                await unifiedOrchestrator.releaseCategory();
+                sendResponse({ success: true });
                 break;
             
             // Fallback for unrecognized actions

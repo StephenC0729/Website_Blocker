@@ -24,8 +24,17 @@
         <h1>Pomodoro Timer</h1>
       </div>
 
+      <!-- Unified mode toggle -->
+      <div class="unified-mode-section" id="unifiedModeSection">
+        <label class="unified-toggle">
+          <input type="checkbox" id="unifiedModeToggle">
+          <span class="toggle-slider"></span>
+          <span class="toggle-label">Unify timer and blocklist</span>
+        </label>
+      </div>
+
       <!-- Session type selector tabs - Pomodoro, Short Break, Long Break -->
-      <div class="session-tabs">
+      <div class="session-tabs" id="sessionTabs">
         <button class="session-tab active" data-session="pomodoro">
           Pomodoro
         </button>
@@ -45,8 +54,25 @@
         <div class="progress-fill" id="progressFill"></div>
       </div>
 
+      <!-- Unified mode category selection -->
+      <div class="unified-controls" id="unifiedControls" style="display: none;">
+        <div class="category-selection">
+          <label for="focusCategory">Focus Category:</label>
+          <select id="focusCategory" class="category-select">
+            <option value="general">General</option>
+          </select>
+        </div>
+        <div class="category-selection">
+          <label for="breakCategory">Break Category:</label>
+          <select id="breakCategory" class="category-select">
+            <option value="">None (restore previous)</option>
+            <option value="general">General</option>
+          </select>
+        </div>
+      </div>
+
       <!-- Timer control buttons - Start/Pause and Reset -->
-      <div class="timer-controls">
+      <div class="timer-controls" id="timerControls">
         <button class="control-btn" id="startBtn">Start</button>
         <button class="control-btn" id="resetBtn">Reset</button>
       </div>

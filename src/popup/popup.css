@@ -1,7 +1,7 @@
 /* Main popup container - fixed dimensions for Chrome extension popup */
 body {
   width: 300px;
-  height: 400px;
+  height: 480px; /* Increased height to accommodate unified mode controls */
   margin: 0;
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -19,12 +19,12 @@ body {
   text-align: center;
   width: 100%;
   height: 100%;
-  padding: 15px;
+  padding: 12px; /* Reduced padding to save space */
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 10px; /* Consistent spacing between elements */
+  gap: 8px; /* Reduced gap to save space */
 }
 
 /* Header section styling */
@@ -36,6 +36,90 @@ body {
   margin: 0;
   font-size: 18px;
   font-weight: 300; /* Light weight for modern look */
+  color: white;
+}
+
+/* Unified mode toggle section */
+.unified-mode-section {
+  margin: 6px 0;
+}
+
+.unified-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.unified-toggle input[type="checkbox"] {
+  display: none;
+}
+
+.toggle-slider {
+  width: 40px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  position: relative;
+  transition: background 0.3s;
+}
+
+.toggle-slider::before {
+  content: '';
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s;
+}
+
+.unified-toggle input:checked + .toggle-slider {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.unified-toggle input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+}
+
+.toggle-label {
+  color: white;
+  font-weight: 300;
+}
+
+/* Unified mode controls */
+.unified-controls {
+  width: 100%;
+  margin: 6px 0;
+}
+
+.category-selection {
+  margin: 4px 0;
+  text-align: left;
+}
+
+.category-selection label {
+  display: block;
+  font-size: 11px;
+  margin-bottom: 4px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.category-select {
+  width: 100%;
+  padding: 4px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 11px;
+}
+
+.category-select option {
+  background: #333;
   color: white;
 }
 

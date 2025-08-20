@@ -1,4 +1,5 @@
 import { get, set } from './storage.js';
+import * as unifiedOrchestrator from './unified-orchestrator.js';
 
 export async function getTimerState() {
     try {
@@ -94,7 +95,11 @@ export async function handleTimerComplete(request) {
             endTimestamp: null
         };
 
+        // Handle unified mode orchestration
         if (request.session === 'pomodoro') {
+            // Pomodoro completed - handle focus stop in unified mode
+            await unifiedOrchestrator.handleFocusStop();
+            
             const newPomodoroCount = timerState.pomodoroCount + 1;
             const newSessionCount = timerState.sessionCount + 1;
             
@@ -117,6 +122,11 @@ export async function handleTimerComplete(request) {
                 totalTime: nextDuration
             };
         } else if (request.session !== 'custom') {
+            // Break completed - handle break complete in unified mode
+            if (request.session === 'short-break' || request.session === 'long-break') {
+                await unifiedOrchestrator.handleBreakComplete();
+            }
+            
             const duration = timerState.sessions.pomodoro.duration;
             updates = {
                 ...updates,
