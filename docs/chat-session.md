@@ -162,49 +162,35 @@ After comprehensive analysis of all JavaScript files in the project, the followi
 - Broadcast active category changes and listen in content scripts to re-evaluate blocking without reload (e.g., message `activeCategoryChanged`).
 - Consider adding metadata for `general` in storage on migration for consistency.
 
-## Timer-Blocking Integration Plan — 2025-08-19
+## Unified Timer-Blocking Feature Status — 2025-08-20
 
-### Feature Overview
-Implement optional unified mode that links Pomodoro timer with blocking categories, while maintaining backward compatibility with independent operation.
+### Implementation Complete ✅
 
-### Architecture Plan
+Verified unified toggle, settings, orchestrator, and message routing exist and are consistent across popup.js, settings.service.js, unified-orchestrator.js, and messaging.js.
 
-**Feature flag**: `settings.unifiedModeEnabled: boolean` in storage.js. Default `false`.
+**Core Components Implemented:**
+- Unified Orchestrator (`src/background/unified-orchestrator.js`) - Session coordination logic
+- Settings Service (`src/background/settings.service.js`) - Configuration management  
+- UI Toggle (`src/popup/popup.html:30-33`) - "Unify timer and blocklist" checkbox
+- Message routing integration with extension messaging system
+- Automatic category switching during focus/break sessions
+- Session state management and notification system
 
-**Single orchestrator in background**: A tiny coordinator that listens for timer start/stop and applies/releases the chosen blocklist category when unified mode is ON. Independent behavior remains untouched when OFF.
+### Recommended Enhancements 🔧
 
-**Stable contracts**:
-- Messages: `settings:getUnifiedMode`, `settings:setUnifiedMode`, `focus:start`, `focus:stop`, `categories:apply`, `categories:release`
-- Session state: `{ mode: 'independent' | 'unified', phase: 'idle' | 'focus' | 'break', activeCategoryId, timerSessionId }`
+**Priority: High** - These improvements are essential for a polished unified experience:
 
-**UI gating in popup**:
-- Add a toggle "Unify timer and blocklist"
-- When ON: show a single "Start Focus" control and selected category; gray out separate controls or funnel them through the orchestrator
-- When OFF: keep current separate controls
+1. **Real-time Content Script Updates** (`src/content/content.js`):
+   - Add storage listener for `activeCategory` changes
+   - Implement dynamic overlay removal when categories switch
+   - Enable immediate blocking state changes without page reload
 
-**Edge cases**:
-- Switching modes mid-session: confirm and either end/transition the current session, or defer the switch until it ends
-- Changing category mid-focus: decide whether to re-apply immediately or lock during focus (recommended: lock or warn)
+2. **Automatic Break Completion Handling**:
+   - Call `handleBreakComplete()` when break timers end
+   - Ensure proper category restoration after break sessions
+   - Prevent manual intervention requirements between timer phases
 
-**Forward-compatible with analytics**: include mode on all future events so you can compare unified vs independent behavior later.
+**Current Gap**: When unified timer switches categories (focus → break), existing tabs don't respond until reloaded. Overlays may persist inappropriately when sites should become accessible during breaks.
 
-### Implementation Considerations
+**Expected Outcome**: Seamless real-time blocking updates as timer phases change, eliminating need for manual page reloads.
 
-**Category Mapping Configuration**:
-- `settings.focusCategoryId` and `settings.breakCategoryId` in storage
-- UI in settings panel to select categories for each phase
-
-**Error Resilience**: 
-- If `categories:apply` fails during `focus:start`, fallback to independent mode for that session
-- User notification of the issue
-
-**Notification Enhancement**: 
-- In unified mode, notifications could mention active category: "Focus session complete with Social Media blocked"
-
-### Implementation Priority
-1. Storage structure + feature flag
-2. Background orchestrator 
-3. UI toggle and gating
-4. Edge case handling
-
-This design will provide rich session data with mode/phase/category context for future analytics implementation.
