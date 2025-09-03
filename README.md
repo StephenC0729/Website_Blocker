@@ -54,20 +54,46 @@ src/
 │   ├── timer.service.js # Pomodoro timer management
 │   ├── categories.service.js # Website category management
 │   ├── unified-orchestrator.js # Timer-blocking coordination
-│   └── ...
+│   ├── settings.service.js # Settings management
+│   ├── messaging.js     # Cross-context messaging handler
+│   ├── storage.js       # Chrome Storage API wrapper
+│   └── url-utils.js     # URL cleaning and validation utilities
 ├── content/             # Content script for website blocking
 │   └── content.js       # Blocking overlay injection
 ├── dashboard/           # Full-screen management interface
 │   ├── index.html       # Main dashboard layout
-│   └── ...
+│   ├── navigation.html  # Dashboard navigation sidebar
+│   ├── dashboard-main.js # Main dashboard functionality
+│   ├── dashboard-timer.js # Dashboard timer integration
+│   ├── dashboard-utils.js # Utility functions for dashboard
+│   ├── blocklist-functionality.js # Blocklist management
+│   ├── faq-functionality.js # FAQ section functionality
+│   └── components/      # Dashboard HTML components
+│       ├── dashboard-content.html
+│       ├── blocklist-content.html
+│       ├── faq-content.html
+│       └── about-content.html
 ├── popup/               # Extension popup interface
 │   ├── popup.html       # Popup layout
 │   ├── popup.js         # Timer interface logic
 │   └── popup.css        # Popup styling
+├── pages/               # Additional pages
+│   └── login.html       # Login page (for future auth features)
+├── shared/              # Shared utilities across contexts
+│   └── services/
+│       └── authService.js # Authentication service
 └── assets/              # Icons, sounds, and styling
-    ├── icons/
-    ├── sounds/
-    └── css/
+    ├── icons/           # Extension icons and UI icons
+    │   ├── Icon.png
+    │   ├── Icon.svg
+    │   └── Add_Site.svg
+    ├── sounds/          # Audio notifications
+    │   └── notification.mp3
+    ├── css/             # Stylesheets and frameworks
+    │   ├── font-awesome.css
+    │   └── tailwind.css
+    └── fonts/           # Font files
+        └── fa-solid-900.woff2
 ```
 
 ## Installation
