@@ -111,6 +111,11 @@ export async function handleTimerReset(request) {
 export async function handleTimerComplete(request) {
   try {
     const timerState = await getTimerState();
+    const now = Date.now();
+    // Compute actual duration from startTimestamp when available
+    const actualSec = timerState && timerState.startTimestamp
+      ? Math.max(0, Math.round((now - timerState.startTimestamp) / 1000))
+      : undefined;
     let updates = {
       isRunning: false,
       timeLeft: 0,
@@ -165,9 +170,9 @@ export async function handleTimerComplete(request) {
 
     await updateTimerState(updates);
 
-    // Log analytics for session completion
+    // Log analytics for session completion (pass actualSec to ensure robust recording)
     try {
-      await analyticsService.logSessionComplete({ session: request.session });
+      await analyticsService.logSessionComplete({ session: request.session, actualSec });
     } catch (e) {
       console.warn('Analytics logSessionComplete failed:', e);
     }

@@ -131,13 +131,27 @@ class DashboardTimer {
   }
 
   async startTimer() {
-    // Notify background script that timer started
-    chrome.runtime.sendMessage({
-      action: 'timerStarted',
-      session: this.currentSession,
-      duration: this.totalTime,
-      timeLeft: this.timeLeft,
-    });
+    // Notify background script that timer started (await to avoid race with completion)
+    try {
+      if (typeof sendMessagePromise === 'function') {
+        await sendMessagePromise({
+          action: 'timerStarted',
+          session: this.currentSession,
+          duration: this.totalTime,
+          timeLeft: this.timeLeft,
+        });
+      } else {
+        // Fallback if utility isn't available
+        chrome.runtime.sendMessage({
+          action: 'timerStarted',
+          session: this.currentSession,
+          duration: this.totalTime,
+          timeLeft: this.timeLeft,
+        });
+      }
+    } catch (e) {
+      console.warn('Failed to send timerStarted message before start:', e);
+    }
 
     // Update local state
     this.isRunning = true;
@@ -161,9 +175,15 @@ class DashboardTimer {
 
   async stopTimer() {
     // Notify background script that timer stopped
-    chrome.runtime.sendMessage({
-      action: 'timerStopped',
-    });
+    try {
+      if (typeof sendMessagePromise === 'function') {
+        await sendMessagePromise({ action: 'timerStopped' });
+      } else {
+        chrome.runtime.sendMessage({ action: 'timerStopped' });
+      }
+    } catch (e) {
+      console.warn('Failed to send timerStopped message:', e);
+    }
 
     // Update local state
     this.isRunning = false;
@@ -188,10 +208,21 @@ class DashboardTimer {
     await this.stopTimer();
 
     // Notify background script about timer reset
-    chrome.runtime.sendMessage({
-      action: 'timerReset',
-      session: this.currentSession,
-    });
+    try {
+      if (typeof sendMessagePromise === 'function') {
+        await sendMessagePromise({
+          action: 'timerReset',
+          session: this.currentSession,
+        });
+      } else {
+        chrome.runtime.sendMessage({
+          action: 'timerReset',
+          session: this.currentSession,
+        });
+      }
+    } catch (e) {
+      console.warn('Failed to send timerReset message:', e);
+    }
 
     // Update local state (will be synced from background)
     this.timeLeft = this.sessions[this.currentSession].duration;
@@ -201,14 +232,27 @@ class DashboardTimer {
   }
 
   async timerComplete() {
-    await this.stopTimer();
+    // Stop only the local UI timer to avoid clearing startTimestamp in background
+    this.stopLocalTimer();
 
-    // Notify background script about timer completion
-    chrome.runtime.sendMessage({
-      action: 'timerComplete',
-      session: this.currentSession,
-      pomodoroCount: this.pomodoroCount,
-    });
+    // Notify background script about timer completion (await to ensure analytics records)
+    try {
+      if (typeof sendMessagePromise === 'function') {
+        await sendMessagePromise({
+          action: 'timerComplete',
+          session: this.currentSession,
+          pomodoroCount: this.pomodoroCount,
+        });
+      } else {
+        chrome.runtime.sendMessage({
+          action: 'timerComplete',
+          session: this.currentSession,
+          pomodoroCount: this.pomodoroCount,
+        });
+      }
+    } catch (e) {
+      console.warn('Failed to send timerComplete message:', e);
+    }
 
     // Determine next session label for a more accurate notification
     let nextLabel = null;

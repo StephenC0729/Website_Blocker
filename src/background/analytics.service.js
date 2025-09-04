@@ -127,20 +127,32 @@ export async function logSessionComplete({ session, actualSec }) {
     }
   }
 
-  // If no matching session found, still credit the day minimally
+  // If no matching session found, create a completed session entry so history reflects it
   const k = dayKey(now);
   const d = ensureDay(analytics, k);
+  const actual = typeof actualSec === 'number' && actualSec >= 0 ? Math.floor(actualSec) : 0;
+
+  analytics.sessions.push({
+    id: `${now}-${Math.random().toString(36).slice(2, 8)}`,
+    start: actual > 0 ? now - actual * 1000 : now,
+    end: now,
+    type: session,
+    plannedSec: actual > 0 ? actual : null,
+    actualSec: actual,
+    completed: true,
+  });
+
   if (session === 'pomodoro' || session === 'custom') {
     d.sessionsCompleted += 1;
-    // If an override is provided but we couldn't find a matching session,
-    // still credit focusSeconds to make test/dev flows useful.
-    if (typeof actualSec === 'number' && actualSec > 0) {
-      d.focusSeconds += Math.floor(actualSec);
+    if (actual > 0) {
+      d.focusSeconds += actual;
     }
   }
+
+  pruneData(analytics);
   await saveAnalytics(analytics);
   broadcastUpdate();
-  return { success: true, note: 'No matching started session found' };
+  return { success: true, note: 'No matching started session found; created fallback entry' };
 }
 
 export async function getMetrics() {

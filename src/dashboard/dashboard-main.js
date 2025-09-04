@@ -125,13 +125,43 @@ async function loadNavigation() {
       link.addEventListener('click', function (e) {
         e.preventDefault();
         const page = this.getAttribute('data-page');
-        loadContent(page);
-        updateNavigation(page);
+        // Update URL hash for deep-linking and persistence
+        if (page && pageConfig[page]) {
+          localStorage.setItem('activePage', page);
+          if (location.hash !== `#${page}`) {
+            location.hash = `#${page}`;
+          } else {
+            // If the hash is unchanged, still load
+            loadContent(page);
+            updateNavigation(page);
+          }
+        }
       });
     });
 
-    // Load default content (dashboard)
-    loadContent('dashboard');
+    // Handle hash-based navigation (deep link) and persistence
+    const applyInitialPage = () => {
+      const hashPage = (location.hash || '').replace(/^#/, '');
+      const savedPage = localStorage.getItem('activePage');
+      const initialPage = pageConfig[hashPage]
+        ? hashPage
+        : (pageConfig[savedPage] ? savedPage : 'dashboard');
+      loadContent(initialPage);
+      updateNavigation(initialPage);
+    };
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', () => {
+      const page = (location.hash || '').replace(/^#/, '');
+      if (page && pageConfig[page]) {
+        localStorage.setItem('activePage', page);
+        loadContent(page);
+        updateNavigation(page);
+      }
+    });
+
+    // Load initial content (respect hash/localStorage)
+    applyInitialPage();
   } catch (error) {
     console.error('Error loading navigation:', error);
   }
