@@ -240,3 +240,85 @@ export async function deleteSession(sessionId) {
   
   return { success: true };
 }
+
+export async function updateSession(sessionId, updates) {
+  if (!sessionId) {
+    return { success: false, error: 'Session ID is required' };
+  }
+
+  if (!updates || typeof updates !== 'object') {
+    return { success: false, error: 'Updates object is required' };
+  }
+
+  const analytics = await getAnalytics();
+  const sessionIndex = analytics.sessions.findIndex(s => s.id === sessionId);
+  
+  if (sessionIndex === -1) {
+    return { success: false, error: 'Session not found' };
+  }
+
+  const session = analytics.sessions[sessionIndex];
+  const originalSession = { ...session }; // Keep copy for rollback calculation
+
+  // Validate and apply updates
+  try {
+    // Update session type if provided
+    if (updates.type && ['pomodoro', 'short-break', 'long-break', 'custom'].includes(updates.type)) {
+      session.type = updates.type;
+    }
+
+    // Update start time if provided
+    if (updates.start && typeof updates.start === 'number') {
+      session.start = updates.start;
+    }
+
+    // Update duration if provided (plannedSec and actualSec for completed sessions)
+    if (updates.duration && typeof updates.duration === 'number') {
+      session.plannedSec = updates.duration;
+      if (session.completed) {
+        session.actualSec = updates.duration;
+        // Recalculate end time based on new start + duration
+        session.end = session.start + (updates.duration * 1000);
+      }
+    }
+
+    // Update daily metrics if the session was completed and contributes to metrics
+    if (session.completed && (originalSession.type === 'pomodoro' || originalSession.type === 'custom' || 
+                             session.type === 'pomodoro' || session.type === 'custom')) {
+      
+      const originalDay = dayKey(originalSession.start);
+      const newDay = dayKey(session.start);
+      
+      // Remove old contribution
+      if (originalSession.type === 'pomodoro' || originalSession.type === 'custom') {
+        const oldDayData = analytics.byDay[originalDay];
+        if (oldDayData) {
+          const oldCredit = Math.min(originalSession.plannedSec ?? originalSession.actualSec ?? 0, originalSession.actualSec ?? 0);
+          oldDayData.focusSeconds = Math.max(0, oldDayData.focusSeconds - oldCredit);
+          oldDayData.sessionsCompleted = Math.max(0, oldDayData.sessionsCompleted - 1);
+          if (originalSession.start) {
+            oldDayData.sessionsStarted = Math.max(0, oldDayData.sessionsStarted - 1);
+          }
+        }
+      }
+      
+      // Add new contribution
+      if (session.type === 'pomodoro' || session.type === 'custom') {
+        const newDayData = ensureDay(analytics, newDay);
+        const newCredit = Math.min(session.plannedSec ?? session.actualSec ?? 0, session.actualSec ?? 0);
+        newDayData.focusSeconds += newCredit;
+        newDayData.sessionsCompleted += 1;
+        if (session.start) {
+          newDayData.sessionsStarted += 1;
+        }
+      }
+    }
+
+    await saveAnalytics(analytics);
+    broadcastUpdate();
+    
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: 'Failed to update session: ' + error.message };
+  }
+}

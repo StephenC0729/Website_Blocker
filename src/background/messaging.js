@@ -41,6 +41,7 @@ export const ACTIONS = {
   ANALYTICS_GET_WEEKLY: 'analyticsGetWeeklySeries',
   ANALYTICS_GET_HISTORY: 'analyticsGetHistory',
   ANALYTICS_DELETE_SESSION: 'analyticsDeleteSession',
+  ANALYTICS_UPDATE_SESSION: 'analyticsUpdateSession',
 
   // Dev/Test actions
   TEST_COMPLETE_POMODORO: 'testCompletePomodoro',
@@ -202,6 +203,11 @@ export async function handleMessage(request, _sender, sendResponse) {
       case ACTIONS.ANALYTICS_DELETE_SESSION:
         const deleteResult = await analyticsService.deleteSession(request.sessionId);
         sendResponse(deleteResult);
+        break;
+
+      case ACTIONS.ANALYTICS_UPDATE_SESSION:
+        const updateResult = await analyticsService.updateSession(request.sessionId, request.updates);
+        sendResponse(updateResult);
         break;
 
       // Dev/Test: Fast-complete current running Pomodoro with full credit

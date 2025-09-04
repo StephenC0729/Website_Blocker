@@ -13,6 +13,7 @@
   
   // Modal state
   let currentSessionToDelete = null;
+  let currentSessionToEdit = null;
 
   function formatDurationShort(seconds) {
     const s = Math.max(0, Math.floor(seconds || 0));
@@ -157,6 +158,142 @@
     }
   }
 
+  // Edit modal management functions
+  function showEditModal(session) {
+    currentSessionToEdit = session;
+    const modal = document.getElementById('editSessionModal');
+    const typeSelect = document.getElementById('editSessionType');
+    const dateInput = document.getElementById('editSessionDate');
+    const timeInput = document.getElementById('editSessionTime');
+    const durationInput = document.getElementById('editSessionDuration');
+
+    if (!modal || !typeSelect || !dateInput || !timeInput || !durationInput) return;
+
+    // Populate form with current session values
+    typeSelect.value = session.type;
+    
+    const startDate = new Date(session.start);
+    dateInput.value = startDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    timeInput.value = startDate.toTimeString().slice(0, 5); // HH:MM format
+    
+    const duration = getCreditedDuration(session);
+    durationInput.value = Math.round(duration / 60); // Convert seconds to minutes
+
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function hideEditModal() {
+    const modal = document.getElementById('editSessionModal');
+    if (modal) {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+    currentSessionToEdit = null;
+    
+    // Reset form
+    const form = document.getElementById('editSessionForm');
+    if (form) form.reset();
+    
+    // Reset button state
+    const editBtn = document.getElementById('confirmEdit');
+    const btnText = document.getElementById('editButtonText');
+    const spinner = document.getElementById('editButtonSpinner');
+    if (editBtn && btnText && spinner) {
+      editBtn.disabled = false;
+      btnText.textContent = 'Save Changes';
+      spinner.classList.add('hidden');
+    }
+  }
+
+  async function confirmEdit() {
+    if (!currentSessionToEdit) return;
+
+    const typeSelect = document.getElementById('editSessionType');
+    const dateInput = document.getElementById('editSessionDate');
+    const timeInput = document.getElementById('editSessionTime');
+    const durationInput = document.getElementById('editSessionDuration');
+    const editBtn = document.getElementById('confirmEdit');
+    const btnText = document.getElementById('editButtonText');
+    const spinner = document.getElementById('editButtonSpinner');
+
+    if (!typeSelect || !dateInput || !timeInput || !durationInput || !editBtn || !btnText || !spinner) return;
+
+    // Basic validation
+    if (!dateInput.value || !timeInput.value || !durationInput.value) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+
+    const duration = parseInt(durationInput.value);
+    if (duration < 1 || duration > 1440) {
+      alert('Duration must be between 1 and 1440 minutes.');
+      return;
+    }
+
+    // Show loading state
+    editBtn.disabled = true;
+    btnText.textContent = 'Saving...';
+    spinner.classList.remove('hidden');
+
+    try {
+      // Create new start timestamp
+      const dateStr = dateInput.value;
+      const timeStr = timeInput.value;
+      const startTimestamp = new Date(`${dateStr}T${timeStr}`).getTime();
+
+      if (isNaN(startTimestamp)) {
+        throw new Error('Invalid date or time');
+      }
+
+      const updates = {
+        type: typeSelect.value,
+        start: startTimestamp,
+        duration: duration * 60 // Convert minutes to seconds
+      };
+
+      const result = await sendMessagePromise({
+        action: 'analyticsUpdateSession',
+        sessionId: currentSessionToEdit.id,
+        updates: updates
+      });
+
+      if (result && result.success) {
+        // Update local session data
+        const sessionIndex = allSessions.findIndex(s => s.id === currentSessionToEdit.id);
+        if (sessionIndex !== -1) {
+          allSessions[sessionIndex] = {
+            ...allSessions[sessionIndex],
+            type: updates.type,
+            start: updates.start,
+            plannedSec: updates.duration,
+            actualSec: allSessions[sessionIndex].completed ? updates.duration : allSessions[sessionIndex].actualSec,
+            end: allSessions[sessionIndex].completed ? updates.start + (updates.duration * 1000) : allSessions[sessionIndex].end
+          };
+        }
+        
+        // Re-render the table
+        renderSessionsTable();
+        
+        // Hide modal
+        hideEditModal();
+        
+        // Show success message
+        console.log('Session updated successfully');
+      } else {
+        throw new Error(result?.error || 'Failed to update session');
+      }
+    } catch (error) {
+      console.error('Update session error:', error);
+      alert('Failed to update session. Please try again.');
+      
+      // Reset button state on error
+      editBtn.disabled = false;
+      btnText.textContent = 'Save Changes';
+      spinner.classList.add('hidden');
+    }
+  }
+
   function renderWeeklyChart(series) {
     const canvas = document.getElementById('summaryWeeklyChart');
     if (!canvas) return;
@@ -269,7 +406,7 @@
       editBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         closeOpenMenu();
-        alert('Edit dialog coming soon');
+        showEditModal(s);
       });
       deleteBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -378,13 +515,42 @@
       });
     }
     
+    // Edit modal event listeners
+    const editModal = document.getElementById('editSessionModal');
+    const closeEditModalBtn = document.getElementById('closeEditModal');
+    const cancelEditBtn = document.getElementById('cancelEdit');
+    const confirmEditBtn = document.getElementById('confirmEdit');
+    
+    if (closeEditModalBtn) {
+      closeEditModalBtn.addEventListener('click', hideEditModal);
+    }
+    
+    if (cancelEditBtn) {
+      cancelEditBtn.addEventListener('click', hideEditModal);
+    }
+    
+    if (confirmEditBtn) {
+      confirmEditBtn.addEventListener('click', confirmEdit);
+    }
+    
+    // Close edit modal on backdrop click
+    if (editModal) {
+      editModal.addEventListener('click', (e) => {
+        if (e.target === editModal) {
+          hideEditModal();
+        }
+      });
+    }
+    
     // Close any open menu on outside click or Escape
     document.addEventListener('click', () => closeOpenMenu());
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
-        // Close modal first if open, then menu
+        // Close modals first if open, then menu
         if (currentSessionToDelete) {
           hideDeleteConfirmation();
+        } else if (currentSessionToEdit) {
+          hideEditModal();
         } else {
           closeOpenMenu();
         }
