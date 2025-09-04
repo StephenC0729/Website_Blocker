@@ -10,6 +10,9 @@
   let allSessions = [];
   let currentPage = 1;
   let sessionsPerPage = 20;
+  
+  // Modal state
+  let currentSessionToDelete = null;
 
   function formatDurationShort(seconds) {
     const s = Math.max(0, Math.floor(seconds || 0));
@@ -55,6 +58,103 @@
     if (prevBtn) prevBtn.disabled = currentPage === 1;
     if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
     if (pageDisplay) pageDisplay.textContent = totalPages > 0 ? currentPage : '1';
+  }
+
+  // Modal management functions
+  function showDeleteConfirmation(session) {
+    currentSessionToDelete = session;
+    const modal = document.getElementById('deleteConfirmModal');
+    const dateEl = document.getElementById('deleteSessionDate');
+    const timeEl = document.getElementById('deleteSessionTime');
+    const durationEl = document.getElementById('deleteSessionDuration');
+
+    if (!modal || !dateEl || !timeEl || !durationEl) return;
+
+    const start = new Date(session.start);
+    const end = new Date(session.end || session.start);
+    const dateStr = start.toLocaleDateString();
+    const timeStr = `${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} – ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    const duration = formatDurationShort(getCreditedDuration(session));
+
+    dateEl.textContent = dateStr;
+    timeEl.textContent = timeStr;
+    durationEl.textContent = duration;
+
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+  }
+
+  function hideDeleteConfirmation() {
+    const modal = document.getElementById('deleteConfirmModal');
+    if (modal) {
+      modal.classList.add('hidden');
+      document.body.style.overflow = ''; // Restore scrolling
+    }
+    currentSessionToDelete = null;
+    
+    // Reset button state
+    const deleteBtn = document.getElementById('confirmDelete');
+    const btnText = document.getElementById('deleteButtonText');
+    const spinner = document.getElementById('deleteButtonSpinner');
+    if (deleteBtn && btnText && spinner) {
+      deleteBtn.disabled = false;
+      btnText.textContent = 'Delete';
+      spinner.classList.add('hidden');
+    }
+  }
+
+  async function confirmDelete() {
+    if (!currentSessionToDelete) return;
+
+    const deleteBtn = document.getElementById('confirmDelete');
+    const btnText = document.getElementById('deleteButtonText');
+    const spinner = document.getElementById('deleteButtonSpinner');
+
+    if (!deleteBtn || !btnText || !spinner) return;
+
+    // Show loading state
+    deleteBtn.disabled = true;
+    btnText.textContent = 'Deleting...';
+    spinner.classList.remove('hidden');
+
+    try {
+      const result = await sendMessagePromise({
+        action: 'analyticsDeleteSession',
+        sessionId: currentSessionToDelete.id
+      });
+
+      if (result && result.success) {
+        // Remove session from local array
+        allSessions = allSessions.filter(s => s.id !== currentSessionToDelete.id);
+        
+        // Check if current page is now empty and adjust if needed
+        const totalPages = getTotalPages();
+        if (currentPage > totalPages && totalPages > 0) {
+          currentPage = totalPages;
+        } else if (totalPages === 0) {
+          currentPage = 1;
+        }
+        
+        // Re-render the table
+        renderSessionsTable();
+        
+        // Hide modal
+        hideDeleteConfirmation();
+        
+        // Show success message (could be enhanced with a toast notification)
+        console.log('Session deleted successfully');
+      } else {
+        throw new Error(result?.error || 'Failed to delete session');
+      }
+    } catch (error) {
+      console.error('Delete session error:', error);
+      alert('Failed to delete session. Please try again.');
+      
+      // Reset button state on error
+      deleteBtn.disabled = false;
+      btnText.textContent = 'Delete';
+      spinner.classList.add('hidden');
+    }
   }
 
   function renderWeeklyChart(series) {
@@ -174,7 +274,7 @@
       deleteBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         closeOpenMenu();
-        alert('Delete confirmation coming soon');
+        showDeleteConfirmation(s);
       });
 
       tbody.appendChild(tr);
@@ -251,10 +351,44 @@
       nextBtn.addEventListener('click', goToNextPage);
     }
     
+    // Modal event listeners
+    const modal = document.getElementById('deleteConfirmModal');
+    const closeModalBtn = document.getElementById('closeDeleteModal');
+    const cancelBtn = document.getElementById('cancelDelete');
+    const confirmBtn = document.getElementById('confirmDelete');
+    
+    if (closeModalBtn) {
+      closeModalBtn.addEventListener('click', hideDeleteConfirmation);
+    }
+    
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', hideDeleteConfirmation);
+    }
+    
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', confirmDelete);
+    }
+    
+    // Close modal on backdrop click
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          hideDeleteConfirmation();
+        }
+      });
+    }
+    
     // Close any open menu on outside click or Escape
     document.addEventListener('click', () => closeOpenMenu());
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeOpenMenu();
+      if (e.key === 'Escape') {
+        // Close modal first if open, then menu
+        if (currentSessionToDelete) {
+          hideDeleteConfirmation();
+        } else {
+          closeOpenMenu();
+        }
+      }
     });
     chrome.runtime.onMessage.addListener((message) => {
       if (message && (message.action === 'analyticsUpdated' || message.action === 'timerStateUpdated')) {

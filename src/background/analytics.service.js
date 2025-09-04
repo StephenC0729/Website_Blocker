@@ -193,3 +193,50 @@ export async function getSessionHistory({ limit = 20 } = {}) {
     .slice(0, limit);
   return { success: true, sessions };
 }
+
+export async function deleteSession(sessionId) {
+  if (!sessionId) {
+    return { success: false, error: 'Session ID is required' };
+  }
+
+  const analytics = await getAnalytics();
+  const sessionIndex = analytics.sessions.findIndex(s => s.id === sessionId);
+  
+  if (sessionIndex === -1) {
+    return { success: false, error: 'Session not found' };
+  }
+
+  const session = analytics.sessions[sessionIndex];
+  
+  // If the session was completed and contributed to daily metrics, subtract from them
+  if (session.completed && (session.type === 'pomodoro' || session.type === 'custom')) {
+    const sessionDay = dayKey(session.start);
+    const dayData = analytics.byDay[sessionDay];
+    
+    if (dayData) {
+      // Subtract the focus time that was credited
+      if (session.actualSec && session.plannedSec) {
+        const creditedTime = Math.min(session.plannedSec, session.actualSec);
+        dayData.focusSeconds = Math.max(0, dayData.focusSeconds - creditedTime);
+      } else if (session.actualSec) {
+        dayData.focusSeconds = Math.max(0, dayData.focusSeconds - session.actualSec);
+      }
+      
+      // Decrement completed sessions count
+      dayData.sessionsCompleted = Math.max(0, dayData.sessionsCompleted - 1);
+      
+      // If session was started (has a start time), also decrement started count
+      if (session.start) {
+        dayData.sessionsStarted = Math.max(0, dayData.sessionsStarted - 1);
+      }
+    }
+  }
+
+  // Remove the session from the array
+  analytics.sessions.splice(sessionIndex, 1);
+  
+  await saveAnalytics(analytics);
+  broadcastUpdate();
+  
+  return { success: true };
+}
