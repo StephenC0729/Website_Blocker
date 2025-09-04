@@ -79,6 +79,9 @@
                     <button id="resetButton" class="bg-gray-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors">
                         <i class="fas fa-stop mr-2"></i>Reset
                     </button>
+                    <button id="devTestButton" class="bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors">
+                        <i class="fas fa-vial mr-2"></i>Test Data
+                    </button>
                 </div>
             </div>
         </div>
@@ -140,31 +143,13 @@
                 Recent Sessions
             </h3>
             <!-- Scrollable Session History Container -->
-            <div id="sessionHistory" class="space-y-3 max-h-48 overflow-y-auto">
+            <div id="sessionHistory" class="space-y-3">
                 <!-- Session history items will be dynamically populated here by JavaScript -->
             </div>
         </div>
     </div>
 
-    <!-- 
-        Charts Section
-        Interactive data visualizations using Chart.js
-    -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <!-- 
-            Weekly Productivity Chart Card
-            Line chart showing productivity trends over the week
-        -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                <i class="fas fa-chart-line text-indigo-500 mr-2"></i>
-                Weekly Productivity
-            </h3>
-            <!-- Chart.js Canvas for Weekly Productivity Line Chart -->
-            <canvas id="weeklyChart" width="400" height="200"></canvas>
-        </div>
-
-    </div>
+    <!-- Weekly Productivity chart moved to Summary page -->
 
 
     <!-- 

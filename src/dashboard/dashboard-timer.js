@@ -68,6 +68,12 @@ class DashboardTimer {
     if (setCustomBtn) {
       setCustomBtn.addEventListener('click', () => this.setCustomDuration());
     }
+
+    // Developer test button
+    const devTestBtn = document.getElementById('devTestButton');
+    if (devTestBtn) {
+      devTestBtn.addEventListener('click', () => this.generateTestData());
+    }
   }
 
   async switchSession(sessionType) {
@@ -571,6 +577,33 @@ class DashboardTimer {
 
     if (startBtn) startBtn.classList.remove('hidden');
     if (pauseBtn) pauseBtn.classList.add('hidden');
+  }
+
+  /**
+   * Test helper: fast-complete the current running Pomodoro and credit full duration
+   */
+  async generateTestData() {
+    try {
+      if (!this.isRunning || this.currentSession !== 'pomodoro') {
+        alert('Start a Pomodoro session first, then press Test Data.');
+        return;
+      }
+
+      const res = await chrome.runtime.sendMessage({
+        action: 'testCompletePomodoro'
+      });
+
+      if (res && res.success) {
+        console.log('Pomodoro fast-completed with full credit.');
+        alert('Credited one full Pomodoro (25 minutes).');
+      } else {
+        throw new Error(res && res.error ? res.error : 'Unknown error');
+      }
+
+    } catch (error) {
+      console.error('Error generating test data:', error);
+      alert('Error generating test data. Check console for details.');
+    }
   }
 
   /**

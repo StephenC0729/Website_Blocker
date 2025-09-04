@@ -1,5 +1,6 @@
 import { get, set } from './storage.js';
 import * as unifiedOrchestrator from './unified-orchestrator.js';
+import * as analyticsService from './analytics.service.js';
 
 export async function getTimerState() {
     try {
@@ -30,6 +31,7 @@ export async function updateTimerState(updates) {
 
 export async function handleTimerStart(request) {
     try {
+        const preState = await getTimerState();
         const now = Date.now();
         const timeLeft = request.timeLeft || request.duration || 25 * 60;
         const endTimestamp = now + (timeLeft * 1000);
@@ -42,6 +44,16 @@ export async function handleTimerStart(request) {
             totalTime: request.duration || 25 * 60,
             timeLeft: timeLeft
         });
+
+        // Log analytics for session start only if it's a fresh start (not resume)
+        try {
+            const isFreshStart = preState && !preState.isRunning && preState.timeLeft === preState.totalTime;
+            if (isFreshStart) {
+                await analyticsService.logSessionStart({ session: request.session || 'pomodoro', duration: request.duration || 25 * 60 });
+            }
+        } catch (e) {
+            console.warn('Analytics logSessionStart failed:', e);
+        }
     } catch (error) {
         console.error('Error handling timer start:', error);
     }
@@ -138,6 +150,13 @@ export async function handleTimerComplete(request) {
         }
 
         await updateTimerState(updates);
+
+        // Log analytics for session completion
+        try {
+            await analyticsService.logSessionComplete({ session: request.session });
+        } catch (e) {
+            console.warn('Analytics logSessionComplete failed:', e);
+        }
     } catch (error) {
         console.error('Error handling timer complete:', error);
     }
@@ -175,5 +194,55 @@ export async function handleSessionSwitch(request) {
         }
     } catch (error) {
         console.error('Error handling session switch:', error);
+    }
+}
+
+// Dev/Test helper: Fast-complete the current running Pomodoro session and credit full planned duration
+export async function testCompletePomodoro() {
+    try {
+        const timerState = await getTimerState();
+        if (!timerState || !timerState.isRunning || timerState.currentSession !== 'pomodoro') {
+            return { success: false, error: 'Pomodoro is not running' };
+        }
+
+        // Credit analytics with full planned duration
+        try {
+            const planned = timerState.totalTime || 25 * 60;
+            await analyticsService.logSessionComplete({ session: 'pomodoro', actualSec: planned });
+        } catch (e) {
+            console.warn('Analytics test complete failed:', e);
+        }
+
+        // Handle unified mode orchestration similar to a normal completion
+        await unifiedOrchestrator.handleFocusStop();
+
+        const newPomodoroCount = (timerState.pomodoroCount || 0) + 1;
+        const newSessionCount = (timerState.sessionCount || 0) + 1;
+
+        let nextSession;
+        let nextDuration;
+        if (newPomodoroCount % 4 === 0) {
+            nextSession = 'long-break';
+            nextDuration = timerState.sessions['long-break'].duration;
+        } else {
+            nextSession = 'short-break';
+            nextDuration = timerState.sessions['short-break'].duration;
+        }
+
+        await updateTimerState({
+            isRunning: false,
+            timeLeft: nextDuration,
+            totalTime: nextDuration,
+            startTimestamp: null,
+            endTimestamp: null,
+            pomodoroCount: newPomodoroCount,
+            sessionCount: newSessionCount,
+            currentSession: nextSession
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error in testCompletePomodoro:', error);
+        return { success: false, error: error.message };
     }
 }

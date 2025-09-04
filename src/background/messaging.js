@@ -4,6 +4,7 @@ import * as categoriesService from './categories.service.js';
 import * as timerService from './timer.service.js';
 import * as settingsService from './settings.service.js';
 import * as unifiedOrchestrator from './unified-orchestrator.js';
+import * as analyticsService from './analytics.service.js';
 
 // Action constants for message routing - defines all supported message types
 export const ACTIONS = {
@@ -32,6 +33,17 @@ export const ACTIONS = {
     GET_TIMER_STATE: 'getTimerState',
     FOCUS_START: 'focusStart',
     FOCUS_STOP: 'focusStop',
+    
+    // Analytics actions - session tracking and metrics
+    ANALYTICS_LOG_START: 'analyticsLogStart',
+    ANALYTICS_LOG_COMPLETE: 'analyticsLogComplete',
+    ANALYTICS_SITE_BLOCKED: 'analyticsSiteBlocked',
+    ANALYTICS_GET_METRICS: 'analyticsGetMetrics',
+    ANALYTICS_GET_WEEKLY: 'analyticsGetWeeklySeries',
+    ANALYTICS_GET_HISTORY: 'analyticsGetHistory',
+    
+    // Dev/Test actions
+    TEST_COMPLETE_POMODORO: 'testCompletePomodoro',
     
     // Settings actions - unified mode configuration
     GET_UNIFIED_MODE: 'getUnifiedMode',
@@ -136,6 +148,43 @@ export async function handleMessage(request, _sender, sendResponse) {
             case ACTIONS.GET_TIMER_STATE:
                 const timerState = await timerService.getTimerState();
                 sendResponse({ success: true, timerState });
+                break;
+            
+            // Analytics cases
+            case ACTIONS.ANALYTICS_LOG_START:
+                await analyticsService.logSessionStart({ session: request.session, duration: request.duration });
+                sendResponse({ success: true });
+                break;
+            
+            case ACTIONS.ANALYTICS_LOG_COMPLETE:
+                await analyticsService.logSessionComplete({ session: request.session });
+                sendResponse({ success: true });
+                break;
+            
+            case ACTIONS.ANALYTICS_SITE_BLOCKED:
+                await analyticsService.logSiteBlocked(request.domain);
+                sendResponse({ success: true });
+                break;
+            
+            case ACTIONS.ANALYTICS_GET_METRICS:
+                const metrics = await analyticsService.getMetrics();
+                sendResponse(metrics);
+                break;
+            
+            case ACTIONS.ANALYTICS_GET_WEEKLY:
+                const weekly = await analyticsService.getWeeklySeries();
+                sendResponse(weekly);
+                break;
+            
+            case ACTIONS.ANALYTICS_GET_HISTORY:
+                const history = await analyticsService.getSessionHistory({ limit: request.limit || 20 });
+                sendResponse(history);
+                break;
+
+            // Dev/Test: Fast-complete current running Pomodoro with full credit
+            case ACTIONS.TEST_COMPLETE_POMODORO:
+                const result = await timerService.testCompletePomodoro();
+                sendResponse(result);
                 break;
             
             // Unified mode and settings cases

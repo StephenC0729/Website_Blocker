@@ -13,6 +13,11 @@ const pageConfig = {
       '<i class="fas fa-chart-line text-blue-500 mr-2"></i>Productivity Dashboard',
     file: 'components/dashboard-content.html',
   },
+  summary: {
+    title:
+      '<i class="fas fa-chart-pie text-indigo-500 mr-2"></i>Summary & Analytics',
+    file: 'components/summary-content.html',
+  },
   blocklist: {
     title:
       '<i class="fas fa-ban text-red-500 mr-2"></i>Blocklist Category Management',
@@ -60,6 +65,13 @@ async function loadContent(page) {
     // Initialize page-specific functionality
     if (page === 'dashboard') {
       setupDashboardFunctionality();
+      if (typeof setupDashboardAnalytics === 'function') {
+        setupDashboardAnalytics();
+      }
+    } else if (page === 'summary') {
+      if (typeof setupSummaryAnalytics === 'function') {
+        setupSummaryAnalytics();
+      }
     } else if (page === 'faq') {
       setupFAQFunctionality();
     } else if (page === 'blocklist') {

@@ -148,6 +148,14 @@ class ContentBlocker {
 
         // Disable interaction with the underlying page
         this.disablePageInteraction();
+
+        // Log analytics site blocked event (once per page load)
+        try {
+            const domain = this.cleanUrl(window.location.hostname);
+            chrome.runtime.sendMessage({ action: 'analyticsSiteBlocked', domain });
+        } catch (e) {
+            console.warn('Failed to send analyticsSiteBlocked message:', e);
+        }
     }
 
     /**
