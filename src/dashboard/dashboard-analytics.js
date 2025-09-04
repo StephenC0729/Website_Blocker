@@ -22,6 +22,16 @@
     return `${s}s`;
   }
 
+  function getCreditedDuration(session) {
+    // Use same logic as focus time calculation: Math.min(plannedSec, actualSec)
+    const planned = session.plannedSec || 0;
+    const actual = session.actualSec || 0;
+    if (planned > 0 && actual > 0) {
+      return Math.min(planned, actual);
+    }
+    return actual || planned || 0;
+  }
+
   async function fetchMetrics() {
     try {
       const res = await sendMessagePromise({ action: 'analyticsGetMetrics' });
@@ -92,7 +102,7 @@
           <span class="text-sm text-gray-700">${typeLabel}</span>
           <span class="text-xs text-gray-400">${when}</span>
         </div>
-        <div class="text-sm text-gray-600">${formatDurationShort(s.actualSec ?? s.plannedSec ?? 0)}</div>
+        <div class="text-sm text-gray-600">${formatDurationShort(getCreditedDuration(s))}</div>
       `;
       container.appendChild(item);
     });

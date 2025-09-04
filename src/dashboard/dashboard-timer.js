@@ -267,14 +267,18 @@ class DashboardTimer {
     this.playAudioNotification();
   }
 
-
   playAudioNotification() {
     try {
-      const audioUrl = chrome.runtime.getURL('src/assets/sounds/notification.mp3');
+      const audioUrl = chrome.runtime.getURL(
+        'src/assets/sounds/notification.mp3'
+      );
       const audio = new Audio(audioUrl);
       audio.volume = 0.7; // Adjust volume (0.0 to 1.0)
-      audio.play().catch(error => {
-        console.log('Audio notification failed (user interaction may be required):', error);
+      audio.play().catch((error) => {
+        console.log(
+          'Audio notification failed (user interaction may be required):',
+          error
+        );
       });
     } catch (error) {
       console.error('Error playing audio notification:', error);
@@ -580,26 +584,40 @@ class DashboardTimer {
   }
 
   /**
-   * Test helper: fast-complete the current running Pomodoro and credit full duration
+   * Test helper: fast-complete the current running session and credit full duration
    */
   async generateTestData() {
     try {
-      if (!this.isRunning || this.currentSession !== 'pomodoro') {
-        alert('Start a Pomodoro session first, then press Test Data.');
+      if (!this.isRunning) {
+        alert('Start a session first, then press Test Data.');
         return;
       }
 
       const res = await chrome.runtime.sendMessage({
-        action: 'testCompletePomodoro'
+        action: 'testCompleteSession',
+        session: this.currentSession,
       });
 
       if (res && res.success) {
-        console.log('Pomodoro fast-completed with full credit.');
-        alert('Credited one full Pomodoro (25 minutes).');
+        const type = this.currentSession;
+        const pretty =
+          type === 'pomodoro'
+            ? 'Pomodoro'
+            : type === 'short-break'
+            ? 'Short break'
+            : type === 'long-break'
+            ? 'Long break'
+            : 'Custom';
+        const minutes = Math.floor((this.totalTime || 0) / 60);
+        console.log(`${pretty} fast-completed with full credit.`);
+        alert(
+          `Credited one full ${pretty}${
+            minutes ? ` (${minutes} minutes)` : ''
+          }.`
+        );
       } else {
         throw new Error(res && res.error ? res.error : 'Unknown error');
       }
-
     } catch (error) {
       console.error('Error generating test data:', error);
       alert('Error generating test data. Check console for details.');
@@ -642,7 +660,6 @@ function setupDashboardFunctionality() {
       }
     });
   }
-
 }
 
 // Export functions if using modules, otherwise they're global

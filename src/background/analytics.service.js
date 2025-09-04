@@ -71,7 +71,7 @@ export async function logSessionStart({ session, duration }) {
   const analytics = await getAnalytics();
   const now = Date.now();
   const k = dayKey(now);
-  if (session === 'pomodoro') {
+  if (session === 'pomodoro' || session === 'custom') {
     const d = ensureDay(analytics, k);
     d.sessionsStarted += 1;
   } else {
@@ -114,7 +114,7 @@ export async function logSessionComplete({ session, actualSec }) {
 
       const k = dayKey(now);
       const d = ensureDay(analytics, k);
-      if (session === 'pomodoro') {
+      if (session === 'pomodoro' || session === 'custom') {
         d.sessionsCompleted += 1;
         const credit = Math.min(s.plannedSec ?? actual, actual);
         d.focusSeconds += credit;
@@ -130,7 +130,7 @@ export async function logSessionComplete({ session, actualSec }) {
   // If no matching session found, still credit the day minimally
   const k = dayKey(now);
   const d = ensureDay(analytics, k);
-  if (session === 'pomodoro') {
+  if (session === 'pomodoro' || session === 'custom') {
     d.sessionsCompleted += 1;
     // If an override is provided but we couldn't find a matching session,
     // still credit focusSeconds to make test/dev flows useful.

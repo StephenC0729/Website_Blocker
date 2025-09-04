@@ -5,13 +5,11 @@
 (function () {
   let weeklyChart = null;
   let openMenu = null; // currently open actions menu element
-
-  function formatHM(seconds) {
-    const s = Math.max(0, Math.floor(seconds || 0));
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    return `${h}h ${m}m`;
-  }
+  
+  // Pagination state
+  let allSessions = [];
+  let currentPage = 1;
+  let sessionsPerPage = 20;
 
   function formatDurationShort(seconds) {
     const s = Math.max(0, Math.floor(seconds || 0));
@@ -22,10 +20,41 @@
     return `${s}s`;
   }
 
+  function getCreditedDuration(session) {
+    // Use same logic as focus time calculation: Math.min(plannedSec, actualSec)
+    const planned = session.plannedSec || 0;
+    const actual = session.actualSec || 0;
+    if (planned > 0 && actual > 0) {
+      return Math.min(planned, actual);
+    }
+    return actual || planned || 0;
+  }
+
   function typeLabel(sessionType) {
     if (sessionType === 'pomodoro') return 'Focus';
     if (sessionType === 'short-break' || sessionType === 'long-break') return 'Break';
     return 'Custom';
+  }
+
+  function getTotalPages() {
+    return Math.ceil(allSessions.length / sessionsPerPage);
+  }
+
+  function getCurrentPageSessions() {
+    const startIndex = (currentPage - 1) * sessionsPerPage;
+    const endIndex = startIndex + sessionsPerPage;
+    return allSessions.slice(startIndex, endIndex);
+  }
+
+  function updatePaginationControls() {
+    const totalPages = getTotalPages();
+    const prevBtn = document.getElementById('prevPageBtn');
+    const nextBtn = document.getElementById('nextPageBtn');
+    const pageDisplay = document.getElementById('currentPageDisplay');
+
+    if (prevBtn) prevBtn.disabled = currentPage === 1;
+    if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+    if (pageDisplay) pageDisplay.textContent = totalPages > 0 ? currentPage : '1';
   }
 
   function renderWeeklyChart(series) {
@@ -71,36 +100,40 @@
     }
   }
 
-  function renderSessionsTable(sessions) {
+  function renderSessionsTable() {
     const tbody = document.getElementById('summarySessionsTableBody');
     if (!tbody) return;
     tbody.innerHTML = '';
+    
+    const sessions = getCurrentPageSessions();
     if (!sessions || sessions.length === 0) {
       const row = document.createElement('tr');
       row.innerHTML = `<td colspan="6" class="px-4 py-6 text-center text-sm text-gray-500">No sessions yet</td>`;
       tbody.appendChild(row);
+      updatePaginationControls();
       return;
     }
 
     sessions.forEach((s, idx) => {
+      const globalIndex = (currentPage - 1) * sessionsPerPage + idx;
       const start = new Date(s.start);
       const end = new Date(s.end || s.start);
       const dateStr = start.toLocaleDateString();
       const timeStr = `${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} – ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-      const duration = formatDurationShort(s.actualSec ?? s.plannedSec ?? 0);
+      const duration = formatDurationShort(getCreditedDuration(s));
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="px-4 py-2 text-sm text-gray-500">${idx + 1}</td>
+        <td class="px-4 py-2 text-sm text-gray-500">${globalIndex + 1}</td>
         <td class="px-4 py-2 text-sm text-gray-700">${dateStr}</td>
         <td class="px-4 py-2 text-sm text-gray-700">${timeStr}</td>
         <td class="px-4 py-2 text-sm text-gray-700">${duration}</td>
         <td class="px-4 py-2 text-sm ${s.type === 'pomodoro' ? 'text-red-600' : 'text-green-600'}">${typeLabel(s.type)}</td>
         <td class="px-4 py-2 text-center relative">
           <button class="action-menu-btn text-gray-400 hover:text-gray-600 p-2 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1" title="Actions" aria-label="Actions" aria-haspopup="true" aria-expanded="false">
-            <i class="fas fa-chevron-down"></i>
+            <i class="fas fa-ellipsis-v"></i>
           </button>
-          <div class="action-menu hidden absolute right-0 bottom-full mb-1 w-32 bg-white border border-gray-200 rounded shadow-lg z-50">
+          <div class="action-menu hidden absolute left-1/2 -translate-x-1/2 bottom-full mb-1 w-32 bg-white border border-gray-200 rounded shadow-lg z-[9999]">
             <button class="action-edit w-full text-left px-4 py-2 text-sm hover:bg-gray-50">Edit</button>
             <button class="action-delete w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50">Delete</button>
           </div>
@@ -146,6 +179,8 @@
 
       tbody.appendChild(tr);
     });
+    
+    updatePaginationControls();
   }
 
   async function fetchWeeklySeries() {
@@ -171,15 +206,51 @@
   async function refreshSummary() {
     const [series, sessions] = await Promise.all([
       fetchWeeklySeries(),
-      fetchSessions(100),
+      fetchSessions(1000), // Fetch more sessions to support pagination
     ]);
+    allSessions = sessions;
     renderWeeklyChart(series);
-    renderSessionsTable(sessions);
+    renderSessionsTable();
+  }
+
+  // Pagination navigation functions
+  function goToPage(page) {
+    const totalPages = getTotalPages();
+    if (page >= 1 && page <= totalPages) {
+      currentPage = page;
+      renderSessionsTable();
+    }
+  }
+
+  function goToPreviousPage() {
+    if (currentPage > 1) {
+      goToPage(currentPage - 1);
+    }
+  }
+
+  function goToNextPage() {
+    const totalPages = getTotalPages();
+    if (currentPage < totalPages) {
+      goToPage(currentPage + 1);
+    }
   }
 
   // Expose setup function
   window.setupSummaryAnalytics = function setupSummaryAnalytics() {
     refreshSummary();
+    
+    // Pagination event listeners
+    const prevBtn = document.getElementById('prevPageBtn');
+    const nextBtn = document.getElementById('nextPageBtn');
+    
+    if (prevBtn) {
+      prevBtn.addEventListener('click', goToPreviousPage);
+    }
+    
+    if (nextBtn) {
+      nextBtn.addEventListener('click', goToNextPage);
+    }
+    
     // Close any open menu on outside click or Escape
     document.addEventListener('click', () => closeOpenMenu());
     document.addEventListener('keydown', (e) => {
