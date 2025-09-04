@@ -5,6 +5,7 @@
 (function () {
   let weeklyChart = null;
   let openMenu = null; // currently open actions menu element
+  let openMenuBtn = null; // track trigger for a11y and cleanup
   
   // Pagination state
   let allSessions = [];
@@ -78,7 +79,7 @@
     const duration = formatDurationShort(getCreditedDuration(session));
 
     dateEl.textContent = dateStr;
-    timeEl.textContent = timeStr;
+    timeEl.textContent = `${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} – ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
     durationEl.textContent = duration;
 
     modal.classList.remove('hidden');
@@ -298,6 +299,16 @@
     const canvas = document.getElementById('summaryWeeklyChart');
     if (!canvas) return;
     if (typeof Chart === 'undefined') return;
+
+    // If we already have a chart tied to a different canvas (due to page reload), destroy it
+    if (weeklyChart) {
+      const chartCanvas = weeklyChart.canvas || (weeklyChart.ctx && weeklyChart.ctx.canvas);
+      if (chartCanvas !== canvas) {
+        try { weeklyChart.destroy(); } catch (_) {}
+        weeklyChart = null;
+      }
+    }
+
     const ctx = canvas.getContext('2d');
     if (weeklyChart) {
       weeklyChart.data.labels = series.labels;
@@ -305,6 +316,7 @@
       weeklyChart.update();
       return;
     }
+
     weeklyChart = new Chart(ctx, {
       type: 'line',
       data: {
@@ -331,9 +343,9 @@
   function closeOpenMenu() {
     if (openMenu) {
       openMenu.classList.add('hidden');
-      const btn = openMenu.parentElement.querySelector('.action-menu-btn');
-      if (btn) btn.setAttribute('aria-expanded', 'false');
+      if (openMenuBtn) openMenuBtn.setAttribute('aria-expanded', 'false');
       openMenu = null;
+      openMenuBtn = null;
     }
   }
 
@@ -363,14 +375,14 @@
       tr.innerHTML = `
         <td class="px-4 py-2 text-sm text-gray-500">${globalIndex + 1}</td>
         <td class="px-4 py-2 text-sm text-gray-700">${dateStr}</td>
-        <td class="px-4 py-2 text-sm text-gray-700">${timeStr}</td>
+        <td class="px-4 py-2 text-sm text-gray-700">${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} – ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
         <td class="px-4 py-2 text-sm text-gray-700">${duration}</td>
         <td class="px-4 py-2 text-sm ${s.type === 'pomodoro' ? 'text-red-600' : 'text-green-600'}">${typeLabel(s.type)}</td>
         <td class="px-4 py-2 text-center relative">
           <button class="action-menu-btn text-gray-400 hover:text-gray-600 p-2 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1" title="Actions" aria-label="Actions" aria-haspopup="true" aria-expanded="false">
             <i class="fas fa-ellipsis-v"></i>
           </button>
-          <div class="action-menu hidden absolute left-1/2 -translate-x-1/2 bottom-full mb-1 w-32 bg-white border border-gray-200 rounded shadow-lg z-[9999]">
+          <div class="action-menu hidden absolute top-full right-0 mt-1 w-36 bg-white border border-gray-200 rounded shadow-lg z-[9999]">
             <button class="action-edit w-full text-left px-4 py-2 text-sm hover:bg-gray-50">Edit</button>
             <button class="action-delete w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50">Delete</button>
           </div>
@@ -390,13 +402,29 @@
         }
         const isHidden = menu.classList.contains('hidden');
         if (isHidden) {
+          // Show and portal to body for robust positioning
           menu.classList.remove('hidden');
+          if (!menu.dataset.portaled) {
+            document.body.appendChild(menu);
+            menu.dataset.portaled = '1';
+          }
+          // Position as fixed under the button, right-aligned
+          const rect = btn.getBoundingClientRect();
+          menu.style.position = 'fixed';
+          menu.style.top = `${Math.round(rect.bottom + 6)}px`;
+          const menuWidth = menu.offsetWidth || 144; // w-36 ≈ 144px
+          const left = Math.max(8, Math.round(rect.right - menuWidth));
+          menu.style.left = `${left}px`;
+          menu.style.zIndex = '9999';
+
           btn.setAttribute('aria-expanded', 'true');
           openMenu = menu;
+          openMenuBtn = btn;
         } else {
           menu.classList.add('hidden');
           btn.setAttribute('aria-expanded', 'false');
           openMenu = null;
+          openMenuBtn = null;
         }
       });
 

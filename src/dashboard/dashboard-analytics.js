@@ -60,7 +60,7 @@
 
   async function fetchHistory() {
     try {
-      const res = await sendMessagePromise({ action: 'analyticsGetHistory', limit: 8 });
+      const res = await sendMessagePromise({ action: 'analyticsGetHistory', limit: 5 });
       if (res && res.success) return res.sessions || [];
     } catch (e) {
       console.error('fetchHistory error:', e);
