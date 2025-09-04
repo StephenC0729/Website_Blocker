@@ -377,7 +377,11 @@
         <td class="px-4 py-2 text-sm text-gray-700">${dateStr}</td>
         <td class="px-4 py-2 text-sm text-gray-700">${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} – ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
         <td class="px-4 py-2 text-sm text-gray-700">${duration}</td>
-        <td class="px-4 py-2 text-sm ${s.type === 'pomodoro' ? 'text-red-600' : 'text-green-600'}">${typeLabel(s.type)}</td>
+        <td class="px-4 py-2 text-sm ${
+          s.type === 'pomodoro' ? 'text-red-600'
+          : (s.type === 'short-break' || s.type === 'long-break') ? 'text-green-600'
+          : 'text-blue-600'
+        }">${typeLabel(s.type)}</td>
         <td class="px-4 py-2 text-center relative">
           <button class="action-menu-btn text-gray-400 hover:text-gray-600 p-2 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1" title="Actions" aria-label="Actions" aria-haspopup="true" aria-expanded="false">
             <i class="fas fa-ellipsis-v"></i>
