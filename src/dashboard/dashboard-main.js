@@ -113,12 +113,56 @@ async function loadNavigation() {
     const navigationHTML = await response.text();
     document.getElementById('navigation-container').innerHTML = navigationHTML;
 
-    // Setup authentication button (placeholder functionality)
-    document
-      .getElementById('authButton')
-      .addEventListener('click', function () {
+    // Auth button removed from UI; keep guard if present in future
+    const authBtn = document.getElementById('authButton');
+    if (authBtn) {
+      authBtn.addEventListener('click', function () {
         alert('Authentication feature coming soon!');
       });
+    }
+
+    // Optional Guest state persistence (non-visual)
+    const guestToggle = document.getElementById('guestModeToggle');
+    const guestStatus = document.getElementById('guestStatus');
+    const applyGuestUI = (enabled) => {
+      if (guestToggle) guestToggle.classList.toggle('on', !!enabled);
+      if (guestStatus) guestStatus.textContent = enabled ? 'Browsing as guest' : '';
+      document.documentElement.classList.toggle('guest-mode', !!enabled);
+    };
+    applyGuestUI(localStorage.getItem('guestMode') === 'on');
+    if (guestToggle) {
+      guestToggle.addEventListener('click', () => {
+        const enabled = !(localStorage.getItem('guestMode') === 'on');
+        localStorage.setItem('guestMode', enabled ? 'on' : 'off');
+        applyGuestUI(enabled);
+      });
+    }
+
+    // Bottom Guest dropdown behavior
+    const accountBtn = document.getElementById('guestAccountButton');
+    const accountDropdown = document.getElementById('guestDropdown');
+    const loginBtn = document.getElementById('dropdownLoginBtn');
+
+    if (accountBtn && accountDropdown) {
+      accountBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        accountDropdown.classList.toggle('hidden');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!accountDropdown.classList.contains('hidden')) {
+          const within = accountDropdown.contains(e.target) || accountBtn.contains(e.target);
+          if (!within) accountDropdown.classList.add('hidden');
+        }
+      });
+    }
+
+    if (loginBtn) {
+      loginBtn.addEventListener('click', () => {
+        // Navigate to the login page
+        window.location.href = '../pages/login.html';
+      });
+    }
 
     // Setup navigation link click handlers
     document.querySelectorAll('.nav-link').forEach((link) => {

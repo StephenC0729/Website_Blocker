@@ -11,6 +11,9 @@
   let allSessions = [];
   let currentPage = 1;
   let sessionsPerPage = 20;
+  // Selection state for bulk actions
+  const selectedSessionIds = new Set();
+  let selectionMode = false;
   
   // Modal state
   let currentSessionToDelete = null;
@@ -60,6 +63,42 @@
     if (prevBtn) prevBtn.disabled = currentPage === 1;
     if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
     if (pageDisplay) pageDisplay.textContent = totalPages > 0 ? currentPage : '1';
+  }
+
+  function updateBulkControls() {
+    const bulkBtn = document.getElementById('bulkDeleteBtn');
+    const headerTh = document.getElementById('selectColHeader');
+    if (bulkBtn) {
+      if (selectionMode) {
+        bulkBtn.textContent = 'Delete Selected';
+        // Keep enabled in selection mode; action depends on selection size
+      } else {
+        bulkBtn.textContent = 'Delete';
+      }
+    }
+    if (headerTh) {
+      if (selectionMode) headerTh.classList.remove('hidden'); else headerTh.classList.add('hidden');
+    }
+    updateHeaderSelectCheckbox();
+  }
+
+  function updateHeaderSelectCheckbox() {
+    const headerCb = document.getElementById('selectAllSessions');
+    if (!headerCb) return;
+    if (!selectionMode) {
+      headerCb.checked = false;
+      headerCb.indeterminate = false;
+      return;
+    }
+    const visible = getCurrentPageSessions();
+    if (!visible.length) {
+      headerCb.checked = false;
+      headerCb.indeterminate = false;
+      return;
+    }
+    const selectedCount = visible.reduce((acc, s) => acc + (selectedSessionIds.has(s.id) ? 1 : 0), 0);
+    headerCb.checked = selectedCount === visible.length && selectedCount > 0;
+    headerCb.indeterminate = selectedCount > 0 && selectedCount < visible.length;
   }
 
   // Modal management functions
@@ -128,6 +167,8 @@
       if (result && result.success) {
         // Remove session from local array
         allSessions = allSessions.filter(s => s.id !== currentSessionToDelete.id);
+        // Remove from selection if selected
+        selectedSessionIds.delete(currentSessionToDelete.id);
         
         // Check if current page is now empty and adjust if needed
         const totalPages = getTotalPages();
@@ -160,6 +201,111 @@
       btnText.textContent = 'Delete';
       spinner.classList.add('hidden');
     }
+  }
+
+  // Bulk delete modal helpers
+  function showBulkDeleteModal() {
+    const count = selectedSessionIds.size;
+    if (count === 0) return;
+    const modal = document.getElementById('bulkDeleteConfirmModal');
+    const summary = document.getElementById('bulkDeleteSummary');
+    if (!modal || !summary) return;
+    summary.textContent = `Are you sure you want to delete ${count} selected session${count === 1 ? '' : 's'}?`;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function hideBulkDeleteModal() {
+    const modal = document.getElementById('bulkDeleteConfirmModal');
+    if (modal) {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+    const btn = document.getElementById('confirmBulkDelete');
+    const text = document.getElementById('bulkDeleteButtonText');
+    const spin = document.getElementById('bulkDeleteButtonSpinner');
+    if (btn && text && spin) {
+      btn.disabled = false;
+      text.textContent = 'Delete';
+      spin.classList.add('hidden');
+    }
+  }
+
+  async function confirmBulkDelete() {
+    const ids = Array.from(selectedSessionIds);
+    if (ids.length === 0) return;
+
+    const btn = document.getElementById('confirmBulkDelete');
+    const text = document.getElementById('bulkDeleteButtonText');
+    const spin = document.getElementById('bulkDeleteButtonSpinner');
+    if (!btn || !text || !spin) return;
+
+    btn.disabled = true;
+    text.textContent = 'Deleting...';
+    spin.classList.remove('hidden');
+
+    const deleted = new Set();
+    const failed = [];
+    try {
+      // Delete sequentially to be safe with storage updates
+      for (const id of ids) {
+        try {
+          const res = await sendMessagePromise({ action: 'analyticsDeleteSession', sessionId: id });
+          if (res && res.success) {
+            deleted.add(id);
+          } else {
+            failed.push(id);
+          }
+        } catch (e) {
+          failed.push(id);
+        }
+      }
+
+      if (deleted.size > 0) {
+        // Remove from local list
+        allSessions = allSessions.filter(s => !deleted.has(s.id));
+        // Clear selection for deleted ones
+        for (const id of deleted) selectedSessionIds.delete(id);
+
+        // Adjust pagination
+        const totalPages = getTotalPages();
+        if (currentPage > totalPages && totalPages > 0) {
+          currentPage = totalPages;
+        } else if (totalPages === 0) {
+          currentPage = 1;
+        }
+
+        renderSessionsTable();
+        try { await refreshSummary(); } catch (_) {}
+      }
+
+      hideBulkDeleteModal();
+      // Exit selection mode after completing bulk delete
+      exitSelectionMode();
+
+      if (failed.length > 0) {
+        alert(`Failed to delete ${failed.length} session(s). Please try again.`);
+      }
+    } catch (e) {
+      console.error('Bulk delete error:', e);
+      alert('Failed to delete selected sessions. Please try again.');
+      btn.disabled = false;
+      text.textContent = 'Delete';
+      spin.classList.add('hidden');
+    }
+  }
+
+  function enterSelectionMode() {
+    selectionMode = true;
+    updateBulkControls();
+    renderSessionsTable();
+  }
+
+  function exitSelectionMode() {
+    selectionMode = false;
+    selectedSessionIds.clear();
+    updateBulkControls();
+    renderSessionsTable();
   }
 
   // Edit modal management functions
@@ -363,9 +509,11 @@
     const sessions = getCurrentPageSessions();
     if (!sessions || sessions.length === 0) {
       const row = document.createElement('tr');
-      row.innerHTML = `<td colspan="6" class="px-4 py-6 text-center text-sm text-gray-500">No sessions yet</td>`;
+      const colspan = selectionMode ? 7 : 6;
+      row.innerHTML = `<td colspan="${colspan}" class="px-4 py-6 text-center text-sm text-gray-500">No sessions yet</td>`;
       tbody.appendChild(row);
       updatePaginationControls();
+      updateBulkControls();
       return;
     }
 
@@ -378,7 +526,12 @@
       const duration = formatDurationShort(getCreditedDuration(s));
 
       const tr = document.createElement('tr');
+      const selectCol = selectionMode ? `
+        <td class=\"px-2 py-2 text-center\">
+          <input type=\"checkbox\" class=\"session-select h-4 w-4 text-indigo-600 border-gray-300 rounded\" data-id=\"${s.id}\">
+        </td>` : '';
       tr.innerHTML = `
+        ${selectCol}
         <td class="px-4 py-2 text-sm text-gray-500">${globalIndex + 1}</td>
         <td class="px-4 py-2 text-sm text-gray-700">${dateStr}</td>
         <td class="px-4 py-2 text-sm text-gray-700">${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} – ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
@@ -398,6 +551,18 @@
           </div>
         </td>
       `;
+
+      // Initialize selection checkbox state and handler
+      if (selectionMode) {
+        const cb = tr.querySelector('input.session-select');
+        if (cb) {
+          cb.checked = selectedSessionIds.has(s.id);
+          cb.addEventListener('change', (e) => {
+            if (e.target.checked) selectedSessionIds.add(s.id); else selectedSessionIds.delete(s.id);
+            updateBulkControls();
+          });
+        }
+      }
 
       // Actions menu handlers (UI only)
       const cell = tr.querySelector('td:last-child');
@@ -456,6 +621,7 @@
     });
     
     updatePaginationControls();
+    updateBulkControls();
   }
 
   async function fetchWeeklySeries() {
@@ -484,6 +650,11 @@
       fetchSessions(1000), // Fetch more sessions to support pagination
     ]);
     allSessions = sessions;
+    // Drop selections for sessions that no longer exist
+    const ids = new Set(allSessions.map(s => s.id));
+    for (const id of Array.from(selectedSessionIds)) {
+      if (!ids.has(id)) selectedSessionIds.delete(id);
+    }
     renderWeeklyChart(series);
     renderSessionsTable();
   }
@@ -524,6 +695,37 @@
     
     if (nextBtn) {
       nextBtn.addEventListener('click', goToNextPage);
+    }
+
+    // Header select-all checkbox
+    const headerCb = document.getElementById('selectAllSessions');
+    if (headerCb) {
+      headerCb.addEventListener('change', (e) => {
+        const visible = getCurrentPageSessions();
+        if (e.target.checked) {
+          visible.forEach(s => selectedSessionIds.add(s.id));
+        } else {
+          visible.forEach(s => selectedSessionIds.delete(s.id));
+        }
+        renderSessionsTable();
+      });
+    }
+
+    // Bulk delete button: toggle selection mode / confirm bulk delete
+    const bulkBtn = document.getElementById('bulkDeleteBtn');
+    if (bulkBtn) {
+      bulkBtn.addEventListener('click', () => {
+        if (!selectionMode) {
+          enterSelectionMode();
+        } else {
+          if (selectedSessionIds.size > 0) {
+            showBulkDeleteModal();
+          } else {
+            // No selection -> exit selection mode
+            exitSelectionMode();
+          }
+        }
+      });
     }
     
     // Modal event listeners
@@ -594,6 +796,19 @@
         }
       }
     });
+    // Bulk modal events
+    const bulkModal = document.getElementById('bulkDeleteConfirmModal');
+    const closeBulkBtn = document.getElementById('closeBulkDeleteModal');
+    const cancelBulkBtn = document.getElementById('cancelBulkDelete');
+    const confirmBulkBtn = document.getElementById('confirmBulkDelete');
+    if (closeBulkBtn) closeBulkBtn.addEventListener('click', hideBulkDeleteModal);
+    if (cancelBulkBtn) cancelBulkBtn.addEventListener('click', hideBulkDeleteModal);
+    if (confirmBulkBtn) confirmBulkBtn.addEventListener('click', confirmBulkDelete);
+    if (bulkModal) {
+      bulkModal.addEventListener('click', (e) => {
+        if (e.target === bulkModal) hideBulkDeleteModal();
+      });
+    }
     chrome.runtime.onMessage.addListener((message) => {
       if (message && (message.action === 'analyticsUpdated' || message.action === 'timerStateUpdated')) {
         refreshSummary();

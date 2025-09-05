@@ -631,41 +631,60 @@ class DashboardTimer {
    * Test helper: fast-complete the current running session and credit full duration
    */
   async generateTestData() {
-    try {
-      if (!this.isRunning) {
-        alert('Start a session first, then press Test Data.');
-        return;
-      }
-
-      const res = await chrome.runtime.sendMessage({
-        action: 'testCompleteSession',
-        session: this.currentSession,
-      });
-
-      if (res && res.success) {
-        const type = this.currentSession;
-        const pretty =
-          type === 'pomodoro'
-            ? 'Pomodoro'
-            : type === 'short-break'
-            ? 'Short break'
-            : type === 'long-break'
-            ? 'Long break'
-            : 'Custom';
-        const minutes = Math.floor((this.totalTime || 0) / 60);
-        console.log(`${pretty} fast-completed with full credit.`);
-        alert(
-          `Credited one full ${pretty}${
-            minutes ? ` (${minutes} minutes)` : ''
-          }.`
-        );
-      } else {
-        throw new Error(res && res.error ? res.error : 'Unknown error');
-      }
-    } catch (error) {
-      console.error('Error generating test data:', error);
-      alert('Error generating test data. Check console for details.');
+    // Require a running session
+    if (!this.isRunning) {
+      alert('Start a session first, then press Test Data.');
+      return;
     }
+
+    // Immediately stop local countdown to prevent UI from continuing
+    // while background processes the fast-complete request
+    this.stopLocalTimer();
+
+    // Ask background to fast-complete the current session
+    let res;
+    try {
+      if (typeof sendMessagePromise === 'function') {
+        res = await sendMessagePromise({
+          action: 'testCompleteSession',
+          session: this.currentSession,
+        });
+      } else {
+        res = await chrome.runtime.sendMessage({
+          action: 'testCompleteSession',
+          session: this.currentSession,
+        });
+      }
+    } catch (e) {
+      console.error('Error generating test data (message failed):', e);
+      alert('Error generating test data. Check console for details.');
+      return;
+    }
+
+    if (!(res && res.success)) {
+      console.error('Error generating test data (background error):', res && res.error);
+      alert('Error generating test data. Check console for details.');
+      return;
+    }
+
+    // Success path: show credited notice and refresh UI/state
+    const type = this.currentSession;
+    const pretty =
+      type === 'pomodoro'
+        ? 'Pomodoro'
+        : type === 'short-break'
+        ? 'Short break'
+        : type === 'long-break'
+        ? 'Long break'
+        : 'Custom';
+    const minutes = Math.floor((this.totalTime || 0) / 60);
+    console.log(`${pretty} fast-completed with full credit.`);
+    alert(`Credited one full ${pretty}${minutes ? ` (${minutes} minutes)` : ''}.`);
+
+    // Sync with background to reflect next session (break/focus) state
+    try { await this.syncWithBackground(); } catch (_) {}
+    // Refresh today's counters (defensive)
+    try { await this.updateTodayCounters(); } catch (_) {}
   }
 
   /**
