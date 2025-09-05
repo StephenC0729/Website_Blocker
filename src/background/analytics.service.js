@@ -219,28 +219,36 @@ export async function deleteSession(sessionId) {
   }
 
   const session = analytics.sessions[sessionIndex];
-  
-  // If the session was completed and contributed to daily metrics, subtract from them
+
+  // Helper to compute credited focus seconds
+  const creditedTime = Math.min(
+    (session.plannedSec ?? session.actualSec ?? 0),
+    (session.actualSec ?? 0)
+  );
+
+  // Adjust daily rollups using the same attribution used when logging
+  // - Focus seconds and sessionsCompleted are attributed to the completion day (end)
+  // - sessionsStarted is attributed to the start day
+  if (session.type === 'pomodoro' || session.type === 'custom') {
+    // Decrement sessionsStarted on the start day if we had counted it
+    if (session.start) {
+      const startDayKey = dayKey(session.start);
+      const startDay = analytics.byDay[startDayKey];
+      if (startDay) {
+        startDay.sessionsStarted = Math.max(0, startDay.sessionsStarted - 1);
+      }
+    }
+  }
+
   if (session.completed && (session.type === 'pomodoro' || session.type === 'custom')) {
-    const sessionDay = dayKey(session.start);
-    const dayData = analytics.byDay[sessionDay];
-    
-    if (dayData) {
-      // Subtract the focus time that was credited
-      if (session.actualSec && session.plannedSec) {
-        const creditedTime = Math.min(session.plannedSec, session.actualSec);
-        dayData.focusSeconds = Math.max(0, dayData.focusSeconds - creditedTime);
-      } else if (session.actualSec) {
-        dayData.focusSeconds = Math.max(0, dayData.focusSeconds - session.actualSec);
+    const completionTs = session.end || session.start;
+    const completionDayKey = dayKey(completionTs);
+    const completionDay = analytics.byDay[completionDayKey];
+    if (completionDay) {
+      if (creditedTime > 0) {
+        completionDay.focusSeconds = Math.max(0, completionDay.focusSeconds - creditedTime);
       }
-      
-      // Decrement completed sessions count
-      dayData.sessionsCompleted = Math.max(0, dayData.sessionsCompleted - 1);
-      
-      // If session was started (has a start time), also decrement started count
-      if (session.start) {
-        dayData.sessionsStarted = Math.max(0, dayData.sessionsStarted - 1);
-      }
+      completionDay.sessionsCompleted = Math.max(0, completionDay.sessionsCompleted - 1);
     }
   }
 
@@ -274,61 +282,66 @@ export async function updateSession(sessionId, updates) {
 
   // Validate and apply updates
   try {
-    // Update session type if provided
+    // Apply field updates to session
     if (updates.type && ['pomodoro', 'short-break', 'long-break', 'custom'].includes(updates.type)) {
       session.type = updates.type;
     }
-
-    // Update start time if provided
     if (updates.start && typeof updates.start === 'number') {
       session.start = updates.start;
     }
-
-    // Update duration if provided (plannedSec and actualSec for completed sessions)
     if (updates.duration && typeof updates.duration === 'number') {
       session.plannedSec = updates.duration;
       if (session.completed) {
         session.actualSec = updates.duration;
-        // Recalculate end time based on new start + duration
         session.end = session.start + (updates.duration * 1000);
       }
     }
 
-    // Update daily metrics if the session was completed and contributes to metrics
-    if (session.completed && (originalSession.type === 'pomodoro' || originalSession.type === 'custom' || 
-                             session.type === 'pomodoro' || session.type === 'custom')) {
-      
-      const originalDay = dayKey(originalSession.start);
-      const newDay = dayKey(session.start);
-      
-      // Remove old contribution
-      if (originalSession.type === 'pomodoro' || originalSession.type === 'custom') {
-        const oldDayData = analytics.byDay[originalDay];
-        if (oldDayData) {
-          const oldCredit = Math.min(originalSession.plannedSec ?? originalSession.actualSec ?? 0, originalSession.actualSec ?? 0);
-          oldDayData.focusSeconds = Math.max(0, oldDayData.focusSeconds - oldCredit);
-          oldDayData.sessionsCompleted = Math.max(0, oldDayData.sessionsCompleted - 1);
-          if (originalSession.start) {
-            oldDayData.sessionsStarted = Math.max(0, oldDayData.sessionsStarted - 1);
-          }
-        }
+    // Determine attribution keys and credits (before and after)
+    const wasContrib = originalSession.type === 'pomodoro' || originalSession.type === 'custom';
+    const isContrib = session.type === 'pomodoro' || session.type === 'custom';
+    const oldStartKey = originalSession.start ? dayKey(originalSession.start) : null;
+    const oldCompleteKey = originalSession.completed ? dayKey(originalSession.end || originalSession.start) : null;
+    const oldCredit = Math.min(
+      (originalSession.plannedSec ?? originalSession.actualSec ?? 0),
+      (originalSession.actualSec ?? 0)
+    );
+
+    const newStartKey = session.start ? dayKey(session.start) : null;
+    const newCompleteKey = session.completed ? dayKey(session.end || session.start) : null;
+    const newCredit = Math.min(
+      (session.plannedSec ?? session.actualSec ?? 0),
+      (session.actualSec ?? 0)
+    );
+
+    // Rollback old attribution
+    if (wasContrib) {
+      if (oldStartKey && analytics.byDay[oldStartKey]) {
+        const d = analytics.byDay[oldStartKey];
+        d.sessionsStarted = Math.max(0, d.sessionsStarted - 1);
       }
-      
-      // Add new contribution
-      if (session.type === 'pomodoro' || session.type === 'custom') {
-        const newDayData = ensureDay(analytics, newDay);
-        const newCredit = Math.min(session.plannedSec ?? session.actualSec ?? 0, session.actualSec ?? 0);
-        newDayData.focusSeconds += newCredit;
-        newDayData.sessionsCompleted += 1;
-        if (session.start) {
-          newDayData.sessionsStarted += 1;
-        }
+      if (originalSession.completed && oldCompleteKey && analytics.byDay[oldCompleteKey]) {
+        const d = analytics.byDay[oldCompleteKey];
+        if (oldCredit > 0) d.focusSeconds = Math.max(0, d.focusSeconds - oldCredit);
+        d.sessionsCompleted = Math.max(0, d.sessionsCompleted - 1);
+      }
+    }
+
+    // Apply new attribution
+    if (isContrib) {
+      if (newStartKey) {
+        const d = ensureDay(analytics, newStartKey);
+        d.sessionsStarted += 1;
+      }
+      if (session.completed && newCompleteKey) {
+        const d = ensureDay(analytics, newCompleteKey);
+        if (newCredit > 0) d.focusSeconds += newCredit;
+        d.sessionsCompleted += 1;
       }
     }
 
     await saveAnalytics(analytics);
     broadcastUpdate();
-    
     return { success: true };
   } catch (error) {
     return { success: false, error: 'Failed to update session: ' + error.message };

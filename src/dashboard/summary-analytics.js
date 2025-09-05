@@ -143,6 +143,9 @@
         // Hide modal
         hideDeleteConfirmation();
         
+        // Immediate UI refresh for chart/series as a fallback to broadcast timing
+        try { await refreshSummary(); } catch (_) {}
+
         // Show success message (could be enhanced with a toast notification)
         console.log('Session deleted successfully');
       } else {
@@ -279,6 +282,9 @@
         // Hide modal
         hideEditModal();
         
+        // Immediate UI refresh for chart/series as a fallback to broadcast timing
+        try { await refreshSummary(); } catch (_) {}
+
         // Show success message
         console.log('Session updated successfully');
       } else {
