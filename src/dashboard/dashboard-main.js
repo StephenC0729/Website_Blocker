@@ -15,7 +15,7 @@ const pageConfig = {
   },
   summary: {
     title:
-      '<i class="fas fa-chart-pie text-indigo-500 mr-2"></i>Summary & Analytics',
+      '<i class="fas fa-chart-pie text-blue-500 mr-2"></i>Summary & Analytics',
     file: 'components/summary-content.html',
   },
   blocklist: {
@@ -126,7 +126,8 @@ async function loadNavigation() {
     const guestStatus = document.getElementById('guestStatus');
     const applyGuestUI = (enabled) => {
       if (guestToggle) guestToggle.classList.toggle('on', !!enabled);
-      if (guestStatus) guestStatus.textContent = enabled ? 'Browsing as guest' : '';
+      if (guestStatus)
+        guestStatus.textContent = enabled ? 'Browsing as guest' : '';
       document.documentElement.classList.toggle('guest-mode', !!enabled);
     };
     applyGuestUI(localStorage.getItem('guestMode') === 'on');
@@ -151,8 +152,26 @@ async function loadNavigation() {
 
       document.addEventListener('click', (e) => {
         if (!accountDropdown.classList.contains('hidden')) {
-          const within = accountDropdown.contains(e.target) || accountBtn.contains(e.target);
+          const within =
+            accountDropdown.contains(e.target) || accountBtn.contains(e.target);
           if (!within) accountDropdown.classList.add('hidden');
+        }
+      });
+    }
+
+    // Help dropdown behavior
+    const helpBtn = document.getElementById('helpDropdownButton');
+    const helpMenu = document.getElementById('helpDropdownMenu');
+    if (helpBtn && helpMenu) {
+      helpBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        helpMenu.classList.toggle('hidden');
+      });
+      document.addEventListener('click', (e) => {
+        if (!helpMenu.classList.contains('hidden')) {
+          const within =
+            helpMenu.contains(e.target) || helpBtn.contains(e.target);
+          if (!within) helpMenu.classList.add('hidden');
         }
       });
     }
@@ -189,7 +208,9 @@ async function loadNavigation() {
       const savedPage = localStorage.getItem('activePage');
       const initialPage = pageConfig[hashPage]
         ? hashPage
-        : (pageConfig[savedPage] ? savedPage : 'dashboard');
+        : pageConfig[savedPage]
+        ? savedPage
+        : 'dashboard';
       loadContent(initialPage);
       updateNavigation(initialPage);
     };
@@ -211,34 +232,7 @@ async function loadNavigation() {
   }
 }
 
-/**
- * Dark Mode Toggle Functionality
- * Handles theme switching between light and dark modes
- */
-function initializeDarkMode() {
-  const darkModeToggle = document.getElementById('darkModeToggle');
-
-  // Check for saved theme preference or default to light mode
-  const savedTheme = localStorage.getItem('theme') || 'light';
-
-  // Apply saved theme
-  if (savedTheme === 'dark') {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
-
-  // Toggle dark mode on button click
-  darkModeToggle.addEventListener('click', function () {
-    document.documentElement.classList.toggle('dark');
-
-    if (document.documentElement.classList.contains('dark')) {
-      localStorage.setItem('theme', 'dark');
-    } else {
-      localStorage.setItem('theme', 'light');
-    }
-  });
-}
+// Dark mode removed: always use light theme
 
 /**
  * Application Initialization
@@ -246,7 +240,6 @@ function initializeDarkMode() {
  */
 document.addEventListener('DOMContentLoaded', function () {
   loadNavigation();
-  initializeDarkMode();
 });
 
 /**
@@ -267,6 +260,6 @@ if (typeof module !== 'undefined' && module.exports) {
     loadContent,
     updateNavigation,
     loadNavigation,
-    initializeDarkMode
+    // Dark mode removed
   };
 }
