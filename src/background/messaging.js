@@ -180,23 +180,7 @@ export async function handleMessage(request, _sender, sendResponse) {
 
       case ACTIONS.ANALYTICS_SITE_BLOCKED:
         await analyticsService.logSiteBlocked(request.domain);
-        try {
-          const settings = await settingsService.getSettings();
-          if (settings.blockAttemptAlertsEnabled) {
-            const title = 'Site Blocked';
-            const message = `Blocked: ${request.domain}`;
-            // Show a lightweight notification for the block attempt
-            chrome.notifications.create({
-              type: 'basic',
-              iconUrl: 'src/assets/icons/Icon.png',
-              title,
-              message,
-              priority: 0,
-            });
-          }
-        } catch (_) {
-          // Non-fatal if notification cannot be shown
-        }
+        // Block Attempt Alerts feature removed. No notification generated here.
         sendResponse({ success: true });
         break;
 
@@ -218,12 +202,17 @@ export async function handleMessage(request, _sender, sendResponse) {
         break;
 
       case ACTIONS.ANALYTICS_DELETE_SESSION:
-        const deleteResult = await analyticsService.deleteSession(request.sessionId);
+        const deleteResult = await analyticsService.deleteSession(
+          request.sessionId
+        );
         sendResponse(deleteResult);
         break;
 
       case ACTIONS.ANALYTICS_UPDATE_SESSION:
-        const updateResult = await analyticsService.updateSession(request.sessionId, request.updates);
+        const updateResult = await analyticsService.updateSession(
+          request.sessionId,
+          request.updates
+        );
         sendResponse(updateResult);
         break;
 

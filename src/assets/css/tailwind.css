@@ -418,6 +418,9 @@ body {
 .w-64 {
   width: 16rem;
 }
+.w-11 {
+  width: 2.75rem; /* 44px */
+}
 .w-8 {
   width: 2rem;
 }
@@ -438,6 +441,9 @@ body {
 }
 .h-16 {
   height: 4rem;
+}
+.h-6 {
+  height: 1.5rem; /* 24px */
 }
 .h-2 {
   height: 0.5rem;
@@ -973,6 +979,40 @@ button {
 /* Utilities */
 .object-fit {
   object-fit: contain;
+}
+
+/* =========================
+   Toggle pill fallback styles
+   Supports the markup used in settings-content.html:
+   <label class="relative inline-flex ...">
+     <input type="checkbox" class="sr-only" />
+     <div> <!-- pill track --> </div>
+   </label>
+   This emulates Tailwind's peer/after utilities so the knob is visible
+   without full Tailwind runtime.
+   ========================= */
+label.inline-flex input.sr-only + div {
+  position: relative;
+  border-radius: 9999px;
+}
+label.inline-flex input.sr-only + div::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px; /* matches h-5 */
+  height: 20px; /* matches h-5 */
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 9999px;
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+label.inline-flex input.sr-only:checked + div {
+  background-color: #2563eb; /* peer-checked:bg-blue-600 */
+}
+label.inline-flex input.sr-only:checked + div::after {
+  transform: translateX(20px); /* peer-checked:after:translate-x-full */
 }
 
 /* Custom Animation Support */

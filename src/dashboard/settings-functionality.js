@@ -8,18 +8,23 @@ async function loadSettingsIntoUI() {
     const res = await sendMessagePromise({ action: 'getSettings' });
     const s = (res && res.settings) || {};
 
+    // Unified Mode Toggle
+    const unifiedToggle = document.getElementById('unifiedModeToggle');
+
+    // Notification settings
     const soundToggle = document.getElementById('soundNotificationsToggle');
     const volumeSlider = document.getElementById('volumeSlider');
     const volumeValue = document.getElementById('volumeValue');
-    const blockAlertsToggle = document.getElementById('blockAlertsToggle');
+    // Block Attempt Alerts toggle removed from UI
 
+    if (unifiedToggle) unifiedToggle.checked = !!s.unifiedModeEnabled;
     if (soundToggle) soundToggle.checked = !!s.soundNotificationsEnabled;
     if (typeof s.notificationVolume === 'number' && volumeSlider) {
       const v = Math.max(0, Math.min(100, s.notificationVolume));
       volumeSlider.value = String(v);
       if (volumeValue) volumeValue.textContent = `${v}%`;
     }
-    if (blockAlertsToggle) blockAlertsToggle.checked = !!s.blockAttemptAlertsEnabled;
+    // No block attempt alerts control in UI anymore
   } catch (e) {
     console.warn('Failed to load settings into UI:', e);
   }
@@ -34,10 +39,21 @@ async function persistSettings(patch) {
 }
 
 function setupSettingsFunctionality() {
+  console.log('🔧 Initializing settings functionality...');
+
   // Initial populate
   loadSettingsIntoUI();
 
-  // Controls
+  // Unified Mode Toggle
+  const unifiedToggle = document.getElementById('unifiedModeToggle');
+  if (unifiedToggle) {
+    unifiedToggle.addEventListener('change', (e) => {
+      console.log('🔄 Unified mode toggled:', e.target.checked);
+      persistSettings({ unifiedModeEnabled: !!e.target.checked });
+    });
+  }
+
+  // Notification Controls
   const soundToggle = document.getElementById('soundNotificationsToggle');
   if (soundToggle) {
     soundToggle.addEventListener('change', (e) => {
@@ -54,15 +70,12 @@ function setupSettingsFunctionality() {
       persistSettings({ notificationVolume: v });
     };
     volumeSlider.addEventListener('input', (e) => updateVolume(e.target.value));
-    volumeSlider.addEventListener('change', (e) => updateVolume(e.target.value));
+    volumeSlider.addEventListener('change', (e) =>
+      updateVolume(e.target.value)
+    );
   }
 
-  const blockAlertsToggle = document.getElementById('blockAlertsToggle');
-  if (blockAlertsToggle) {
-    blockAlertsToggle.addEventListener('change', (e) => {
-      persistSettings({ blockAttemptAlertsEnabled: !!e.target.checked });
-    });
-  }
+  // Block Attempt Alerts toggle removed
 
   const testBtn = document.getElementById('testSoundBtn');
   if (testBtn) {
@@ -71,12 +84,56 @@ function setupSettingsFunctionality() {
         const volumeSlider = document.getElementById('volumeSlider');
         const val = volumeSlider ? Number(volumeSlider.value) : 70;
         const v = Math.max(0, Math.min(100, isNaN(val) ? 70 : val));
-        const audioUrl = chrome.runtime.getURL('src/assets/sounds/notification.mp3');
+        const audioUrl = chrome.runtime.getURL(
+          'src/assets/sounds/notification.mp3'
+        );
         const audio = new Audio(audioUrl);
         audio.volume = Math.max(0, Math.min(1, v / 100));
         await audio.play();
       } catch (err) {
         console.warn('Test sound failed:', err);
+      }
+    });
+  }
+
+  // Export Data (Sessions) button
+  const exportDataBtn = document.getElementById('exportDataBtn');
+  if (exportDataBtn) {
+    exportDataBtn.addEventListener('click', async () => {
+      try {
+        // Read analytics from extension local storage
+        const result = await chrome.storage.local.get(['analytics']);
+        const analytics = (result && result.analytics) || {
+          sessions: [],
+          byDay: {},
+        };
+        const sessions = Array.isArray(analytics.sessions)
+          ? analytics.sessions
+          : [];
+
+        const payload = {
+          schema: 'app-blocker.sessions.v1',
+          exportedAt: new Date().toISOString(),
+          count: sessions.length,
+          sessions,
+        };
+
+        const blob = new Blob([JSON.stringify(payload, null, 2)], {
+          type: 'application/json',
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const date = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = `app-blocker-sessions-${date}.json`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 0);
+      } catch (err) {
+        console.error('Failed to export sessions data:', err);
       }
     });
   }
