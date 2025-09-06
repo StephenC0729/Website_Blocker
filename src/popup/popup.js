@@ -60,19 +60,27 @@ class PomodoroTimer {
     startBtn.addEventListener('click', () => this.toggleTimer());
     resetBtn.addEventListener('click', () => this.resetTimer());
 
-    // Unified mode toggle
-    unifiedModeToggle.addEventListener('change', (e) => {
-      this.toggleUnifiedMode(e.target.checked);
-    });
+    // Unified mode toggle (moved to Settings; guard in case present)
+    if (unifiedModeToggle) {
+      unifiedModeToggle.addEventListener('change', (e) => {
+        this.toggleUnifiedMode(e.target.checked);
+      });
+    }
 
-    // Category selection change handlers
-    document.getElementById('focusCategory').addEventListener('change', (e) => {
-      this.updateSettings({ focusCategoryId: e.target.value });
-    });
+    // Category selection change handlers (moved to Settings; guard if present)
+    const focusCat = document.getElementById('focusCategory');
+    if (focusCat) {
+      focusCat.addEventListener('change', (e) => {
+        this.updateSettings({ focusCategoryId: e.target.value });
+      });
+    }
 
-    document.getElementById('breakCategory').addEventListener('change', (e) => {
-      this.updateSettings({ breakCategoryId: e.target.value || null });
-    });
+    const breakCat = document.getElementById('breakCategory');
+    if (breakCat) {
+      breakCat.addEventListener('change', (e) => {
+        this.updateSettings({ breakCategoryId: e.target.value || null });
+      });
+    }
   }
 
   /**
@@ -482,8 +490,14 @@ class PomodoroTimer {
 
     // Also listen for Chrome Storage changes directly
     chrome.storage.onChanged.addListener((changes, areaName) => {
-      if (areaName === 'local' && changes.timerState) {
-        this.applyTimerState(changes.timerState.newValue);
+      if (areaName === 'local') {
+        if (changes.timerState) {
+          this.applyTimerState(changes.timerState.newValue);
+        }
+        if (changes.settings && changes.settings.newValue) {
+          const s = changes.settings.newValue;
+          this.updateUnifiedModeUI(!!s.unifiedModeEnabled);
+        }
       }
     });
   }
@@ -593,8 +607,9 @@ class PomodoroTimer {
       const settings = await this.getSettings();
       const categories = await this.getCategories();
       
-      // Update UI state
-      document.getElementById('unifiedModeToggle').checked = settings.unifiedModeEnabled;
+      // Update UI state (toggle exists in Settings; guard if present here)
+      const toggleEl = document.getElementById('unifiedModeToggle');
+      if (toggleEl) toggleEl.checked = settings.unifiedModeEnabled;
       this.updateUnifiedModeUI(settings.unifiedModeEnabled);
       
       // Populate category selects
@@ -611,14 +626,19 @@ class PomodoroTimer {
   updateUnifiedModeUI(isEnabled) {
     const unifiedControls = document.getElementById('unifiedControls');
     const sessionTabs = document.getElementById('sessionTabs');
-    
-    if (isEnabled) {
-      unifiedControls.style.display = 'block';
+    const indicator = document.getElementById('unifiedModeIndicator');
+
+    if (unifiedControls) {
+      unifiedControls.style.display = isEnabled ? 'block' : 'none';
+    }
+    if (sessionTabs) {
       // Gray out session tabs in unified mode (still functional but visually indicates unified control)
-      sessionTabs.style.opacity = '0.7';
-    } else {
-      unifiedControls.style.display = 'none';
-      sessionTabs.style.opacity = '1';
+      sessionTabs.style.opacity = isEnabled ? '0.7' : '1';
+    }
+    if (indicator) {
+      indicator.textContent = `Unified mode: ${isEnabled ? 'On' : 'Off'}`;
+      indicator.classList.toggle('on', !!isEnabled);
+      indicator.classList.toggle('off', !isEnabled);
     }
   }
 
@@ -630,7 +650,7 @@ class PomodoroTimer {
     const breakSelect = document.getElementById('breakCategory');
     
     if (!focusSelect || !breakSelect) {
-      console.error('Missing category select elements:', { focusSelect, breakSelect });
+      // Selects not present in popup anymore; settings page owns category config
       return;
     }
     
@@ -666,8 +686,9 @@ class PomodoroTimer {
       this.updateUnifiedModeUI(enabled);
     } catch (error) {
       console.error('Error toggling unified mode:', error);
-      // Revert toggle on error
-      document.getElementById('unifiedModeToggle').checked = !enabled;
+      // Revert toggle on error if present
+      const t = document.getElementById('unifiedModeToggle');
+      if (t) t.checked = !enabled;
     }
   }
 

@@ -30,6 +30,32 @@
         ></div>
       </label>
     </div>
+
+    <!-- Unified Mode Categories -->
+    <div id="unifiedCategoriesSection" class="mt-2">
+      <div class="py-3 border-t border-gray-200 dark:border-gray-700">
+      <label class="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">Focus Category</label>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Applied during Pomodoro (focus) sessions</p>
+      <select
+        id="focusCategorySelect"
+        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+      >
+        <option value="general">General</option>
+      </select>
+      </div>
+
+      <div class="py-3 border-t border-gray-200 dark:border-gray-700">
+      <label class="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">Break Category</label>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Optional category to use during breaks; leave None to restore previous</p>
+      <select
+        id="breakCategorySelect"
+        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+      >
+        <option value="">None (restore previous)</option>
+        <option value="general">General</option>
+      </select>
+      </div>
+    </div>
   </div>
 
   <!-- Notification & Audio Settings -->

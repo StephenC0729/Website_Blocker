@@ -14,6 +14,20 @@ body {
   position: relative; /* Enable absolute positioning for child elements */
 }
 
+/* Unified mode indicator (read-only) */
+.unified-indicator {
+  margin: 6px 0 0 0;
+  font-size: 11px;
+  opacity: 0.85;
+  color: rgba(255, 255, 255, 0.95);
+}
+.unified-indicator.on {
+  color: #d1fae5; /* light teal */
+}
+.unified-indicator.off {
+  color: #ffe4e6; /* light red */
+}
+
 /* Main content container - centers all timer elements */
 .container {
   text-align: center;

@@ -8,6 +8,15 @@ async function loadSettingsIntoUI() {
     const res = await sendMessagePromise({ action: 'getSettings' });
     const s = (res && res.settings) || {};
 
+    // Fetch category metadata for unified mode selects
+    let categories = {};
+    try {
+      const metaRes = await sendMessagePromise({ action: 'getCategoryMetadata' });
+      categories = (metaRes && metaRes.categories) || {};
+    } catch (e) {
+      console.warn('Failed to load category metadata:', e);
+    }
+
     // Unified Mode Toggle
     const unifiedToggle = document.getElementById('unifiedModeToggle');
     // Dark Mode Toggle
@@ -18,6 +27,10 @@ async function loadSettingsIntoUI() {
     const volumeSlider = document.getElementById('volumeSlider');
     const volumeValue = document.getElementById('volumeValue');
     // Block Attempt Alerts toggle removed from UI
+    // Unified categories selects
+    const focusSelect = document.getElementById('focusCategorySelect');
+    const breakSelect = document.getElementById('breakCategorySelect');
+    const unifiedCatsSection = document.getElementById('unifiedCategoriesSection');
 
     if (unifiedToggle) unifiedToggle.checked = !!s.unifiedModeEnabled;
     if (darkModeToggle) darkModeToggle.checked = !!s.darkModeEnabled;
@@ -30,6 +43,40 @@ async function loadSettingsIntoUI() {
       if (volumeValue) volumeValue.textContent = `${v}%`;
     }
     // No block attempt alerts control in UI anymore
+    // Show/hide unified categories based on unified mode
+    if (unifiedCatsSection) {
+      unifiedCatsSection.classList.toggle('hidden', !s.unifiedModeEnabled);
+    }
+
+    // Populate unified categories selects if present
+    if (focusSelect && breakSelect) {
+      // Reset options
+      focusSelect.innerHTML = '';
+      breakSelect.innerHTML = '<option value="">None (restore previous)</option>';
+
+      const addOpt = (sel, value, label) => {
+        const opt = document.createElement('option');
+        opt.value = value;
+        opt.textContent = label;
+        sel.appendChild(opt);
+      };
+
+      // General first
+      addOpt(focusSelect, 'general', (categories.general && categories.general.name) || 'General');
+      addOpt(breakSelect, 'general', (categories.general && categories.general.name) || 'General');
+
+      // Other categories
+      Object.entries(categories).forEach(([id, meta]) => {
+        if (id !== 'general') {
+          addOpt(focusSelect, id, meta.name || id);
+          addOpt(breakSelect, id, meta.name || id);
+        }
+      });
+
+      // Set current values
+      focusSelect.value = s.focusCategoryId || 'general';
+      breakSelect.value = s.breakCategoryId || '';
+    }
   } catch (e) {
     console.warn('Failed to load settings into UI:', e);
   }
@@ -49,12 +96,29 @@ function setupSettingsFunctionality() {
   // Initial populate
   loadSettingsIntoUI();
 
+  // Unified categories change handlers
+  const focusSelect2 = document.getElementById('focusCategorySelect');
+  if (focusSelect2) {
+    focusSelect2.addEventListener('change', (e) => {
+      persistSettings({ focusCategoryId: e.target.value || 'general' });
+    });
+  }
+  const breakSelect2 = document.getElementById('breakCategorySelect');
+  if (breakSelect2) {
+    breakSelect2.addEventListener('change', (e) => {
+      const v = e.target.value;
+      persistSettings({ breakCategoryId: v ? v : null });
+    });
+  }
+
   // Unified Mode Toggle
   const unifiedToggle = document.getElementById('unifiedModeToggle');
   if (unifiedToggle) {
     unifiedToggle.addEventListener('change', (e) => {
       console.log('🔄 Unified mode toggled:', e.target.checked);
       persistSettings({ unifiedModeEnabled: !!e.target.checked });
+      const sec = document.getElementById('unifiedCategoriesSection');
+      if (sec) sec.classList.toggle('hidden', !e.target.checked);
     });
   }
 
