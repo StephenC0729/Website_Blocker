@@ -137,6 +137,60 @@ function setupSettingsFunctionality() {
       }
     });
   }
+
+  // Clear Analytics Data flow
+  const clearBtn = document.getElementById('clearAnalyticsBtn');
+  const modal = document.getElementById('clearAnalyticsModal');
+  const closeModal = document.getElementById('closeClearAnalyticsModal');
+  const cancelModal = document.getElementById('cancelClearAnalytics');
+  const confirmClear = document.getElementById('confirmClearAnalytics');
+  const btnText = document.getElementById('clearAnalyticsButtonText');
+  const btnSpinner = document.getElementById('clearAnalyticsButtonSpinner');
+
+  const hideModal = () => {
+    if (modal) modal.classList.add('hidden');
+  };
+  const showModal = () => {
+    if (modal) modal.classList.remove('hidden');
+  };
+
+  if (clearBtn && modal) {
+    clearBtn.addEventListener('click', showModal);
+  }
+  if (closeModal) closeModal.addEventListener('click', hideModal);
+  if (cancelModal) cancelModal.addEventListener('click', hideModal);
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) hideModal();
+    });
+  }
+
+  if (confirmClear && btnText && btnSpinner) {
+    confirmClear.addEventListener('click', async () => {
+      try {
+        confirmClear.disabled = true;
+        btnText.textContent = 'Deleting...';
+        btnSpinner.classList.remove('hidden');
+
+        // Clear analytics object entirely
+        await chrome.storage.local.remove(['analytics']);
+
+        // Broadcast update so Summary views can refresh if open
+        try {
+          chrome.runtime.sendMessage({ action: 'analyticsUpdated' });
+        } catch {}
+
+        hideModal();
+      } catch (err) {
+        console.error('Failed to clear analytics:', err);
+        alert('Failed to clear analytics. Please try again.');
+      } finally {
+        confirmClear.disabled = false;
+        btnText.textContent = 'Delete';
+        btnSpinner.classList.add('hidden');
+      }
+    });
+  }
 }
 
 // Export for tests if needed

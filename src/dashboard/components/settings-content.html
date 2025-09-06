@@ -201,71 +201,79 @@
       </button>
     </div>
 
-    <!-- Reset to Defaults -->
-    <div class="flex items-center justify-between py-3">
-      <div>
-        <label class="text-sm font-medium text-gray-700 dark:text-gray-300"
-          >Reset to Defaults</label
-        >
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Restore all settings to their original values
-        </p>
-      </div>
-      <button
-        id="resetDefaultsBtn"
-        class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded-md transition-colors"
-      >
-        <i class="fas fa-undo-alt mr-1"></i>
-        Reset
-      </button>
-    </div>
-  </div>
+    <!-- Clear Analytics Confirmation Modal -->
+    <div
+      id="clearAnalyticsModal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-gray-900">
+            Delete Analytics Data
+          </h3>
+          <button
+            id="closeClearAnalyticsModal"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
 
-  <!-- Save Changes Section -->
-  <div
-    class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
-  >
-    <div class="flex items-center justify-between">
-      <div>
-        <p class="text-sm text-blue-800 dark:text-blue-200 font-medium">
-          Settings Auto-Save
-        </p>
-        <p class="text-xs text-blue-600 dark:text-blue-300 mt-1">
-          Changes are automatically saved when modified
-        </p>
-      </div>
-      <div class="flex items-center text-green-600 dark:text-green-400">
-        <i class="fas fa-check-circle mr-1"></i>
-        <span class="text-sm">Saved</span>
+        <div class="mb-6">
+          <p class="text-gray-600">Are you sure you want to delete the data?</p>
+          <p class="text-sm text-red-600 mt-3">
+            This will remove sessions history and related analytics from this
+            device.
+          </p>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button
+            id="cancelClearAnalytics"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          >
+            Cancel
+          </button>
+          <button
+            id="confirmClearAnalytics"
+            class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            <span id="clearAnalyticsButtonText">Delete</span>
+            <i
+              id="clearAnalyticsButtonSpinner"
+              class="fas fa-spin fa-circle-notch hidden ml-2"
+            ></i>
+          </button>
+        </div>
       </div>
     </div>
+
+    <style>
+      /* Custom slider styling */
+      .slider::-webkit-slider-thumb {
+        appearance: none;
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        background: #3b82f6;
+        cursor: pointer;
+        border: 2px solid #ffffff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .slider::-webkit-slider-thumb:hover {
+        background: #2563eb;
+      }
+
+      .slider::-moz-range-thumb {
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        background: #3b82f6;
+        cursor: pointer;
+        border: 2px solid #ffffff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+    </style>
   </div>
 </div>
-
-<style>
-  /* Custom slider styling */
-  .slider::-webkit-slider-thumb {
-    appearance: none;
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background: #3b82f6;
-    cursor: pointer;
-    border: 2px solid #ffffff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-
-  .slider::-webkit-slider-thumb:hover {
-    background: #2563eb;
-  }
-
-  .slider::-moz-range-thumb {
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background: #3b82f6;
-    cursor: pointer;
-    border: 2px solid #ffffff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-</style>
