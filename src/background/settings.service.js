@@ -9,20 +9,23 @@ import { get, set } from './storage.js';
  * @returns {Promise<Object>} Settings object
  */
 export async function getSettings() {
+    const defaults = {
+        unifiedModeEnabled: false,
+        focusCategoryId: 'general',
+        breakCategoryId: null,
+        // Notifications & audio defaults
+        soundNotificationsEnabled: true,
+        notificationVolume: 70, // percent (0-100)
+        // Alert when a blocked site is accessed
+        blockAttemptAlertsEnabled: true,
+    };
     try {
         const result = await get(['settings']);
-        return result.settings || {
-            unifiedModeEnabled: false,
-            focusCategoryId: 'general',
-            breakCategoryId: null
-        };
+        const existing = result.settings || {};
+        return { ...defaults, ...existing };
     } catch (error) {
         console.error('Error getting settings:', error);
-        return {
-            unifiedModeEnabled: false,
-            focusCategoryId: 'general',
-            breakCategoryId: null
-        };
+        return { ...defaults };
     }
 }
 

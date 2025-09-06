@@ -180,6 +180,23 @@ export async function handleMessage(request, _sender, sendResponse) {
 
       case ACTIONS.ANALYTICS_SITE_BLOCKED:
         await analyticsService.logSiteBlocked(request.domain);
+        try {
+          const settings = await settingsService.getSettings();
+          if (settings.blockAttemptAlertsEnabled) {
+            const title = 'Site Blocked';
+            const message = `Blocked: ${request.domain}`;
+            // Show a lightweight notification for the block attempt
+            chrome.notifications.create({
+              type: 'basic',
+              iconUrl: 'src/assets/icons/Icon.png',
+              title,
+              message,
+              priority: 0,
+            });
+          }
+        } catch (_) {
+          // Non-fatal if notification cannot be shown
+        }
         sendResponse({ success: true });
         break;
 

@@ -81,6 +81,10 @@ async function loadContent(page) {
       setupFAQFunctionality();
     } else if (page === 'blocklist') {
       setupModalFunctionality();
+    } else if (page === 'settings') {
+      if (typeof setupSettingsFunctionality === 'function') {
+        setupSettingsFunctionality();
+      }
     }
 
     currentPage = page;

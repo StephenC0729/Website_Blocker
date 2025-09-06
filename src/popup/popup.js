@@ -300,18 +300,27 @@ class PomodoroTimer {
     this.playAudioNotification();
   }
 
-  playAudioNotification() {
+  async playAudioNotification() {
     try {
-      const audioUrl = chrome.runtime.getURL(
-        'src/assets/sounds/notification.mp3'
-      );
+      let volumePct = 70;
+      let enabled = true;
+      const getSettings = () => new Promise((resolve) => {
+        try {
+          chrome.runtime.sendMessage({ action: 'getSettings' }, (response) => {
+            resolve((response && response.settings) || {});
+          });
+        } catch (e) { resolve({}); }
+      });
+      const s = await getSettings();
+      if (typeof s.notificationVolume === 'number') volumePct = s.notificationVolume;
+      if (typeof s.soundNotificationsEnabled === 'boolean') enabled = s.soundNotificationsEnabled;
+      if (!enabled) return;
+
+      const audioUrl = chrome.runtime.getURL('src/assets/sounds/notification.mp3');
       const audio = new Audio(audioUrl);
-      audio.volume = 0.7; // Adjust volume (0.0 to 1.0)
+      audio.volume = Math.max(0, Math.min(1, (Number(volumePct) || 0) / 100));
       audio.play().catch((error) => {
-        console.log(
-          'Audio notification failed (user interaction may be required):',
-          error
-        );
+        console.log('Audio notification failed (user interaction may be required):', error);
       });
     } catch (error) {
       console.error('Error playing audio notification:', error);

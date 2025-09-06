@@ -58,7 +58,10 @@ export async function initializeStorage() {
                 settings: {
                     unifiedModeEnabled: false,
                     focusCategoryId: 'general',
-                    breakCategoryId: null
+                    breakCategoryId: null,
+                    soundNotificationsEnabled: true,
+                    notificationVolume: 70,
+                    blockAttemptAlertsEnabled: true,
                 }
             });
         }
