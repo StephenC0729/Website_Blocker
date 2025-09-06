@@ -247,7 +247,18 @@ async function loadNavigation() {
  * Application Initialization
  * Loads navigation and sets up the dashboard when DOM is ready
  */
-document.addEventListener('DOMContentLoaded', function () {
+async function applyDarkFromSettings() {
+  try {
+    if (typeof sendMessagePromise === 'function') {
+      const res = await sendMessagePromise({ action: 'getSettings' });
+      const dark = !!(res && res.settings && res.settings.darkModeEnabled);
+      document.documentElement.classList.toggle('dark', dark);
+    }
+  } catch {}
+}
+
+document.addEventListener('DOMContentLoaded', async function () {
+  await applyDarkFromSettings();
   loadNavigation();
 });
 

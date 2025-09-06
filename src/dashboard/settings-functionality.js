@@ -10,6 +10,8 @@ async function loadSettingsIntoUI() {
 
     // Unified Mode Toggle
     const unifiedToggle = document.getElementById('unifiedModeToggle');
+    // Dark Mode Toggle
+    const darkModeToggle = document.getElementById('darkModeToggle');
 
     // Notification settings
     const soundToggle = document.getElementById('soundNotificationsToggle');
@@ -18,6 +20,9 @@ async function loadSettingsIntoUI() {
     // Block Attempt Alerts toggle removed from UI
 
     if (unifiedToggle) unifiedToggle.checked = !!s.unifiedModeEnabled;
+    if (darkModeToggle) darkModeToggle.checked = !!s.darkModeEnabled;
+    // Apply theme based on saved setting
+    try { document.documentElement.classList.toggle('dark', !!s.darkModeEnabled); } catch {}
     if (soundToggle) soundToggle.checked = !!s.soundNotificationsEnabled;
     if (typeof s.notificationVolume === 'number' && volumeSlider) {
       const v = Math.max(0, Math.min(100, s.notificationVolume));
@@ -50,6 +55,16 @@ function setupSettingsFunctionality() {
     unifiedToggle.addEventListener('change', (e) => {
       console.log('🔄 Unified mode toggled:', e.target.checked);
       persistSettings({ unifiedModeEnabled: !!e.target.checked });
+    });
+  }
+
+  // Dark Mode Toggle
+  const darkModeToggle = document.getElementById('darkModeToggle');
+  if (darkModeToggle) {
+    darkModeToggle.addEventListener('change', (e) => {
+      const enabled = !!e.target.checked;
+      try { document.documentElement.classList.toggle('dark', enabled); } catch {}
+      persistSettings({ darkModeEnabled: enabled });
     });
   }
 

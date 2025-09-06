@@ -16,6 +16,8 @@ export async function getSettings() {
     // Notifications & audio defaults
     soundNotificationsEnabled: true,
     notificationVolume: 70, // percent (0-100)
+    // Appearance
+    darkModeEnabled: false,
     // Block Attempt Alerts removed; no separate alert setting
   };
   try {
