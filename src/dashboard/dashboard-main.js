@@ -33,6 +33,11 @@ const pageConfig = {
       '<i class="fas fa-question-circle text-blue-500 mr-2"></i>Frequently Asked Questions',
     file: 'components/faq-content.html',
   },
+  settings: {
+    title:
+      '<i class="fas fa-cog text-blue-500 mr-2"></i>Settings',
+    file: 'components/settings-content.html',
+  },
 };
 
 // Current active page state

@@ -1,0 +1,229 @@
+<!-- 
+    Settings Content Area
+    Configuration panel for app settings including blocking, notifications, appearance, and privacy
+    Uses Tailwind CSS classes for responsive layout and styling
+-->
+<div class="flex-1 p-6 overflow-auto min-h-full">
+
+    <!-- Core Blocking Settings -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6 theme-transition">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <i class="fas fa-shield-alt text-red-500 mr-2"></i>
+            Core Blocking Settings
+        </h3>
+        
+        <!-- Unified Mode Toggle -->
+        <div class="flex items-center justify-between py-3">
+            <div>
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Unified Mode</label>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Integrate timer and blocking functionality for focused sessions
+                </p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="unifiedModeToggle" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+        </div>
+    </div>
+
+    <!-- Notification & Audio Settings -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6 theme-transition">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <i class="fas fa-bell text-yellow-500 mr-2"></i>
+            Notification & Audio Settings
+        </h3>
+        
+        <!-- Sound Notifications Toggle -->
+        <div class="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+            <div>
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Sound Notifications</label>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Play audio alerts for blocked sites and timer events
+                </p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="soundNotificationsToggle" class="sr-only peer" checked>
+                <div class="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+        </div>
+
+        <!-- Notification Volume -->
+        <div class="py-3 border-b border-gray-200 dark:border-gray-700">
+            <label class="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">Notification Volume</label>
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-volume-down text-gray-400"></i>
+                <input type="range" id="volumeSlider" min="0" max="100" value="50" 
+                       class="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider">
+                <i class="fas fa-volume-up text-gray-400"></i>
+                <span id="volumeValue" class="text-sm text-gray-600 dark:text-gray-400 w-8">50%</span>
+            </div>
+        </div>
+
+        <!-- Block Attempt Alerts -->
+        <div class="flex items-center justify-between py-3">
+            <div>
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Block Attempt Alerts</label>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Show notifications when blocked sites are accessed
+                </p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="blockAlertsToggle" class="sr-only peer" checked>
+                <div class="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+        </div>
+    </div>
+
+    <!-- Interface & Appearance -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6 theme-transition">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <i class="fas fa-paint-brush text-purple-500 mr-2"></i>
+            Interface & Appearance
+        </h3>
+        
+        <!-- Dark Mode Toggle -->
+        <div class="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+            <div>
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Dark Mode</label>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Switch between light and dark interface themes
+                </p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="darkModeToggle" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+        </div>
+
+        <!-- Analytics Retention Period -->
+        <div class="py-3">
+            <label class="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">Analytics Data Retention</label>
+            <select id="dataRetentionSelect" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
+                <option value="7">7 days</option>
+                <option value="30" selected>30 days</option>
+                <option value="90">90 days</option>
+                <option value="365">1 year</option>
+                <option value="-1">Keep all data</option>
+            </select>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                How long to keep blocking and timer analytics data
+            </p>
+        </div>
+    </div>
+
+    <!-- Privacy & Data Settings -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6 theme-transition">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <i class="fas fa-user-shield text-green-500 mr-2"></i>
+            Privacy & Data Settings
+        </h3>
+        
+        <!-- Clear Analytics Data -->
+        <div class="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+            <div>
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Clear Analytics Data</label>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Remove all stored blocking and timer statistics
+                </p>
+            </div>
+            <button id="clearAnalyticsBtn" 
+                    class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md transition-colors">
+                <i class="fas fa-trash-alt mr-1"></i>
+                Clear Data
+            </button>
+        </div>
+
+        <!-- Export Settings -->
+        <div class="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+            <div>
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Export Settings</label>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Download your current configuration as a backup
+                </p>
+            </div>
+            <button id="exportSettingsBtn" 
+                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors">
+                <i class="fas fa-download mr-1"></i>
+                Export
+            </button>
+        </div>
+
+        <!-- Import Settings -->
+        <div class="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+            <div>
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Import Settings</label>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Restore configuration from a backup file
+                </p>
+            </div>
+            <div class="flex items-center space-x-2">
+                <input type="file" id="importFileInput" accept=".json" class="hidden">
+                <button id="importSettingsBtn" 
+                        class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md transition-colors">
+                    <i class="fas fa-upload mr-1"></i>
+                    Import
+                </button>
+            </div>
+        </div>
+
+        <!-- Reset to Defaults -->
+        <div class="flex items-center justify-between py-3">
+            <div>
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Reset to Defaults</label>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Restore all settings to their original values
+                </p>
+            </div>
+            <button id="resetDefaultsBtn" 
+                    class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded-md transition-colors">
+                <i class="fas fa-undo-alt mr-1"></i>
+                Reset
+            </button>
+        </div>
+    </div>
+
+    <!-- Save Changes Section -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-blue-800 dark:text-blue-200 font-medium">Settings Auto-Save</p>
+                <p class="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                    Changes are automatically saved when modified
+                </p>
+            </div>
+            <div class="flex items-center text-green-600 dark:text-green-400">
+                <i class="fas fa-check-circle mr-1"></i>
+                <span class="text-sm">Saved</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Custom slider styling */
+.slider::-webkit-slider-thumb {
+    appearance: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.slider::-webkit-slider-thumb:hover {
+    background: #2563eb;
+}
+
+.slider::-moz-range-thumb {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+</style>
