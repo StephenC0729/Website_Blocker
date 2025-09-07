@@ -9,23 +9,27 @@ This Chrome extension combines website blocking with Pomodoro timer functionalit
 ## Key Features
 
 ### 1. Website Blocking System
-- **Category-based blocking**: Users can create custom categories (default: "General") 
+
+- **Category-based blocking**: Users can create custom categories (default: "General")
 - **Active category system**: Only one category blocks sites at a time
 - **Content script blocking**: Shows full-screen overlay on blocked sites with motivational message
 - **URL matching**: Supports exact domains and subdomains
 
 ### 2. Pomodoro Timer
+
 - **Three session types**: Pomodoro (25min), Short Break (5min), Long Break (15min)
 - **Session tracking**: Counts completed sessions and pomodoros
 - **Visual interface**: Progress bar, timer display, session tabs
 - **Background persistence**: Timer continues running when popup is closed
 
 ### 3. Unified Mode (Recent Addition)
+
 - **Timer-blocking integration**: Automatically activates blocking categories during focus sessions
 - **Configurable categories**: Different categories for focus vs break periods
 - **Backward compatibility**: Optional feature that doesn't disrupt existing workflows
 
 ### 4. Dashboard Interface
+
 - **Full-screen management**: Comprehensive productivity dashboard
 - **Navigation system**: Sidebar with different sections
 - **Analytics planning**: Chart.js integration planned for productivity metrics
@@ -34,12 +38,14 @@ This Chrome extension combines website blocking with Pomodoro timer functionalit
 ## Technical Architecture
 
 ### Chrome Extension Structure
+
 - **Manifest V3**: Modern extension format with service worker background
 - **Content scripts**: Inject blocking overlay on all websites
 - **Popup interface**: Quick access to timer and settings
 - **Dashboard**: Full-featured management interface
 
 ### Key Components
+
 - **Background services**: Timer, Categories, Storage, Messaging
 - **Unified orchestrator**: Coordinates timer and blocking integration
 - **Storage**: Chrome Storage API for local/sync data persistence
@@ -62,17 +68,8 @@ src/
 │   └── content.js       # Blocking overlay injection
 ├── dashboard/           # Full-screen management interface
 │   ├── index.html       # Main dashboard layout
-│   ├── navigation.html  # Dashboard navigation sidebar
 │   ├── dashboard-main.js # Main dashboard functionality
-│   ├── dashboard-timer.js # Dashboard timer integration
-│   ├── dashboard-utils.js # Utility functions for dashboard
-│   ├── blocklist-functionality.js # Blocklist management
-│   ├── faq-functionality.js # FAQ section functionality
-│   └── components/      # Dashboard HTML components
-│       ├── dashboard-content.html
-│       ├── blocklist-content.html
-│       ├── faq-content.html
-│       └── about-content.html
+│   ├── dashboard-utils.js # Messaging helpers (legacy fallback only)
 ├── popup/               # Extension popup interface
 │   ├── popup.html       # Popup layout
 │   ├── popup.js         # Timer interface logic
@@ -118,6 +115,7 @@ src/
 This project demonstrates significant complexity suitable for advanced web development courses:
 
 #### High Complexity Indicators:
+
 - **Chrome Extension Architecture**: Requires understanding Manifest V3, service workers, content scripts, and cross-context messaging
 - **Multi-component System**: 15+ JavaScript files with intricate dependencies
 - **Advanced JavaScript Concepts**: Async/await, Chrome APIs, real-time state synchronization
@@ -125,15 +123,17 @@ This project demonstrates significant complexity suitable for advanced web devel
 - **Cross-Context Communication**: Popup ↔ Background ↔ Content Script messaging
 
 #### Educational Suitability:
-| Course Level | Complexity Rating | Feasibility |
-|---|---|---|
-| Intro Web Development | Too Complex | Would be overwhelming |
-| Intermediate JavaScript | Quite Complex | Challenging but possible with guidance |
-| Advanced Web Development | Appropriate | Good learning project |
-| Senior Capstone | Well-Suited | Perfect scope and complexity |
-| Graduate Project | Moderate | Good but could be more ambitious |
+
+| Course Level             | Complexity Rating | Feasibility                            |
+| ------------------------ | ----------------- | -------------------------------------- |
+| Intro Web Development    | Too Complex       | Would be overwhelming                  |
+| Intermediate JavaScript  | Quite Complex     | Challenging but possible with guidance |
+| Advanced Web Development | Appropriate       | Good learning project                  |
+| Senior Capstone          | Well-Suited       | Perfect scope and complexity           |
+| Graduate Project         | Moderate          | Good but could be more ambitious       |
 
 ### Recommended For:
+
 - **Senior capstone projects** or **advanced web development courses** where students have strong JavaScript fundamentals
 - Students learning Chrome extension development
 - Projects focusing on browser APIs and cross-context communication

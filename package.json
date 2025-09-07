@@ -1,0 +1,33 @@
+{
+  "name": "website_blocker",
+  "version": "1.0.0",
+  "description": "A productivity-focused Chrome extension that blocks distracting websites and includes a Pomodoro timer to help users stay focused.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "vite build --config vite.config.mjs",
+    "build:watch": "vite build --config vite.config.mjs --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/StephenC0729/Website_Blocker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/StephenC0729/Website_Blocker/issues"
+  },
+  "homepage": "https://github.com/StephenC0729/Website_Blocker#readme",
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.2",
+    "vite": "^7.1.4"
+  }
+}

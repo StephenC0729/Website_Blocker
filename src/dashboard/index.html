@@ -41,56 +41,12 @@
     Full-screen layout with sidebar navigation and dynamic content area
 -->
   <body class="bg-gray-50 dark:bg-gray-900 min-h-screen theme-transition">
-    <!-- Main Container - Full screen flex layout -->
-    <div class="flex h-screen">
-      <!-- 
-            Navigation Sidebar Container
-            Dynamically loaded navigation from navigation.html
-        -->
-      <div id="navigation-container" class="h-full"></div>
+    <div id="react-shell-root"></div>
 
-      <!-- Main Content Area - Takes remaining width -->
-      <div class="flex-1 flex flex-col">
-        <!-- 
-                Top Header Bar
-                Page title and global controls
-            -->
-        <header
-          class="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 p-4 theme-transition"
-        >
-          <div class="flex items-center justify-between">
-            <h2
-              id="pageTitle"
-              class="text-2xl font-bold text-gray-900 dark:text-white"
-            >
-              <!-- Content Title dynamically loaded by dashboard.js-->
-            </h2>
-          </div>
-        </header>
-
-        <!-- 
-                Dynamic Content Container
-                Page content loaded dynamically from separate HTML files
-            -->
-        <div id="content-container" class="flex-1 flex flex-col min-h-0">
-          <!-- Content from dashboard-content.html, blocklist-content.html, etc. will be loaded here -->
-        </div>
-      </div>
-    </div>
-
-    <!-- Dashboard-specific JavaScript functionality -->
-    <!-- Load utilities first as they're used by other modules -->
+    <!-- React bundle built by Vite (single IIFE) -->
+    <script src="react-dist/dashboard.react.js"></script>
+    <!-- Load utilities (messaging helpers) if needed by legacy fallbacks -->
     <script src="dashboard-utils.js"></script>
-    <script src="settings-functionality.js"></script>
-
-    <!-- Load individual functionality modules -->
-    <script src="faq-functionality.js"></script>
-    <script src="contact-functionality.js"></script>
-
-    <script src="dashboard-analytics.js"></script>
-    <script src="summary-analytics.js"></script>
-    <script src="blocklist-functionality.js"></script>
-    <script src="dashboard-timer.js"></script>
 
     <!-- Load main orchestration file last -->
     <script src="dashboard-main.js"></script>

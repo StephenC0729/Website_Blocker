@@ -11,35 +11,28 @@ const pageConfig = {
   dashboard: {
     title:
       '<i class="fas fa-chart-line text-blue-500 mr-2"></i>Productivity Dashboard',
-    file: 'components/dashboard-content.html',
   },
   summary: {
     title:
       '<i class="fas fa-chart-pie text-blue-500 mr-2"></i>Summary & Analytics',
-    file: 'components/summary-content.html',
   },
   blocklist: {
     title:
       '<i class="fas fa-ban text-red-500 mr-2"></i>Blocklist Category Management',
-    file: 'components/blocklist-content.html',
   },
   about: {
     title:
       '<i class="fas fa-info-circle text-blue-500 mr-2"></i>About App Blocker',
-    file: 'components/about-content.html',
   },
   contact: {
     title: '<i class="fas fa-envelope text-blue-500 mr-2"></i>Contact Us',
-    file: 'components/contact-content.html',
   },
   faq: {
     title:
       '<i class="fas fa-question-circle text-blue-500 mr-2"></i>Frequently Asked Questions',
-    file: 'components/faq-content.html',
   },
   settings: {
     title: '<i class="fas fa-cog text-blue-500 mr-2"></i>Settings',
-    file: 'components/settings-content.html',
   },
 };
 
@@ -56,13 +49,98 @@ async function loadContent(page) {
     const config = pageConfig[page];
     if (!config) return;
 
-    // Fetch the content file
-    const response = await fetch(config.file);
-    const contentHTML = await response.text();
+    // If navigating away from React-driven contact page, unmount it first
+    if (
+      currentPage === 'contact' &&
+      window.DashboardReactApp &&
+      typeof window.DashboardReactApp.unmountContactApp === 'function'
+    ) {
+      window.DashboardReactApp.unmountContactApp();
+    }
 
-    // Update DOM with new content
-    document.getElementById('content-container').innerHTML = contentHTML;
-    document.getElementById('pageTitle').innerHTML = config.title;
+    // React-driven Contact page: skip fetching legacy HTML
+    if (
+      page === 'contact' &&
+      window.DashboardReactApp &&
+      typeof window.DashboardReactApp.mountContactApp === 'function'
+    ) {
+      document.getElementById('content-container').innerHTML = '';
+      document.getElementById('pageTitle').innerHTML = config.title;
+
+      // Cleanup previous page if it was dashboard
+      if (
+        currentPage === 'dashboard' &&
+        typeof dashboardTimer !== 'undefined' &&
+        dashboardTimer
+      ) {
+        dashboardTimer.cleanup();
+        dashboardTimer = null;
+      }
+
+      window.DashboardReactApp.mountContactApp('content-container');
+      currentPage = page;
+      return;
+    }
+
+    // React-driven pages: FAQ, About, Summary
+    if (
+      (page === 'faq' &&
+        window.DashboardReactApp &&
+        typeof window.DashboardReactApp.mountFAQApp === 'function') ||
+      (page === 'about' &&
+        window.DashboardReactApp &&
+        typeof window.DashboardReactApp.mountAboutApp === 'function') ||
+      (page === 'summary' &&
+        window.DashboardReactApp &&
+        typeof window.DashboardReactApp.mountSummaryApp === 'function')
+    ) {
+      document.getElementById('content-container').innerHTML = '';
+      document.getElementById('pageTitle').innerHTML = config.title;
+      if (page === 'faq') {
+        window.DashboardReactApp.mountFAQApp('content-container');
+      } else if (page === 'about') {
+        window.DashboardReactApp.mountAboutApp('content-container');
+      } else if (page === 'summary') {
+        window.DashboardReactApp.mountSummaryApp('content-container');
+      }
+    } else {
+      // If Blocklist is React-capable, mount it directly
+      if (
+        page === 'blocklist' &&
+        window.DashboardReactApp &&
+        typeof window.DashboardReactApp.mountBlocklistApp === 'function'
+      ) {
+        document.getElementById('content-container').innerHTML = '';
+        document.getElementById('pageTitle').innerHTML = config.title;
+        window.DashboardReactApp.mountBlocklistApp('content-container');
+      } else if (
+        page === 'dashboard' &&
+        window.DashboardReactApp &&
+        typeof window.DashboardReactApp.mountDashboardApp === 'function'
+      ) {
+        document.getElementById('content-container').innerHTML = '';
+        document.getElementById('pageTitle').innerHTML = config.title;
+        window.DashboardReactApp.mountDashboardApp('content-container');
+      } else if (
+        page === 'settings' &&
+        window.DashboardReactApp &&
+        typeof window.DashboardReactApp.mountSettingsApp === 'function'
+      ) {
+        document.getElementById('content-container').innerHTML = '';
+        document.getElementById('pageTitle').innerHTML = config.title;
+        window.DashboardReactApp.mountSettingsApp('content-container');
+      } else {
+        // Legacy HTML pages have been removed. If React mount is not available,
+        // show an informational message instead of attempting to fetch.
+        document.getElementById('content-container').innerHTML = '';
+        document.getElementById('pageTitle').innerHTML = config.title;
+        console.warn(
+          'React page mount not available for',
+          page,
+          '- legacy HTML content has been removed.'
+        );
+      }
+    }
 
     // Cleanup previous page if it was dashboard
     if (
@@ -76,14 +154,26 @@ async function loadContent(page) {
 
     // Initialize page-specific functionality
     if (page === 'dashboard') {
-      if (typeof setupDashboardFunctionality === 'function') {
-        setupDashboardFunctionality();
-      }
-      if (typeof setupDashboardAnalytics === 'function') {
-        setupDashboardAnalytics();
+      if (
+        window.DashboardReactApp &&
+        typeof window.DashboardReactApp.mountDashboardApp === 'function'
+      ) {
+        // React Dashboard mounted earlier
+      } else {
+        if (typeof setupDashboardFunctionality === 'function') {
+          setupDashboardFunctionality();
+        }
+        if (typeof setupDashboardAnalytics === 'function') {
+          setupDashboardAnalytics();
+        }
       }
     } else if (page === 'summary') {
-      if (typeof setupSummaryAnalytics === 'function') {
+      if (
+        window.DashboardReactApp &&
+        typeof window.DashboardReactApp.mountSummaryApp === 'function'
+      ) {
+        // React Summary mounted in the block above; nothing else to init
+      } else if (typeof setupSummaryAnalytics === 'function') {
         setupSummaryAnalytics();
       }
     } else if (page === 'contact') {
@@ -91,11 +181,31 @@ async function loadContent(page) {
         setupContactFunctionality();
       }
     } else if (page === 'faq') {
-      setupFAQFunctionality();
+      if (
+        !(
+          window.DashboardReactApp &&
+          typeof window.DashboardReactApp.mountFAQApp === 'function'
+        ) &&
+        typeof setupFAQFunctionality === 'function'
+      ) {
+        setupFAQFunctionality();
+      }
     } else if (page === 'blocklist') {
-      setupModalFunctionality();
+      if (
+        window.DashboardReactApp &&
+        typeof window.DashboardReactApp.mountBlocklistApp === 'function'
+      ) {
+        // React Blocklist mounted above when content was set
+      } else if (typeof setupModalFunctionality === 'function') {
+        setupModalFunctionality();
+      }
     } else if (page === 'settings') {
-      if (typeof setupSettingsFunctionality === 'function') {
+      if (
+        window.DashboardReactApp &&
+        typeof window.DashboardReactApp.mountSettingsApp === 'function'
+      ) {
+        // React Settings mounted above when content was set
+      } else if (typeof setupSettingsFunctionality === 'function') {
         setupSettingsFunctionality();
       }
     }
@@ -130,10 +240,29 @@ function updateNavigation(activePage) {
  */
 async function loadNavigation() {
   try {
-    // Fetch and load navigation HTML
-    const response = await fetch('navigation.html');
-    const navigationHTML = await response.text();
-    document.getElementById('navigation-container').innerHTML = navigationHTML;
+    // Ensure the shell has rendered the navigation container
+    const ensureNavContainer = async () => {
+      const start = Date.now();
+      while (
+        !document.getElementById('navigation-container') &&
+        Date.now() - start < 2000
+      ) {
+        await new Promise((r) => setTimeout(r, 0));
+      }
+    };
+    await ensureNavContainer();
+
+    // Prefer React navigation if available
+    if (
+      window.DashboardReactApp &&
+      typeof window.DashboardReactApp.mountNavigation === 'function'
+    ) {
+      window.DashboardReactApp.mountNavigation('navigation-container');
+    } else {
+      console.warn(
+        'React navigation is not available; skipping legacy navigation.'
+      );
+    }
 
     // Auth button removed from UI; keep guard if present in future
     const authBtn = document.getElementById('authButton');
@@ -161,71 +290,84 @@ async function loadNavigation() {
       });
     }
 
-    // Bottom Guest dropdown behavior
-    const accountBtn = document.getElementById('guestAccountButton');
-    const accountDropdown = document.getElementById('guestDropdown');
-    const loginBtn = document.getElementById('dropdownLoginBtn');
+    // Legacy navigation-only behaviors (skip when React navigation is mounted)
+    if (
+      !(
+        window.DashboardReactApp &&
+        typeof window.DashboardReactApp.mountNavigation === 'function'
+      )
+    ) {
+      // Bottom Guest dropdown behavior
+      const accountBtn = document.getElementById('guestAccountButton');
+      const accountDropdown = document.getElementById('guestDropdown');
+      const loginBtn = document.getElementById('dropdownLoginBtn');
 
-    if (accountBtn && accountDropdown) {
-      accountBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        accountDropdown.classList.toggle('hidden');
-      });
+      if (accountBtn && accountDropdown) {
+        accountBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          accountDropdown.classList.toggle('hidden');
+        });
 
-      document.addEventListener('click', (e) => {
-        if (!accountDropdown.classList.contains('hidden')) {
-          const within =
-            accountDropdown.contains(e.target) || accountBtn.contains(e.target);
-          if (!within) accountDropdown.classList.add('hidden');
-        }
-      });
-    }
+        document.addEventListener('click', (e) => {
+          if (!accountDropdown.classList.contains('hidden')) {
+            const within =
+              accountDropdown.contains(e.target) ||
+              accountBtn.contains(e.target);
+            if (!within) accountDropdown.classList.add('hidden');
+          }
+        });
+      }
 
-    // Help dropdown behavior
-    const helpBtn = document.getElementById('helpDropdownButton');
-    const helpMenu = document.getElementById('helpDropdownMenu');
-    if (helpBtn && helpMenu) {
-      helpBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        helpMenu.classList.toggle('hidden');
-      });
-      document.addEventListener('click', (e) => {
-        if (!helpMenu.classList.contains('hidden')) {
-          const within =
-            helpMenu.contains(e.target) || helpBtn.contains(e.target);
-          if (!within) helpMenu.classList.add('hidden');
-        }
-      });
-    }
+      // Help dropdown behavior
+      const helpBtn = document.getElementById('helpDropdownButton');
+      const helpMenu = document.getElementById('helpDropdownMenu');
+      if (helpBtn && helpMenu) {
+        helpBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          helpMenu.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+          if (!helpMenu.classList.contains('hidden')) {
+            const within =
+              helpMenu.contains(e.target) || helpBtn.contains(e.target);
+            if (!within) helpMenu.classList.add('hidden');
+          }
+        });
+      }
 
-    if (loginBtn) {
-      loginBtn.addEventListener('click', () => {
-        // Navigate to the login page
-        window.location.href = '../pages/login.html';
-      });
+      if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+          // Navigate to the login page
+          window.location.href = '../pages/login.html';
+        });
+      }
     }
 
     // Setup navigation link click handlers
-    document.querySelectorAll('.nav-link').forEach((link) => {
-      link.addEventListener('click', function (e) {
-        e.preventDefault();
-        const page = this.getAttribute('data-page');
-        // Update URL hash for deep-linking and persistence
-        if (page && pageConfig[page]) {
-          localStorage.setItem('activePage', page);
-          if (location.hash !== `#${page}`) {
-            location.hash = `#${page}`;
-          } else {
-            // If the hash is unchanged, still load
-            loadContent(page);
-            updateNavigation(page);
+    // For legacy navigation only: wire click handlers
+    if (
+      !window.DashboardReactApp ||
+      typeof window.DashboardReactApp.mountNavigation !== 'function'
+    ) {
+      document.querySelectorAll('.nav-link').forEach((link) => {
+        link.addEventListener('click', function (e) {
+          e.preventDefault();
+          const page = this.getAttribute('data-page');
+          if (page && pageConfig[page]) {
+            localStorage.setItem('activePage', page);
+            if (location.hash !== `#${page}`) {
+              location.hash = `#${page}`;
+            } else {
+              loadContent(page);
+              updateNavigation(page);
+            }
           }
-        }
+        });
       });
-    });
+    }
 
     // Handle hash-based navigation (deep link) and persistence
-    const applyInitialPage = () => {
+    const applyInitialPage = async () => {
       const hashPage = (location.hash || '').replace(/^#/, '');
       const savedPage = localStorage.getItem('activePage');
       const initialPage = pageConfig[hashPage]
@@ -233,6 +375,17 @@ async function loadNavigation() {
         : pageConfig[savedPage]
         ? savedPage
         : 'dashboard';
+      // Ensure shell has rendered the content container
+      const ensureContainer = async () => {
+        const start = Date.now();
+        while (
+          !document.getElementById('content-container') &&
+          Date.now() - start < 2000
+        ) {
+          await new Promise((r) => setTimeout(r, 0));
+        }
+      };
+      await ensureContainer();
       loadContent(initialPage);
       updateNavigation(initialPage);
     };
@@ -272,6 +425,15 @@ async function applyDarkFromSettings() {
 
 document.addEventListener('DOMContentLoaded', async function () {
   await applyDarkFromSettings();
+
+  // Mount the React shell first if available to create containers
+  if (
+    window.DashboardReactApp &&
+    typeof window.DashboardReactApp.mountShell === 'function'
+  ) {
+    window.DashboardReactApp.mountShell('react-shell-root');
+  }
+
   loadNavigation();
 });
 
@@ -282,6 +444,12 @@ window.addEventListener('beforeunload', () => {
   if (typeof dashboardTimer !== 'undefined' && dashboardTimer) {
     dashboardTimer.cleanup();
     dashboardTimer = null;
+  }
+  if (
+    window.DashboardReactApp &&
+    typeof window.DashboardReactApp.unmountContactApp === 'function'
+  ) {
+    window.DashboardReactApp.unmountContactApp();
   }
 });
 
