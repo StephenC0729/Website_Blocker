@@ -35,11 +35,30 @@ function setupFAQFunctionality() {
       }
     });
   });
+
+  // Link Contact Support button to Contact page via hash routing
+  const contactBtn = document.getElementById('faqContactSupportBtn');
+  if (contactBtn) {
+    contactBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      // Persist and navigate using existing routing
+      localStorage.setItem('activePage', 'contact');
+      if (location.hash !== '#contact') {
+        location.hash = '#contact';
+      } else if (
+        typeof loadContent === 'function' &&
+        typeof updateNavigation === 'function'
+      ) {
+        loadContent('contact');
+        updateNavigation('contact');
+      }
+    });
+  }
 }
 
 // Export function if using modules, otherwise it's global
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    setupFAQFunctionality
+    setupFAQFunctionality,
   };
 }

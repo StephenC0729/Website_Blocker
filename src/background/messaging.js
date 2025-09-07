@@ -50,6 +50,9 @@ export const ACTIONS = {
   SET_UNIFIED_MODE: 'setUnifiedMode',
   GET_SETTINGS: 'getSettings',
   SET_SETTINGS: 'setSettings',
+
+  // Contact/support actions
+  CONTACT_SEND_EMAIL: 'contactSendEmail',
 };
 
 /**
@@ -214,7 +217,12 @@ export async function handleMessage(request, _sender, sendResponse) {
         sendResponse(updateResult);
         break;
 
-      
+      // Contact/support
+      case ACTIONS.CONTACT_SEND_EMAIL:
+        // In this local-first extension, we simulate sending and simply acknowledge receipt.
+        // Future: integrate with external service via fetch from background.
+        sendResponse({ ok: true });
+        break;
 
       // Unified mode and settings cases
       case ACTIONS.GET_SETTINGS:

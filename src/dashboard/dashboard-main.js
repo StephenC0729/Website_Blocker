@@ -28,14 +28,17 @@ const pageConfig = {
       '<i class="fas fa-info-circle text-blue-500 mr-2"></i>About App Blocker',
     file: 'components/about-content.html',
   },
+  contact: {
+    title: '<i class="fas fa-envelope text-blue-500 mr-2"></i>Contact Us',
+    file: 'components/contact-content.html',
+  },
   faq: {
     title:
       '<i class="fas fa-question-circle text-blue-500 mr-2"></i>Frequently Asked Questions',
     file: 'components/faq-content.html',
   },
   settings: {
-    title:
-      '<i class="fas fa-cog text-blue-500 mr-2"></i>Settings',
+    title: '<i class="fas fa-cog text-blue-500 mr-2"></i>Settings',
     file: 'components/settings-content.html',
   },
 };
@@ -82,6 +85,10 @@ async function loadContent(page) {
     } else if (page === 'summary') {
       if (typeof setupSummaryAnalytics === 'function') {
         setupSummaryAnalytics();
+      }
+    } else if (page === 'contact') {
+      if (typeof setupContactFunctionality === 'function') {
+        setupContactFunctionality();
       }
     } else if (page === 'faq') {
       setupFAQFunctionality();
