@@ -11,6 +11,7 @@
         pomodoro: { duration: 25 * 60, label: 'Time to focus!' },
         'short-break': { duration: 5 * 60, label: 'Time for a short break!' },
         'long-break': { duration: 15 * 60, label: 'Time for a long break!' },
+        custom: { duration: 30 * 60, label: 'Custom timer session' },
       };
 
       // State
@@ -51,6 +52,9 @@
       // Custom inputs / placeholder
       this.$customTimerInput = document.getElementById('customTimerInput');
       this.$placeholderSpace = document.getElementById('placeholderSpace');
+      this.$customMinutes = document.getElementById('customMinutes');
+      this.$customSeconds = document.getElementById('customSeconds');
+      this.$setCustomTimer = document.getElementById('setCustomTimer');
     }
 
     setupEventListeners() {
@@ -61,7 +65,7 @@
       if (this.$reset)
         this.$reset.addEventListener('click', () => this.resetTimer());
 
-      // Tabs - only wire Pomodoro actively for now
+      // Tabs - support pomodoro, breaks, and custom
       if (this.$tabPomodoro)
         this.$tabPomodoro.addEventListener('click', () =>
           this.switchSession('pomodoro')
@@ -74,7 +78,33 @@
         this.$tabLong.addEventListener('click', () =>
           this.switchSession('long-break')
         );
-      // Custom not implemented yet
+      if (this.$tabCustom)
+        this.$tabCustom.addEventListener('click', () =>
+          this.switchSession('custom')
+        );
+
+      // Set custom timer from inputs (persist via background)
+      if (this.$setCustomTimer)
+        this.$setCustomTimer.addEventListener('click', () =>
+          this.applyCustomDurationFromInputs()
+        );
+    }
+
+    applyCustomDurationFromInputs() {
+      // Read and clamp inputs
+      const minutes = Math.max(
+        0,
+        Math.min(999, parseInt(this.$customMinutes?.value || '0', 10) || 0)
+      );
+      const seconds = Math.max(
+        0,
+        Math.min(59, parseInt(this.$customSeconds?.value || '0', 10) || 0)
+      );
+      let total = minutes * 60 + seconds;
+      if (!total || total <= 0) total = 60; // minimum 1 minute for UI
+
+      // Persist via background and let state sync flow update UI
+      this.switchSession('custom', { customDuration: total });
     }
 
     setupStorageListener() {
@@ -107,11 +137,16 @@
       }
     }
 
-    async switchSession(sessionType) {
+    async switchSession(sessionType, options = {}) {
       try {
         chrome.runtime.sendMessage({
           action: 'switchSession',
           session: sessionType,
+          customDuration:
+            sessionType === 'custom' &&
+            typeof options.customDuration === 'number'
+              ? options.customDuration
+              : undefined,
         });
       } catch (e) {}
     }
@@ -201,6 +236,21 @@
         this.sessions[this.currentSession]?.label ||
         this.sessions['pomodoro'].label;
       this.$sessionType.textContent = label;
+
+      // Sync custom inputs with current custom duration
+      if (
+        this.currentSession === 'custom' &&
+        this.$customMinutes &&
+        this.$customSeconds
+      ) {
+        const total = typeof this.totalTime === 'number' ? this.totalTime : 0;
+        const mins = Math.floor(total / 60);
+        const secs = total % 60;
+        try {
+          this.$customMinutes.value = String(mins);
+          this.$customSeconds.value = String(secs);
+        } catch (e) {}
+      }
     }
 
     updateButtons() {
@@ -219,6 +269,7 @@
         pomodoro: this.$tabPomodoro,
         'short-break': this.$tabShort,
         'long-break': this.$tabLong,
+        custom: this.$tabCustom,
       };
       const allTabs = [
         this.$tabPomodoro,
@@ -232,6 +283,7 @@
         pomodoro: { bg: 'bg-red-100', text: 'text-red-800' },
         'short-break': { bg: 'bg-green-100', text: 'text-green-800' },
         'long-break': { bg: 'bg-purple-100', text: 'text-purple-800' },
+        custom: { bg: 'bg-blue-100', text: 'text-blue-800' },
       };
       const removeColors = [
         'bg-red-100',
@@ -242,6 +294,8 @@
         'text-purple-800',
         'bg-gray-100',
         'text-gray-700',
+        'bg-blue-100',
+        'text-blue-800',
       ];
 
       allTabs.forEach((el) => {
@@ -264,13 +318,19 @@
 
     updateThemeForSession() {
       if (!this.$progress) return;
-      const progressColors = ['bg-red-600', 'bg-green-600', 'bg-purple-600'];
+      const progressColors = [
+        'bg-red-600',
+        'bg-green-600',
+        'bg-purple-600',
+        'bg-blue-600',
+      ];
       progressColors.forEach((c) => this.$progress.classList.remove(c));
 
       const colorMap = {
         pomodoro: 'bg-red-600',
         'short-break': 'bg-green-600',
         'long-break': 'bg-purple-600',
+        custom: 'bg-blue-600',
       };
       const chosen = colorMap[this.currentSession] || colorMap.pomodoro;
       this.$progress.classList.add(chosen);
