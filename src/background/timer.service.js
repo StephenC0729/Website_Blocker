@@ -113,9 +113,10 @@ export async function handleTimerComplete(request) {
     const timerState = await getTimerState();
     const now = Date.now();
     // Compute actual duration from startTimestamp when available
-    const actualSec = timerState && timerState.startTimestamp
-      ? Math.max(0, Math.round((now - timerState.startTimestamp) / 1000))
-      : undefined;
+    const actualSec =
+      timerState && timerState.startTimestamp
+        ? Math.max(0, Math.round((now - timerState.startTimestamp) / 1000))
+        : undefined;
     let updates = {
       isRunning: false,
       timeLeft: 0,
@@ -149,14 +150,12 @@ export async function handleTimerComplete(request) {
         timeLeft: nextDuration,
         totalTime: nextDuration,
       };
-    } else if (request.session !== 'custom') {
+    } else if (
+      request.session === 'short-break' ||
+      request.session === 'long-break'
+    ) {
       // Break completed - handle break complete in unified mode
-      if (
-        request.session === 'short-break' ||
-        request.session === 'long-break'
-      ) {
-        await unifiedOrchestrator.handleBreakComplete();
-      }
+      await unifiedOrchestrator.handleBreakComplete();
 
       const duration = timerState.sessions.pomodoro.duration;
       updates = {
@@ -166,13 +165,29 @@ export async function handleTimerComplete(request) {
         timeLeft: duration,
         totalTime: duration,
       };
+    } else if (request.session === 'custom') {
+      // Custom completed - reset to configured custom duration
+      const duration =
+        (timerState && timerState.sessions && timerState.sessions.custom
+          ? timerState.sessions.custom.duration
+          : 30 * 60) || 30 * 60;
+      updates = {
+        ...updates,
+        sessionCount: timerState.sessionCount + 1,
+        currentSession: 'custom',
+        timeLeft: duration,
+        totalTime: duration,
+      };
     }
 
     await updateTimerState(updates);
 
     // Log analytics for session completion (pass actualSec to ensure robust recording)
     try {
-      await analyticsService.logSessionComplete({ session: request.session, actualSec });
+      await analyticsService.logSessionComplete({
+        session: request.session,
+        actualSec,
+      });
     } catch (e) {
       console.warn('Analytics logSessionComplete failed:', e);
     }
