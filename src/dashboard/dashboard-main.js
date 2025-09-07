@@ -62,14 +62,20 @@ async function loadContent(page) {
     document.getElementById('pageTitle').innerHTML = config.title;
 
     // Cleanup previous page if it was dashboard
-    if (currentPage === 'dashboard' && dashboardTimer) {
+    if (
+      currentPage === 'dashboard' &&
+      typeof dashboardTimer !== 'undefined' &&
+      dashboardTimer
+    ) {
       dashboardTimer.cleanup();
       dashboardTimer = null;
     }
 
     // Initialize page-specific functionality
     if (page === 'dashboard') {
-      setupDashboardFunctionality();
+      if (typeof setupDashboardFunctionality === 'function') {
+        setupDashboardFunctionality();
+      }
       if (typeof setupDashboardAnalytics === 'function') {
         setupDashboardAnalytics();
       }
@@ -266,7 +272,7 @@ document.addEventListener('DOMContentLoaded', async function () {
  * Cleanup when dashboard window is closed
  */
 window.addEventListener('beforeunload', () => {
-  if (dashboardTimer) {
+  if (typeof dashboardTimer !== 'undefined' && dashboardTimer) {
     dashboardTimer.cleanup();
     dashboardTimer = null;
   }

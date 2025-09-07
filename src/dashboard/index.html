@@ -1,91 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Productivity Dashboard - App Blocker</title>
-    
+
     <!-- 
         External Dependencies
         CDN links for styling, charts, and icons
     -->
     <!-- Tailwind CSS - Local version for extension compliance -->
-    <link rel="stylesheet" href="../assets/css/tailwind.css">
-    
+    <link rel="stylesheet" href="../assets/css/tailwind.css" />
+
     <!-- Chart.js - Local UMD build for offline use in MV3 -->
     <script src="../assets/vendor/chart.umd.min.js"></script>
-    
+
     <!-- Font Awesome - Local version for extension compliance -->
-    <link rel="stylesheet" href="../assets/css/font-awesome.css">
-    
+    <link rel="stylesheet" href="../assets/css/font-awesome.css" />
+
     <!-- Custom Styles -->
     <style>
-        /* Custom scrollbar styling for better UX */
-        ::-webkit-scrollbar {
-            width: 6px; /* Thin scrollbar */
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1; /* Light gray track */
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #c1c1c1; /* Medium gray thumb */
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8; /* Darker on hover */
-        }
+      /* Custom scrollbar styling for better UX */
+      ::-webkit-scrollbar {
+        width: 6px; /* Thin scrollbar */
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1; /* Light gray track */
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #c1c1c1; /* Medium gray thumb */
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8; /* Darker on hover */
+      }
     </style>
-</head>
-<!-- 
+  </head>
+  <!-- 
     Main Dashboard Layout
     Full-screen layout with sidebar navigation and dynamic content area
 -->
-<body class="bg-gray-50 dark:bg-gray-900 min-h-screen theme-transition">
+  <body class="bg-gray-50 dark:bg-gray-900 min-h-screen theme-transition">
     <!-- Main Container - Full screen flex layout -->
     <div class="flex h-screen">
-        <!-- 
+      <!-- 
             Navigation Sidebar Container
             Dynamically loaded navigation from navigation.html
         -->
-        <div id="navigation-container" class="h-full"></div>
+      <div id="navigation-container" class="h-full"></div>
 
-        <!-- Main Content Area - Takes remaining width -->
-        <div class="flex-1 flex flex-col">
-            <!-- 
+      <!-- Main Content Area - Takes remaining width -->
+      <div class="flex-1 flex flex-col">
+        <!-- 
                 Top Header Bar
                 Page title and global controls
             -->
-            <header class="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 p-4 theme-transition">
-                <div class="flex items-center justify-between">
-                    <h2 id="pageTitle" class="text-2xl font-bold text-gray-900 dark:text-white">
-                        <!-- Content Title dynamically loaded by dashboard.js-->
-                    </h2>
-                </div>
-            </header>
+        <header
+          class="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 p-4 theme-transition"
+        >
+          <div class="flex items-center justify-between">
+            <h2
+              id="pageTitle"
+              class="text-2xl font-bold text-gray-900 dark:text-white"
+            >
+              <!-- Content Title dynamically loaded by dashboard.js-->
+            </h2>
+          </div>
+        </header>
 
-            <!-- 
+        <!-- 
                 Dynamic Content Container
                 Page content loaded dynamically from separate HTML files
             -->
-            <div id="content-container" class="flex-1 flex flex-col min-h-0">
-                <!-- Content from dashboard-content.html, blocklist-content.html, etc. will be loaded here -->
-            </div>
+        <div id="content-container" class="flex-1 flex flex-col min-h-0">
+          <!-- Content from dashboard-content.html, blocklist-content.html, etc. will be loaded here -->
         </div>
+      </div>
     </div>
 
     <!-- Dashboard-specific JavaScript functionality -->
     <!-- Load utilities first as they're used by other modules -->
     <script src="dashboard-utils.js"></script>
     <script src="settings-functionality.js"></script>
-    
+
     <!-- Load individual functionality modules -->
     <script src="faq-functionality.js"></script>
-    <script src="dashboard-timer.js"></script>
+
     <script src="dashboard-analytics.js"></script>
     <script src="summary-analytics.js"></script>
     <script src="blocklist-functionality.js"></script>
-    
+    <script src="dashboard-timer.js"></script>
+
     <!-- Load main orchestration file last -->
     <script src="dashboard-main.js"></script>
-</body>
+  </body>
 </html>

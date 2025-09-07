@@ -43,9 +43,7 @@ export const ACTIONS = {
   ANALYTICS_DELETE_SESSION: 'analyticsDeleteSession',
   ANALYTICS_UPDATE_SESSION: 'analyticsUpdateSession',
 
-  // Dev/Test actions
-  TEST_COMPLETE_POMODORO: 'testCompletePomodoro',
-  TEST_COMPLETE_SESSION: 'testCompleteSession',
+  // Dev/Test actions removed
 
   // Settings actions - unified mode configuration
   GET_UNIFIED_MODE: 'getUnifiedMode',
@@ -216,19 +214,7 @@ export async function handleMessage(request, _sender, sendResponse) {
         sendResponse(updateResult);
         break;
 
-      // Dev/Test: Fast-complete current running Pomodoro with full credit
-      case ACTIONS.TEST_COMPLETE_POMODORO:
-        const result = await timerService.testCompletePomodoro();
-        sendResponse(result);
-        break;
-
-      // Dev/Test: Fast-complete current running session (any type) with full credit
-      case ACTIONS.TEST_COMPLETE_SESSION:
-        const resultAny = await timerService.testCompleteSession(
-          request.session
-        );
-        sendResponse(resultAny);
-        break;
+      
 
       // Unified mode and settings cases
       case ACTIONS.GET_SETTINGS:
