@@ -3,8 +3,6 @@
  * Handles blocklist management and modal interactions
  */
 
-
-
 /**
  * Setup Modal Functionality
  * Handles Add Category and Add Website modal interactions
@@ -16,7 +14,7 @@ function setupModalFunctionality() {
   const cancelAddCategory = document.getElementById('cancelAddCategory');
   const saveCategory = document.getElementById('saveCategory');
 
-  // Add Website Button  
+  // Add Website Button
   const addWebsiteButton = document.getElementById('addWebsiteButton');
   const addWebsiteModal = document.getElementById('addWebsiteModal');
   const cancelAddWebsite = document.getElementById('cancelAddWebsite');
@@ -99,7 +97,7 @@ function setupModalFunctionality() {
   async function saveCategoryHandler() {
     const categoryName = document.getElementById('categoryName');
     const categoryIcon = document.getElementById('categoryIcon');
-    
+
     if (!categoryName || !categoryName.value.trim()) {
       alert('Please enter a category name');
       return;
@@ -117,26 +115,30 @@ function setupModalFunctionality() {
         metadata: {
           name: name,
           icon: icon,
-          created: Date.now()
-        }
+          created: Date.now(),
+        },
       });
 
       // Add the new category to the page using the recreate function (ensures consistency)
       recreateCategoryOnPage(categoryId, name, icon);
-      
+
       // Update the blocklist category selector with the new category
       populateBlocklistCategorySelector();
-      
+
       // Close modal and clear form
       addCategoryModal.classList.add('hidden');
       clearCategoryForm();
-      
+
       console.log(`Saved category ${name} with ID ${categoryId}`);
-      
+
       // Verify the category was saved by trying to load it
-      const verifyResponse = await sendMessagePromise({ action: 'getCategoryMetadata' });
-      console.log('Verification - Categories in storage:', verifyResponse.categories);
-      
+      const verifyResponse = await sendMessagePromise({
+        action: 'getCategoryMetadata',
+      });
+      console.log(
+        'Verification - Categories in storage:',
+        verifyResponse.categories
+      );
     } catch (error) {
       console.error('Error saving category:', error);
       alert('Error creating category');
@@ -146,7 +148,7 @@ function setupModalFunctionality() {
   function saveWebsiteHandler() {
     const websiteUrl = document.getElementById('websiteUrl');
     const websiteCategory = document.getElementById('websiteCategory');
-    
+
     if (!websiteUrl || !websiteUrl.value.trim()) {
       alert('Please enter a website URL');
       return;
@@ -164,17 +166,17 @@ function setupModalFunctionality() {
     }
 
     // Get the actual category name from the selected option text
-    const selectedOption = websiteCategory.options[websiteCategory.selectedIndex];
+    const selectedOption =
+      websiteCategory.options[websiteCategory.selectedIndex];
     const categoryName = selectedOption ? selectedOption.textContent : '';
 
     // Add the website to the appropriate category
     addWebsiteToCategory(url, categoryName);
-    
+
     // Close modal and clear form
     addWebsiteModal.classList.add('hidden');
     clearWebsiteForm();
   }
-
 
   function populateCategoryDropdown() {
     const categorySelect = document.getElementById('websiteCategory');
@@ -185,7 +187,7 @@ function setupModalFunctionality() {
 
     // Find all existing categories on the page
     const categories = document.querySelectorAll('.space-y-4 > div.border');
-    
+
     categories.forEach((categoryDiv) => {
       const categoryTitle = categoryDiv.querySelector('h4');
       if (categoryTitle) {
@@ -241,18 +243,22 @@ function setupModalFunctionality() {
     try {
       // Add to category-specific blocklist
       const categoryId = targetCategory.getAttribute('data-category');
-      await sendMessagePromise({ 
-        action: 'addCategorySite', 
-        url: url, 
-        categoryId: categoryId 
+      await sendMessagePromise({
+        action: 'addCategorySite',
+        url: url,
+        categoryId: categoryId,
       });
 
       // Create new website element with proper event handler
-      const websiteId = `website-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+      const websiteId = `website-${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2, 11)}`;
       const websiteHTML = `
-        <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded" data-website-id="${websiteId}" data-url="${escapeHtml(url)}">
-          <span class="text-sm">${escapeHtml(url)}</span>
-          <button class="text-red-500 hover:text-red-700 remove-website-btn" data-url="${url}">
+        <div class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-2 rounded" data-website-id="${websiteId}" data-url="${escapeHtml(
+        url
+      )}">
+          <span class="text-sm text-gray-900">${escapeHtml(url)}</span>
+          <button class="text-red-600 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300 remove-website-btn" data-url="${url}">
             <i class="fas fa-times text-xs"></i>
           </button>
         </div>
@@ -260,17 +266,20 @@ function setupModalFunctionality() {
 
       // Add the website to the grid
       websitesGrid.insertAdjacentHTML('beforeend', websiteHTML);
-      
+
       // Add event listener for removal
-      const removeBtn = websitesGrid.querySelector(`[data-website-id="${websiteId}"] .remove-website-btn`);
+      const removeBtn = websitesGrid.querySelector(
+        `[data-website-id="${websiteId}"] .remove-website-btn`
+      );
       if (removeBtn) {
         removeBtn.addEventListener('click', async (e) => {
-          await removeWebsiteFromCategory(e.target.closest('[data-website-id]'));
+          await removeWebsiteFromCategory(
+            e.target.closest('[data-website-id]')
+          );
         });
       }
-      
+
       console.log(`Added ${url} to ${categoryName} category`);
-      
     } catch (error) {
       console.error('Error adding website:', error);
       alert('Error adding website to blocklist');
@@ -282,13 +291,17 @@ function setupModalFunctionality() {
     if (!url) return;
 
     // Show confirmation popup before removing
-    if (!confirm(`Are you sure you want to remove "${url}" from this category?`)) {
+    if (
+      !confirm(`Are you sure you want to remove "${url}" from this category?`)
+    ) {
       return;
     }
 
     // Find the category this website belongs to
     const categoryDiv = websiteElement.closest('[data-category]');
-    const categoryId = categoryDiv ? categoryDiv.getAttribute('data-category') : null;
+    const categoryId = categoryDiv
+      ? categoryDiv.getAttribute('data-category')
+      : null;
 
     if (!categoryId) {
       console.error('Could not find category for website');
@@ -297,15 +310,15 @@ function setupModalFunctionality() {
 
     try {
       // Remove from category-specific blocklist
-      await sendMessagePromise({ 
-        action: 'removeCategorySite', 
-        url: url, 
-        categoryId: categoryId 
+      await sendMessagePromise({
+        action: 'removeCategorySite',
+        url: url,
+        categoryId: categoryId,
       });
-      
+
       // Remove from UI
       websiteElement.remove();
-      
+
       console.log(`Removed ${url} from category ${categoryId}`);
     } catch (error) {
       console.error('Error removing website:', error);
@@ -315,7 +328,9 @@ function setupModalFunctionality() {
 
   function setupCategoryEventListeners(categoryId) {
     // Delete category handler (removed enable/disable checkbox since we use active category selection)
-    const deleteBtn = document.querySelector(`[data-category="${categoryId}"] .delete-category-btn`);
+    const deleteBtn = document.querySelector(
+      `[data-category="${categoryId}"] .delete-category-btn`
+    );
     if (deleteBtn) {
       deleteBtn.addEventListener('click', async () => {
         await deleteCategoryHandler(categoryId);
@@ -323,28 +338,33 @@ function setupModalFunctionality() {
     }
   }
 
-
   async function deleteCategoryHandler(categoryId) {
-    if (!confirm('Are you sure you want to delete this category and all its websites?')) {
+    if (
+      !confirm(
+        'Are you sure you want to delete this category and all its websites?'
+      )
+    ) {
       return;
     }
 
-    const categoryDiv = document.querySelector(`[data-category="${categoryId}"]`);
+    const categoryDiv = document.querySelector(
+      `[data-category="${categoryId}"]`
+    );
     if (!categoryDiv) return;
 
     try {
       // Use the category-specific delete API
-      await sendMessagePromise({ 
-        action: 'deleteCategory', 
-        categoryId: categoryId 
+      await sendMessagePromise({
+        action: 'deleteCategory',
+        categoryId: categoryId,
       });
-      
+
       // Remove category from UI
       categoryDiv.remove();
-      
+
       // Update the blocklist category selector to remove deleted category
       populateBlocklistCategorySelector();
-      
+
       console.log(`Deleted category ${categoryId} and all its websites`);
     } catch (error) {
       console.error('Error deleting category:', error);
@@ -355,11 +375,11 @@ function setupModalFunctionality() {
   async function loadExistingCategories() {
     try {
       console.log('Loading existing categories...');
-      
+
       // Get both category metadata and category sites
       const [metadataResponse, sitesResponse] = await Promise.all([
         sendMessagePromise({ action: 'getCategoryMetadata' }),
-        sendMessagePromise({ action: 'getCategorySites' })
+        sendMessagePromise({ action: 'getCategorySites' }),
       ]);
 
       console.log('Metadata response:', metadataResponse);
@@ -377,14 +397,16 @@ function setupModalFunctionality() {
 
       const categoryMetadata = metadataResponse.categories || {};
       const categorySites = sitesResponse.sites || {};
-      
+
       console.log('Category metadata loaded:', categoryMetadata);
       console.log('Category sites loaded:', categorySites);
 
       // First, handle the default "General" category that's hardcoded in HTML
       const generalCategoryData = categorySites['general'];
       if (generalCategoryData && generalCategoryData.sites) {
-        const generalCategoryDiv = document.querySelector('[data-category="general"]');
+        const generalCategoryDiv = document.querySelector(
+          '[data-category="general"]'
+        );
         if (generalCategoryDiv) {
           const websitesGrid = generalCategoryDiv.querySelector('.grid');
           if (websitesGrid) {
@@ -400,7 +422,8 @@ function setupModalFunctionality() {
 
       // Recreate each custom category (non-general)
       for (const [categoryId, metadata] of Object.entries(categoryMetadata)) {
-        if (categoryId !== 'general') { // Skip general since it's handled above
+        if (categoryId !== 'general') {
+          // Skip general since it's handled above
           // Create the category UI
           recreateCategoryOnPage(categoryId, metadata.name, metadata.icon);
 
@@ -414,7 +437,11 @@ function setupModalFunctionality() {
         }
       }
 
-      console.log(`Loaded ${Object.keys(categoryMetadata).length} categories plus General category`);
+      console.log(
+        `Loaded ${
+          Object.keys(categoryMetadata).length
+        } categories plus General category`
+      );
     } catch (error) {
       console.error('Error loading existing categories:', error);
     }
@@ -422,21 +449,21 @@ function setupModalFunctionality() {
 
   function recreateCategoryOnPage(categoryId, name, icon) {
     const categoriesContainer = document.getElementById('categoriesContainer');
-    
+
     if (!categoriesContainer) {
       console.error('Categories container not found');
       return;
     }
 
     const newCategoryHTML = `
-      <div class="border border-gray-200 rounded-lg p-4" data-category="${categoryId}">
+      <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 dark:bg-gray-800" data-category="${categoryId}">
         <div class="flex items-center justify-between mb-3">
-          <h4 class="font-medium text-gray-900 flex items-center">
+          <h4 class="font-medium text-gray-900 dark:text-gray-100 flex items-center">
             <i class="${icon} text-blue-500 mr-2"></i>
             ${escapeHtml(name)}
           </h4>
           <div class="flex items-center space-x-2">
-            <button class="text-gray-400 hover:text-red-500 delete-category-btn" data-category="${categoryId}">
+            <button class="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 delete-category-btn" data-category="${categoryId}">
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -446,27 +473,33 @@ function setupModalFunctionality() {
         </div>
       </div>
     `;
-    
+
     // Insert the new category AFTER the General category (at the end)
     categoriesContainer.insertAdjacentHTML('beforeend', newCategoryHTML);
-    
+
     // Add event listeners for the recreated category
     setupCategoryEventListeners(categoryId);
   }
 
   async function addWebsiteToExistingCategory(categoryId, url) {
-    const categoryDiv = document.querySelector(`[data-category="${categoryId}"]`);
+    const categoryDiv = document.querySelector(
+      `[data-category="${categoryId}"]`
+    );
     if (!categoryDiv) return;
 
     const websitesGrid = categoryDiv.querySelector('.grid');
     if (!websitesGrid) return;
 
     // Create website element (similar to addWebsiteToCategory but without API calls)
-    const websiteId = `website-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    const websiteId = `website-${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2, 11)}`;
     const websiteHTML = `
-      <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded" data-website-id="${websiteId}" data-url="${escapeHtml(url)}">
-        <span class="text-sm">${escapeHtml(url)}</span>
-        <button class="text-red-500 hover:text-red-700 remove-website-btn" data-url="${url}">
+      <div class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-2 rounded" data-website-id="${websiteId}" data-url="${escapeHtml(
+      url
+    )}">
+        <span class="text-sm text-gray-900">${escapeHtml(url)}</span>
+        <button class="text-red-600 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300 remove-website-btn" data-url="${url}">
           <i class="fas fa-times text-xs"></i>
         </button>
       </div>
@@ -474,9 +507,11 @@ function setupModalFunctionality() {
 
     // Add the website to the grid
     websitesGrid.insertAdjacentHTML('beforeend', websiteHTML);
-    
+
     // Add event listener for removal
-    const removeBtn = websitesGrid.querySelector(`[data-website-id="${websiteId}"] .remove-website-btn`);
+    const removeBtn = websitesGrid.querySelector(
+      `[data-website-id="${websiteId}"] .remove-website-btn`
+    );
     if (removeBtn) {
       removeBtn.addEventListener('click', async (e) => {
         await removeWebsiteFromCategory(e.target.closest('[data-website-id]'));
@@ -491,11 +526,13 @@ function setupModalFunctionality() {
 
     try {
       // Get category metadata from localStorage
-      const response = await sendMessagePromise({ action: 'getCategoryMetadata' });
-      
+      const response = await sendMessagePromise({
+        action: 'getCategoryMetadata',
+      });
+
       if (response.success && response.categories) {
         const categories = response.categories;
-        
+
         // Clear existing options except 'General'
         const generalOption = selector.querySelector('option[value="general"]');
         selector.innerHTML = '';
@@ -509,7 +546,7 @@ function setupModalFunctionality() {
           generalOpt.selected = true;
           selector.appendChild(generalOpt);
         }
-        
+
         // Add category options dynamically (excluding general since it's already added)
         for (const [categoryId, metadata] of Object.entries(categories)) {
           if (categoryId !== 'general') {
@@ -519,8 +556,12 @@ function setupModalFunctionality() {
             selector.appendChild(option);
           }
         }
-        
-        console.log(`Populated category selector with ${Object.keys(categories).length} categories`);
+
+        console.log(
+          `Populated category selector with ${
+            Object.keys(categories).length
+          } categories`
+        );
       }
     } catch (error) {
       console.error('Error populating blocklist category selector:', error);
@@ -534,7 +575,9 @@ function setupModalFunctionality() {
 
     // Load and set the initial active category
     try {
-      const response = await sendMessagePromise({ action: 'getActiveCategory' });
+      const response = await sendMessagePromise({
+        action: 'getActiveCategory',
+      });
       if (response.success && response.activeCategory) {
         selector.value = response.activeCategory;
         const selectedOption = selector.options[selector.selectedIndex];
@@ -549,16 +592,18 @@ function setupModalFunctionality() {
     selector.addEventListener('change', async (e) => {
       const selectedCategory = e.target.value;
       const selectedCategoryName = e.target.selectedOptions[0].textContent;
-      
+
       try {
         // Update the active category in storage
-        await sendMessagePromise({ 
-          action: 'setActiveCategory', 
-          categoryId: selectedCategory 
+        await sendMessagePromise({
+          action: 'setActiveCategory',
+          categoryId: selectedCategory,
         });
-        
+
         updateCurrentCategoryName(selectedCategoryName);
-        console.log(`Active category set to: ${selectedCategoryName} (${selectedCategory})`);
+        console.log(
+          `Active category set to: ${selectedCategoryName} (${selectedCategory})`
+        );
       } catch (error) {
         console.error('Error setting active category:', error);
         alert('Error updating active category');
@@ -568,32 +613,33 @@ function setupModalFunctionality() {
 
   // Function to update the current category name display
   function updateCurrentCategoryName(categoryName) {
-    const currentCategoryNameSpan = document.getElementById('currentCategoryName');
+    const currentCategoryNameSpan = document.getElementById(
+      'currentCategoryName'
+    );
     if (currentCategoryNameSpan) {
       currentCategoryNameSpan.textContent = categoryName;
     }
   }
 
-  
   // Migrate category data on dashboard load (for existing users)
   async function initializeDashboard() {
     try {
       // Run migration to clean up old enabled fields
       await sendMessagePromise({ action: 'migrateCategoryData' });
-      
+
       // Load existing categories after migration
       loadExistingCategories();
-      
+
       // Populate blocklist category selector from localStorage
       populateBlocklistCategorySelector();
-      
+
       // Setup category selector change listener
       setupCategorySelectorListener();
     } catch (error) {
       console.error('Error initializing dashboard:', error);
     }
   }
-  
+
   // Initialize dashboard
   initializeDashboard();
 }
@@ -601,6 +647,6 @@ function setupModalFunctionality() {
 // Export functions if using modules, otherwise they're global
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    setupModalFunctionality
+    setupModalFunctionality,
   };
 }
