@@ -621,7 +621,7 @@ export function DeleteAccountModal({
         className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
         onClick={(e) => e.stopPropagation()}
       >
-  <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">
             Delete Account
           </h3>

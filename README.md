@@ -113,11 +113,61 @@ src/
 
 ## Installation
 
+### For Developers (Local Development)
+
 1. Clone or download this repository
-2. Open Chrome and navigate to `chrome://extensions/`
-3. Enable "Developer mode" in the top right
-4. Click "Load unpacked" and select the project directory
-5. The extension will appear in your toolbar
+2. Run `npm install` to install dependencies
+3. Run `npm run build` to build the React dashboard
+4. Open Chrome and navigate to `chrome://extensions/`
+5. Enable "Developer mode" in the top right
+6. Click "Load unpacked" and select the project directory
+7. The extension will appear in your toolbar
+
+### For Testers (GitHub Distribution)
+
+#### Option 1: Download ZIP from GitHub
+1. Go to the [GitHub repository releases](https://github.com/StephenC0729/Website_Blocker/releases)
+2. Download the latest release ZIP file
+3. Extract the ZIP file to a folder on your computer
+4. Open Chrome and navigate to `chrome://extensions/`
+5. Enable "Developer mode" in the top right corner
+6. Click "Load unpacked" and select the extracted folder
+7. The extension will appear in your browser toolbar
+
+#### Option 2: Clone Repository
+1. Clone this repository: `git clone https://github.com/StephenC0729/Website_Blocker.git`
+2. Navigate to the project directory: `cd Website_Blocker`
+3. Run `npm install` (if you want to modify React components)
+4. Run `npm run build` (if you want to rebuild the dashboard)
+5. Open Chrome and navigate to `chrome://extensions/`
+6. Enable "Developer mode" in the top right
+7. Click "Load unpacked" and select the project directory
+8. The extension will appear in your toolbar
+
+### Testing Checklist
+
+After installation, please test these core features:
+
+- ✅ **Basic Blocking**: Add a website to blocklist and verify it shows blocking overlay
+- ✅ **Timer Functionality**: Start/pause/reset Pomodoro timer sessions
+- ✅ **Dashboard Access**: Click dashboard button to open full management interface
+- ✅ **Category Management**: Create custom categories and assign websites
+- ✅ **Unified Mode**: Test timer-blocking integration (Settings page)
+- ✅ **Cross-Session Persistence**: Timer continues running when popup is closed
+
+### Troubleshooting
+
+**Extension not loading?**
+- Ensure you selected the root project folder (containing `manifest.json`)
+- Check Chrome Developer Tools console for error messages
+- Try disabling and re-enabling the extension
+
+**Dashboard not working?**
+- Run `npm run build` to ensure React components are compiled
+- Check that `src/dashboard/react-dist/dashboard.react.js` exists
+
+**Timer not persisting?**
+- Extension may need storage permissions - check Chrome extension settings
 
 ## Usage
 

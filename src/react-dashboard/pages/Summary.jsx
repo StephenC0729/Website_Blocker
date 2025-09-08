@@ -562,28 +562,37 @@ export default function Summary() {
               </p>
               <div
                 id="sessionToDelete"
-                className="bg-gray-50 rounded-lg p-3 text-sm"
+                className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-sm grid grid-cols-[90px_1fr] gap-y-2"
               >
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-medium text-gray-700">Date:</span>
-                  <span id="deleteSessionDate" className="text-gray-600">
-                    {new Date(deleteSession.start).toLocaleDateString()}
-                  </span>
+                <div className="font-medium text-gray-700 dark:text-gray-300">
+                  Date
                 </div>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-medium text-gray-700">Time:</span>
-                  <span id="deleteSessionTime" className="text-gray-600">
-                    {new Date(deleteSession.start).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </span>
+                <div
+                  id="deleteSessionDate"
+                  className="text-gray-600 dark:text-gray-200"
+                >
+                  {new Date(deleteSession.start).toLocaleDateString()}
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-700">Duration:</span>
-                  <span id="deleteSessionDuration" className="text-gray-600">
-                    {formatDurationShort(getCreditedDuration(deleteSession))}
-                  </span>
+                <div className="font-medium text-gray-700 dark:text-gray-300">
+                  Time
+                </div>
+                <div
+                  id="deleteSessionTime"
+                  className="text-gray-600 dark:text-gray-200"
+                >
+                  {new Date(deleteSession.start).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </div>
+                <div className="font-medium text-gray-700 dark:text-gray-300">
+                  Duration
+                </div>
+                <div
+                  id="deleteSessionDuration"
+                  className="text-gray-600 dark:text-gray-200"
+                >
+                  {formatDurationShort(getCreditedDuration(deleteSession))}
                 </div>
               </div>
               <p className="text-sm text-red-600 mt-3">
@@ -654,7 +663,7 @@ export default function Summary() {
                   onChange={(e) =>
                     setEditForm((f) => ({ ...f, type: e.target.value }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 >
                   <option value="pomodoro">Focus</option>
                   <option value="short-break">Short Break</option>
@@ -672,7 +681,7 @@ export default function Summary() {
                   onChange={(e) =>
                     setEditForm((f) => ({ ...f, date: e.target.value }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   required
                 />
               </div>
@@ -686,7 +695,7 @@ export default function Summary() {
                   onChange={(e) =>
                     setEditForm((f) => ({ ...f, time: e.target.value }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   required
                 />
               </div>
@@ -702,7 +711,7 @@ export default function Summary() {
                   onChange={(e) =>
                     setEditForm((f) => ({ ...f, durationMin: e.target.value }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   required
                 />
               </div>
@@ -710,7 +719,7 @@ export default function Summary() {
                 <button
                   id="cancelEdit"
                   type="button"
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
                   onClick={() => setEditSession(null)}
                 >
                   Cancel
