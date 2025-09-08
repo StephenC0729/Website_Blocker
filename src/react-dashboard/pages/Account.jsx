@@ -78,14 +78,14 @@ export default function Account() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Display name
                 </label>
-                <input
-                  type="text"
-                  className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-                  value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
-                  disabled={nameBusy}
-                />
-                <div className="mt-2">
+                <div className="flex items-center justify-between mt-1">
+                  <input
+                    type="text"
+                    className="flex-1 bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 mr-3"
+                    value={nameInput}
+                    onChange={(e) => setNameInput(e.target.value)}
+                    disabled={nameBusy}
+                  />
                   <button
                     className={`px-4 py-2 text-sm font-medium text-white rounded-md ${
                       nameBusy ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'
