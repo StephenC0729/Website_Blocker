@@ -509,7 +509,7 @@ export default function Summary() {
                 This action cannot be undone.
               </p>
             </div>
-            <div className="flex justify-end space-x-3">
+            <div className="flex justify-end space-x-3 mt-4 pt-4 border-t border-gray-200">
               <button
                 id="cancelBulkDelete"
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
@@ -590,7 +590,7 @@ export default function Summary() {
                 This action cannot be undone.
               </p>
             </div>
-            <div className="flex justify-end space-x-3">
+            <div className="flex justify-end space-x-3 mt-4 pt-4 border-t border-gray-200">
               <button
                 id="cancelDelete"
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"

@@ -321,7 +321,7 @@ export default function Settings() {
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors"
               onClick={testSound}
             >
-              <i className="fas fa-play mr-1"></i>
+              <i className="fas fa-play mr-2"></i>
               Test sound
             </button>
           </div>

@@ -237,9 +237,10 @@ export default function Blocklist() {
               });
               setShowAddWebsite(true);
             }}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+            className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md shadow-sm bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 transition-colors"
           >
-            <i className="fas fa-plus mr-2"></i>Add Website
+            <i className="fas fa-plus text-xs mr-2"></i>
+            Add Website
           </button>
         </div>
 
@@ -263,9 +264,9 @@ export default function Blocklist() {
             </h4>
             <button
               onClick={() => setShowAddCategory(true)}
-              className="bg-green-600 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-green-700 flex items-center"
+              className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md shadow-sm bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 transition-colors"
             >
-              <i className="fas fa-plus mr-1.5"></i>
+              <i className="fas fa-plus text-xs mr-2"></i>
               Add Category
             </button>
           </div>
@@ -364,7 +365,7 @@ export default function Blocklist() {
                 </select>
               </div>
             </div>
-            <div className="flex justify-end space-x-3 mt-6">
+            <div className="flex justify-end space-x-3 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 id="cancelAddWebsite"
                 className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
@@ -432,7 +433,7 @@ export default function Blocklist() {
                 </select>
               </div>
             </div>
-            <div className="flex justify-end space-x-3 mt-6">
+            <div className="flex justify-end space-x-3 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 id="cancelAddCategory"
                 className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"

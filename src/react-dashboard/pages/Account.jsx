@@ -621,7 +621,7 @@ export function DeleteAccountModal({
         className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-2">
+  <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">
             Delete Account
           </h3>
@@ -637,7 +637,13 @@ export function DeleteAccountModal({
           This action is permanent and cannot be undone.
         </p>
         {isEmail ? (
-          <div className="space-y-3">
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!busy) onSubmitEmailFlow();
+            }}
+          >
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Current password
@@ -651,39 +657,49 @@ export function DeleteAccountModal({
                 disabled={busy}
               />
             </div>
-          </div>
+            <div className="flex justify-end space-x-3 mt-4 pt-4 border-t border-gray-200">
+              <button
+                type="button"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                onClick={() => (busy ? null : onClose())}
+                disabled={busy}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 disabled:opacity-50"
+                disabled={busy}
+              >
+                {busy ? 'Deleting…' : 'Delete account'}
+              </button>
+            </div>
+          </form>
         ) : (
-          <div className="text-sm text-gray-600">
-            Re-authentication via {loginType} is required to continue.
+          <div className="space-y-4">
+            <div className="text-sm text-gray-600">
+              Re-authentication via {loginType} is required to continue.
+            </div>
+            <div className="flex justify-end space-x-3 mt-4 pt-4 border-t border-gray-200">
+              <button
+                type="button"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                onClick={() => (busy ? null : onClose())}
+                disabled={busy}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 disabled:opacity-50"
+                onClick={onSubmitGoogleFlow}
+                disabled={busy}
+              >
+                {busy ? 'Deleting…' : 'Re-auth & delete'}
+              </button>
+            </div>
           </div>
         )}
-        <div className="flex justify-end space-x-3 mt-4 pt-4 border-t border-gray-200">
-          <button
-            type="button"
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-            onClick={() => (busy ? null : onClose())}
-            disabled={busy}
-          >
-            Cancel
-          </button>
-          {isEmail ? (
-            <button
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 disabled:opacity-50"
-              onClick={onSubmitEmailFlow}
-              disabled={busy}
-            >
-              {busy ? 'Deleting…' : 'Delete account'}
-            </button>
-          ) : (
-            <button
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 disabled:opacity-50"
-              onClick={onSubmitGoogleFlow}
-              disabled={busy}
-            >
-              {busy ? 'Deleting…' : 'Re-auth & delete'}
-            </button>
-          )}
-        </div>
       </div>
     </div>
   );
