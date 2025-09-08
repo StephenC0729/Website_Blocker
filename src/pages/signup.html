@@ -6,94 +6,108 @@
     <title>App Blocker - Sign Up</title>
     <link rel="stylesheet" href="../assets/css/tailwind.css" />
   </head>
-  <body
-    class="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center theme-transition"
-  >
-    <div
-      class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-6 w-full max-w-md theme-transition"
-    >
-      <div class="text-center mb-6">
-        <h1 class="text-xl font-bold text-gray-900 dark:text-white mb-1">
-          🚫 App Blocker
-        </h1>
-        <p class="text-sm text-gray-600 dark:text-gray-400">
-          Create your account
-        </p>
-      </div>
-
-      <div id="alertContainer"></div>
-
-      <form id="signupForm" class="flex flex-col gap-4">
-        <div class="flex flex-col">
-          <label
-            for="signupName"
-            class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300"
-            >Username</label
-          >
-          <input
-            class="w-full"
-            type="text"
-            id="signupName"
-            name="signupName"
-            required
-          />
-        </div>
-        <div class="flex flex-col">
-          <label
-            for="signupEmail"
-            class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300"
-            >Email Address</label
-          >
-          <input
-            class="w-full"
-            type="email"
-            id="signupEmail"
-            name="signupEmail"
-            required
-          />
-        </div>
-        <div class="flex flex-col">
-          <label
-            for="signupPassword"
-            class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300"
-            >Password</label
-          >
-          <input
-            class="w-full"
-            type="password"
-            id="signupPassword"
-            name="signupPassword"
-            required
-          />
-        </div>
-        <div class="flex flex-col">
-          <label
-            for="signupPassword2"
-            class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300"
-            >Confirm Password</label
-          >
-          <input
-            class="w-full"
-            type="password"
-            id="signupPassword2"
-            name="signupPassword2"
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-3 px-4 font-semibold theme-transition"
+  <body class="bg-gray-50 dark:bg-gray-900 min-h-screen theme-transition">
+    <div class="grid grid-cols-2 min-h-screen">
+      <section class="flex items-center justify-center p-6 md:p-12">
+        <div
+          class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-6 w-full max-w-md theme-transition"
         >
-          Create Account
-        </button>
-      </form>
+          <div class="text-center mb-6">
+            <h1 class="text-xl font-bold text-gray-900 dark:text-white mb-1">
+              🚫 App Blocker
+            </h1>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Create your account
+            </p>
+          </div>
 
-      <div class="mt-4 text-center text-sm text-gray-600 dark:text-gray-300">
-        Already have an account?
-        <a href="../pages/login.html" class="text-blue-600 hover:underline"
-          >Sign in</a
-        >
-      </div>
+          <div id="alertContainer"></div>
+
+          <form id="signupForm" class="flex flex-col gap-4">
+            <div class="flex flex-col">
+              <label
+                for="signupName"
+                class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300"
+                >Username</label
+              >
+              <input
+                class="w-full"
+                type="text"
+                id="signupName"
+                name="signupName"
+                required
+              />
+            </div>
+            <div class="flex flex-col">
+              <label
+                for="signupEmail"
+                class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300"
+                >Email Address</label
+              >
+              <input
+                class="w-full"
+                type="email"
+                id="signupEmail"
+                name="signupEmail"
+                required
+              />
+            </div>
+            <div class="flex flex-col">
+              <label
+                for="signupPassword"
+                class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300"
+                >Password</label
+              >
+              <input
+                class="w-full"
+                type="password"
+                id="signupPassword"
+                name="signupPassword"
+                required
+              />
+            </div>
+            <div class="flex flex-col">
+              <label
+                for="signupPassword2"
+                class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300"
+                >Confirm Password</label
+              >
+              <input
+                class="w-full"
+                type="password"
+                id="signupPassword2"
+                name="signupPassword2"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-3 px-4 font-semibold theme-transition mb-3"
+            >
+              Create Account
+            </button>
+          </form>
+
+          <div
+            class="mt-4 text-center text-sm text-gray-600 dark:text-gray-300"
+          >
+            Already have an account?
+            <a
+              href="../pages/login.html"
+              class="text-blue-700 font-semibold hover:underline focus:underline focus-visible:underline focus:outline-none"
+              >Sign in</a
+            >
+          </div>
+        </div>
+      </section>
+
+      <aside class="flex items-center justify-center p-6 md:p-12">
+        <img
+          src="../assets/icons/Analytics-rafiki.svg"
+          alt="Analytics illustration"
+          class="max-w-lg w-full h-auto drop-shadow-xl"
+        />
+      </aside>
     </div>
 
     <script src="../assets/vendor/firebase/firebase-app-compat.js"></script>

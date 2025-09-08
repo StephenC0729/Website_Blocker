@@ -96,6 +96,23 @@ a {
   color: inherit;
 }
 
+/* Text decoration utilities */
+.underline {
+  text-decoration: underline;
+}
+.no-underline {
+  text-decoration: none;
+}
+.hover\:underline:hover {
+  text-decoration: underline;
+}
+.focus\:underline:focus {
+  text-decoration: underline;
+}
+.focus-visible\:underline:focus-visible {
+  text-decoration: underline;
+}
+
 /* Set default font family */
 body {
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
