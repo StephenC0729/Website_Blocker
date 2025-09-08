@@ -161,6 +161,20 @@ export default function Navigation() {
             </li>
           ))}
 
+          {isLoggedIn && (
+            <li>
+              <NavLink
+                active={activePage === 'account'}
+                icon="fas fa-user-cog"
+                label="Account"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate('account');
+                }}
+              />
+            </li>
+          )}
+
           <li className="relative">
             <a
               href="#"
@@ -244,16 +258,33 @@ export default function Navigation() {
               </div>
               <div className="dropdown-separator"></div>
               {isLoggedIn ? (
-                <button
-                  id="dropdownLogoutBtn"
-                  className="dropdown-item"
-                  onClick={handleLogout}
-                >
-                  <span>
-                    <i className="fas fa-sign-out-alt mr-2"></i>Log out
-                  </span>
-                  <i className="fas fa-chevron-right opacity-70"></i>
-                </button>
+                <>
+                  <button
+                    id="dropdownAccountBtn"
+                    className="dropdown-item"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      navigate('account');
+                      setGuestOpen(false);
+                    }}
+                  >
+                    <span>
+                      <i className="fas fa-user-cog mr-2"></i>Manage account
+                    </span>
+                    <i className="fas fa-chevron-right opacity-70"></i>
+                  </button>
+                  <button
+                    id="dropdownLogoutBtn"
+                    className="dropdown-item"
+                    onClick={handleLogout}
+                  >
+                    <span>
+                      <i className="fas fa-sign-out-alt mr-2"></i>Log out
+                    </span>
+                    <i className="fas fa-chevron-right opacity-70"></i>
+                  </button>
+                </>
               ) : (
                 <>
                   <button

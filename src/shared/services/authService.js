@@ -109,7 +109,11 @@ class AuthManager {
             await this.setAuthState(user);
             // Start sync if available
             try {
+              const settingsRaw = await chrome.storage.local.get(['settings']);
+              const settings = (settingsRaw && settingsRaw.settings) || {};
+              const syncOn = settings.syncEnabled !== false; // default on
               if (
+                syncOn &&
                 window.SyncService &&
                 typeof window.SyncService.startSync === 'function'
               ) {
@@ -271,7 +275,11 @@ class AuthManager {
     }
     // start sync when verified
     try {
+      const settingsRaw = await chrome.storage.local.get(['settings']);
+      const settings = (settingsRaw && settingsRaw.settings) || {};
+      const syncOn = settings.syncEnabled !== false; // default on
       if (
+        syncOn &&
         window.SyncService &&
         typeof window.SyncService.startSync === 'function'
       ) {
@@ -327,12 +335,17 @@ class AuthManager {
             }
             // ensure sync is running
             try {
-              if (
-                window.SyncService &&
-                typeof window.SyncService.startSync === 'function'
-              ) {
-                window.SyncService.startSync(fUser.uid);
-              }
+              chrome.storage.local.get(['settings']).then((s) => {
+                const settings = (s && s.settings) || {};
+                const syncOn = settings.syncEnabled !== false; // default on
+                if (
+                  syncOn &&
+                  window.SyncService &&
+                  typeof window.SyncService.startSync === 'function'
+                ) {
+                  window.SyncService.startSync(fUser.uid);
+                }
+              });
             } catch {}
             const user = {
               id: fUser.uid,

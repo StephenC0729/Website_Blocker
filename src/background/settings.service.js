@@ -10,6 +10,8 @@ import { get, set } from './storage.js';
  */
 export async function getSettings() {
   const defaults = {
+    // Cloud sync
+    syncEnabled: true,
     unifiedModeEnabled: false,
     focusCategoryId: 'general',
     breakCategoryId: null,

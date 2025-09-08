@@ -12,12 +12,18 @@ function send(msg) {
 
 export default function Settings() {
   const [settings, setSettings] = useState({
+    syncEnabled: true,
     unifiedModeEnabled: false,
     darkModeEnabled: false,
     soundNotificationsEnabled: true,
     notificationVolume: 50,
     focusCategoryId: 'general',
     breakCategoryId: '',
+  });
+  const [syncStatus, setSyncStatus] = useState({
+    isRunning: false,
+    lastPullAt: null,
+    lastPushAt: null,
   });
   const [categories, setCategories] = useState({});
   const categoryOptions = useMemo(() => {
@@ -80,6 +86,102 @@ export default function Settings() {
 
   return (
     <div className="flex-1 p-6 overflow-auto min-h-full">
+      {/* Cloud Sync */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6 theme-transition">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <i className="fas fa-cloud text-blue-500 mr-2"></i>
+          Cloud Sync
+        </h3>
+        <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+          <div>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Enable Cloud Sync
+            </label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Back up settings, categories, and analytics to your account
+            </p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              className="sr-only peer"
+              checked={!!settings.syncEnabled}
+              onChange={async (e) => {
+                const enabled = !!e.target.checked;
+                await persist({ syncEnabled: enabled });
+                try {
+                  const auth =
+                    (window.firebaseAuth && window.firebaseAuth.currentUser) ||
+                    null;
+                  if (auth && auth.emailVerified) {
+                    if (
+                      enabled &&
+                      window.SyncService &&
+                      typeof window.SyncService.startSync === 'function'
+                    ) {
+                      window.SyncService.startSync(auth.uid);
+                    }
+                    if (
+                      !enabled &&
+                      window.SyncService &&
+                      typeof window.SyncService.stopSync === 'function'
+                    ) {
+                      window.SyncService.stopSync();
+                    }
+                  }
+                  if (
+                    window.SyncService &&
+                    typeof window.SyncService.getStatus === 'function'
+                  ) {
+                    setSyncStatus(window.SyncService.getStatus());
+                  }
+                } catch {}
+              }}
+            />
+            <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          </label>
+        </div>
+        <div className="flex items-center justify-between py-3">
+          <div className="text-sm text-gray-600 dark:text-gray-300">
+            Status: {syncStatus.isRunning ? 'On' : 'Off'} • Last pull:{' '}
+            {syncStatus.lastPullAt
+              ? new Date(syncStatus.lastPullAt).toLocaleString()
+              : '—'}{' '}
+            • Last push:{' '}
+            {syncStatus.lastPushAt
+              ? new Date(syncStatus.lastPushAt).toLocaleString()
+              : '—'}
+          </div>
+          <div className="space-x-2">
+            <button
+              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-md transition-colors"
+              onClick={async () => {
+                try {
+                  if (
+                    window.SyncService &&
+                    typeof window.SyncService.pullAll === 'function'
+                  ) {
+                    const uid =
+                      (window.firebaseAuth &&
+                        window.firebaseAuth.currentUser &&
+                        window.firebaseAuth.currentUser.uid) ||
+                      null;
+                    if (uid) await window.SyncService.pullAll(uid);
+                  }
+                  if (
+                    window.SyncService &&
+                    typeof window.SyncService.getStatus === 'function'
+                  ) {
+                    setSyncStatus(window.SyncService.getStatus());
+                  }
+                } catch {}
+              }}
+            >
+              Sync now
+            </button>
+          </div>
+        </div>
+      </div>
       {/* Core Blocking Settings */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6 theme-transition">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">

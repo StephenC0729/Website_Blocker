@@ -9,6 +9,7 @@ import Summary from './pages/Summary.jsx';
 import Blocklist from './pages/Blocklist.jsx';
 import Settings from './pages/Settings.jsx';
 import Dashboard from './pages/Dashboard.jsx';
+import Account from './pages/Account.jsx';
 
 let reactRoot = null;
 
@@ -137,6 +138,22 @@ export function mountDashboardApp(containerId = 'content-container') {
     );
   } catch (e) {
     console.error('Failed to mount React Dashboard app:', e);
+  }
+}
+
+export function mountAccountApp(containerId = 'content-container') {
+  try {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    reactRoot = createRoot(container);
+    reactRoot.render(
+      <React.StrictMode>
+        <Account />
+      </React.StrictMode>
+    );
+  } catch (e) {
+    console.error('Failed to mount React Account app:', e);
   }
 }
 

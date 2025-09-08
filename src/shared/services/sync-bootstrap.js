@@ -3,12 +3,17 @@
   function startIfVerified(user) {
     try {
       if (!user || !user.emailVerified) return;
-      if (
-        window.SyncService &&
-        typeof window.SyncService.startSync === 'function'
-      ) {
-        window.SyncService.startSync(user.uid);
-      }
+      chrome.storage.local.get(['settings']).then((s) => {
+        const settings = (s && s.settings) || {};
+        const syncOn = settings.syncEnabled !== false; // default on
+        if (
+          syncOn &&
+          window.SyncService &&
+          typeof window.SyncService.startSync === 'function'
+        ) {
+          window.SyncService.startSync(user.uid);
+        }
+      });
     } catch {}
   }
 

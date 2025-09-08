@@ -3,60 +3,66 @@
  * should be blocked and displaying a blocking overlay when necessary.
  */
 class ContentBlocker {
-    constructor() {
-        this.overlayCreated = false;
-        this.init();
-    }
+  constructor() {
+    this.overlayCreated = false;
+    this.overlayElement = null;
+    this.preventHandler = null;
+    this.interactionDisabled = false;
+    this.init();
+  }
 
-    /**
-     * Initialize the content blocker by checking category-based blocking
-     */
-    async init() {
-        await this.checkCategoryBlockedSite();
-    }
+  /**
+   * Initialize the content blocker by checking category-based blocking
+   */
+  async init() {
+    await this.checkCategoryBlockedSite();
+  }
 
+  /**
+   * Check if the current site is blocked by the active category and show overlay if blocked
+   */
+  async checkCategoryBlockedSite() {
+    try {
+      const currentUrl = window.location.hostname;
+      const response = await chrome.runtime.sendMessage({
+        action: 'getActiveCategorySites',
+      });
 
-    /**
-     * Check if the current site is blocked by the active category and show overlay if blocked
-     */
-    async checkCategoryBlockedSite() {
-        try {
-            const currentUrl = window.location.hostname;
-            const response = await chrome.runtime.sendMessage({ 
-                action: 'getActiveCategorySites' 
-            });
-            
-            if (response.success && response.sites) {
-                const cleanCurrentUrl = this.cleanUrl(currentUrl);
-                
-                // Check if current site is in the active category's blocked sites
-                const isBlocked = response.sites.some(site => {
-                    // Either exact match or current URL is a subdomain of blocked site
-                    return cleanCurrentUrl === site || 
-                           (cleanCurrentUrl.endsWith('.' + site) && !site.includes('.'));
-                });
-                
-                if (isBlocked && !this.overlayCreated) {
-                    this.showBlockingOverlay();
-                }
-            }
-        } catch (error) {
-            console.error('Error checking category blocked sites:', error);
+      if (response.success && response.sites) {
+        const cleanCurrentUrl = this.cleanUrl(currentUrl);
+
+        // Check if current site is in the active category's blocked sites
+        const isBlocked = response.sites.some((site) => {
+          // Either exact match or current URL is a subdomain of blocked site
+          return (
+            cleanCurrentUrl === site ||
+            (cleanCurrentUrl.endsWith('.' + site) && !site.includes('.'))
+          );
+        });
+
+        if (isBlocked && !this.overlayCreated) {
+          this.showBlockingOverlay();
+        } else if (!isBlocked && this.overlayCreated) {
+          this.removeBlockingOverlay();
         }
+      }
+    } catch (error) {
+      console.error('Error checking category blocked sites:', error);
     }
+  }
 
-    /**
-     * Display a full-screen blocking overlay with motivational message and focus icon
-     */
-    showBlockingOverlay() {
-        // Prevent multiple overlays
-        if (this.overlayCreated) return;
-        this.overlayCreated = true;
+  /**
+   * Display a full-screen blocking overlay with motivational message and focus icon
+   */
+  showBlockingOverlay() {
+    // Prevent multiple overlays
+    if (this.overlayCreated) return;
+    this.overlayCreated = true;
 
-        // Create overlay container
-        const overlay = document.createElement('div');
-        overlay.id = 'website-blocker-overlay';
-        overlay.style.cssText = `
+    // Create overlay container
+    const overlay = document.createElement('div');
+    overlay.id = 'website-blocker-overlay';
+    overlay.style.cssText = `
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
@@ -73,26 +79,26 @@ class ContentBlocker {
             text-align: center !important;
         `;
 
-        // Create content container
-        const content = document.createElement('div');
-        content.style.cssText = `
+    // Create content container
+    const content = document.createElement('div');
+    content.style.cssText = `
             max-width: 500px !important;
             padding: 40px !important;
         `;
 
-        // Create motivational message
-        const message = document.createElement('h1');
-        message.textContent = 'Stay focused on your goals...';
-        message.style.cssText = `
+    // Create motivational message
+    const message = document.createElement('h1');
+    message.textContent = 'Stay focused on your goals...';
+    message.style.cssText = `
             font-size: 2.5rem !important;
             font-weight: 300 !important;
             margin-bottom: 40px !important;
             line-height: 1.2 !important;
         `;
 
-        // Create tree/focus icon
-        const iconContainer = document.createElement('div');
-        iconContainer.style.cssText = `
+    // Create tree/focus icon
+    const iconContainer = document.createElement('div');
+    iconContainer.style.cssText = `
             width: 120px !important;
             height: 120px !important;
             margin: 0 auto 40px auto !important;
@@ -104,33 +110,32 @@ class ContentBlocker {
             border: 3px solid rgba(255, 255, 255, 0.2) !important;
         `;
 
-        const icon = document.createElement('div');
-        icon.innerHTML = '🎯';
-        icon.style.cssText = `
+    const icon = document.createElement('div');
+    icon.innerHTML = '🎯';
+    icon.style.cssText = `
             font-size: 4rem !important;
         `;
 
-        // Create timer display (optional - could sync with actual timer)
-        const timerDisplay = document.createElement('div');
-        timerDisplay.textContent = 'Focus session in progress';
-        timerDisplay.style.cssText = `
+    // Create timer display (optional - could sync with actual timer)
+    const timerDisplay = document.createElement('div');
+    timerDisplay.textContent = 'Focus session in progress';
+    timerDisplay.style.cssText = `
             font-size: 1.2rem !important;
             margin-bottom: 40px !important;
             opacity: 0.8 !important;
         `;
 
+    // Assemble the overlay
+    iconContainer.appendChild(icon);
+    content.appendChild(message);
+    content.appendChild(iconContainer);
+    content.appendChild(timerDisplay);
+    overlay.appendChild(content);
 
-        // Assemble the overlay
-        iconContainer.appendChild(icon);
-        content.appendChild(message);
-        content.appendChild(iconContainer);
-        content.appendChild(timerDisplay);
-        overlay.appendChild(content);
-
-        // Add blocked site info
-        const siteInfo = document.createElement('div');
-        siteInfo.textContent = `Blocked: ${window.location.hostname}`;
-        siteInfo.style.cssText = `
+    // Add blocked site info
+    const siteInfo = document.createElement('div');
+    siteInfo.textContent = `Blocked: ${window.location.hostname}`;
+    siteInfo.style.cssText = `
             position: absolute !important;
             bottom: 20px !important;
             left: 50% !important;
@@ -138,67 +143,131 @@ class ContentBlocker {
             font-size: 0.9rem !important;
             opacity: 0.6 !important;
         `;
-        overlay.appendChild(siteInfo);
+    overlay.appendChild(siteInfo);
 
-        // Add to page
-        document.body.appendChild(overlay);
+    // Add to page
+    document.body.appendChild(overlay);
+    this.overlayElement = overlay;
 
-        // Prevent scrolling on the underlying page
-        document.body.style.overflow = 'hidden';
+    // Prevent scrolling on the underlying page
+    document.body.style.overflow = 'hidden';
 
-        // Disable interaction with the underlying page
-        this.disablePageInteraction();
+    // Disable interaction with the underlying page
+    this.disablePageInteraction();
 
-        // Log analytics site blocked event (once per page load)
-        try {
-            const domain = this.cleanUrl(window.location.hostname);
-            chrome.runtime.sendMessage({ action: 'analyticsSiteBlocked', domain });
-        } catch (e) {
-            console.warn('Failed to send analyticsSiteBlocked message:', e);
+    // Log analytics site blocked event (once per page load)
+    try {
+      const domain = this.cleanUrl(window.location.hostname);
+      chrome.runtime.sendMessage({ action: 'analyticsSiteBlocked', domain });
+    } catch (e) {
+      console.warn('Failed to send analyticsSiteBlocked message:', e);
+    }
+  }
+
+  /**
+   * Remove the blocking overlay and restore page interaction
+   */
+  removeBlockingOverlay() {
+    if (!this.overlayCreated) return;
+    try {
+      if (this.overlayElement && this.overlayElement.parentNode) {
+        this.overlayElement.parentNode.removeChild(this.overlayElement);
+      } else {
+        const el = document.getElementById('website-blocker-overlay');
+        if (el && el.parentNode) el.parentNode.removeChild(el);
+      }
+    } catch {}
+    this.overlayElement = null;
+    this.overlayCreated = false;
+    // Restore scrolling and interactions
+    try {
+      document.body.style.overflow = '';
+    } catch {}
+    this.enablePageInteraction();
+  }
+
+  /**
+   * Disable all user interaction with the underlying webpage while keeping overlay functional
+   */
+  disablePageInteraction() {
+    if (this.interactionDisabled) return;
+    // Create and cache the handler so we can remove it later
+    if (!this.preventHandler) {
+      this.preventHandler = (e) => {
+        const overlay = document.getElementById('website-blocker-overlay');
+        if (overlay && e.target.closest('#website-blocker-overlay')) {
+          return; // Allow interaction with overlay
         }
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      };
     }
 
-    /**
-     * Disable all user interaction with the underlying webpage while keeping overlay functional
-     */
-    disablePageInteraction() {
-        // Add event listeners to capture and prevent interaction
-        const preventEvent = (e) => {
-            if (e.target.closest('#website-blocker-overlay')) {
-                return; // Allow interaction with overlay
-            }
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        };
+    // Prevent various interactions
+    document.addEventListener('click', this.preventHandler, true);
+    document.addEventListener('keydown', this.preventHandler, true);
+    document.addEventListener('keyup', this.preventHandler, true);
+    document.addEventListener('keypress', this.preventHandler, true);
+    document.addEventListener('mousedown', this.preventHandler, true);
+    document.addEventListener('mouseup', this.preventHandler, true);
+    document.addEventListener('touchstart', this.preventHandler, true);
+    document.addEventListener('touchend', this.preventHandler, true);
+    this.interactionDisabled = true;
+  }
 
-        // Prevent various interactions
-        document.addEventListener('click', preventEvent, true);
-        document.addEventListener('keydown', preventEvent, true);
-        document.addEventListener('keyup', preventEvent, true);
-        document.addEventListener('keypress', preventEvent, true);
-        document.addEventListener('mousedown', preventEvent, true);
-        document.addEventListener('mouseup', preventEvent, true);
-        document.addEventListener('touchstart', preventEvent, true);
-        document.addEventListener('touchend', preventEvent, true);
-    }
+  /**
+   * Re-enable user interaction with the webpage
+   */
+  enablePageInteraction() {
+    if (!this.interactionDisabled) return;
+    if (!this.preventHandler) return;
+    // Remove the same listeners using the cached handler reference
+    document.removeEventListener('click', this.preventHandler, true);
+    document.removeEventListener('keydown', this.preventHandler, true);
+    document.removeEventListener('keyup', this.preventHandler, true);
+    document.removeEventListener('keypress', this.preventHandler, true);
+    document.removeEventListener('mousedown', this.preventHandler, true);
+    document.removeEventListener('mouseup', this.preventHandler, true);
+    document.removeEventListener('touchstart', this.preventHandler, true);
+    document.removeEventListener('touchend', this.preventHandler, true);
+    this.interactionDisabled = false;
+  }
 
-
-    /**
-     * Clean and normalize URL for comparison by removing protocol, www, and path
-     * @param {string} url - The URL to clean
-     * @returns {string} The cleaned URL (domain only)
-     */
-    cleanUrl(url) {
-        return url.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '');
-    }
+  /**
+   * Clean and normalize URL for comparison by removing protocol, www, and path
+   * @param {string} url - The URL to clean
+   * @returns {string} The cleaned URL (domain only)
+   */
+  cleanUrl(url) {
+    return url
+      .replace(/^https?:\/\//, '')
+      .replace(/^www\./, '')
+      .replace(/\/.*$/, '');
+  }
 }
 
 // Initialize ContentBlocker when DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        new ContentBlocker();
-    });
+  document.addEventListener('DOMContentLoaded', () => {
+    const blocker = new ContentBlocker();
+    try {
+      chrome.storage.onChanged.addListener((changes, area) => {
+        if (area !== 'local') return;
+        if (changes.activeCategory || changes.categorySites) {
+          blocker.checkCategoryBlockedSite();
+        }
+      });
+    } catch {}
+  });
 } else {
-    new ContentBlocker();
+  const blocker = new ContentBlocker();
+  try {
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area !== 'local') return;
+      if (changes.activeCategory || changes.categorySites) {
+        blocker.checkCategoryBlockedSite();
+      }
+    });
+  } catch {}
 }

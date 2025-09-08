@@ -12,6 +12,8 @@ let currentUid = null;
 let isRunning = false;
 let debounceTimer = null;
 let storageListenerRegistered = false;
+let lastPullAt = null;
+let lastPushAt = null;
 
 function nowTs() {
   return Date.now();
@@ -127,6 +129,11 @@ async function pullAll(uid) {
     );
   if (mergedAnalytics)
     await pushDoc('analytics', SYNC_PATHS.analytics, stamped(mergedAnalytics));
+
+  try {
+    lastPullAt = nowTs();
+    await writeLocal({ syncStatus: { lastPullAt, lastPushAt } });
+  } catch {}
 }
 
 async function pushAll(uid) {
@@ -153,6 +160,10 @@ async function pushAll(uid) {
     );
   if (local.analytics)
     await pushDoc('analytics', SYNC_PATHS.analytics, stamped(local.analytics));
+  try {
+    lastPushAt = nowTs();
+    await writeLocal({ syncStatus: { lastPullAt, lastPushAt } });
+  } catch {}
 }
 
 function onLocalChanged(changes, area) {
@@ -239,3 +250,6 @@ window.SyncService.startSync = startSync;
 window.SyncService.stopSync = stopSync;
 window.SyncService.pullAll = pullAll;
 window.SyncService.pushAll = pushAll;
+window.SyncService.getStatus = function () {
+  return { isRunning, lastPullAt, lastPushAt, uid: currentUid };
+};

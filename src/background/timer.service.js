@@ -62,6 +62,19 @@ export async function handleTimerStart(request) {
     } catch (e) {
       console.warn('Analytics logSessionStart failed:', e);
     }
+
+    // Unified mode: apply appropriate category at start
+    try {
+      const session = request.session || 'pomodoro';
+      if (session === 'pomodoro') {
+        await unifiedOrchestrator.handleFocusStart({ sessionId: String(now) });
+      } else if (session === 'short-break' || session === 'long-break') {
+        // Starting a break manually should apply break category
+        await unifiedOrchestrator.handleFocusStop();
+      }
+    } catch (e) {
+      console.warn('Unified orchestrator start hook failed:', e);
+    }
   } catch (error) {
     console.error('Error handling timer start:', error);
   }
@@ -225,6 +238,22 @@ export async function handleSessionSwitch(request) {
         startTimestamp: null,
         endTimestamp: null,
       });
+    }
+
+    // Unified mode: synchronize categories on manual session switch
+    try {
+      if (session === 'pomodoro') {
+        // Close out any break context and start focus
+        await unifiedOrchestrator.handleBreakComplete();
+        await unifiedOrchestrator.handleFocusStart({
+          sessionId: String(Date.now()),
+        });
+      } else if (session === 'short-break' || session === 'long-break') {
+        // Switch to break category
+        await unifiedOrchestrator.handleFocusStop();
+      }
+    } catch (e) {
+      console.warn('Unified orchestrator switch hook failed:', e);
     }
   } catch (error) {
     console.error('Error handling session switch:', error);

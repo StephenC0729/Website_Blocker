@@ -34,6 +34,10 @@ const pageConfig = {
   settings: {
     title: '<i class="fas fa-cog text-blue-500 mr-2"></i>Settings',
   },
+  account: {
+    title:
+      '<i class="fas fa-user-cog text-blue-500 mr-2"></i>Manage Account',
+  },
 };
 
 // Current active page state
@@ -129,6 +133,14 @@ async function loadContent(page) {
         document.getElementById('content-container').innerHTML = '';
         document.getElementById('pageTitle').innerHTML = config.title;
         window.DashboardReactApp.mountSettingsApp('content-container');
+      } else if (
+        page === 'account' &&
+        window.DashboardReactApp &&
+        typeof window.DashboardReactApp.mountAccountApp === 'function'
+      ) {
+        document.getElementById('content-container').innerHTML = '';
+        document.getElementById('pageTitle').innerHTML = config.title;
+        window.DashboardReactApp.mountAccountApp('content-container');
       } else {
         // Legacy HTML pages have been removed. If React mount is not available,
         // show an informational message instead of attempting to fetch.
