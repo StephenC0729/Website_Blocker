@@ -69,38 +69,20 @@
         >
           Sign in with Google
         </button>
-      </div>
 
-      <div id="loggedInSection" class="hidden text-center">
-        <div
-          class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-6 mb-4 theme-transition"
-        >
-          <img
-            id="userAvatar"
-            class="w-16 h-16 rounded-full mx-auto mb-3 border-2 border-blue-600"
-            src=""
-            alt="User Avatar"
-          />
-          <div
-            class="text-lg font-semibold text-gray-900 dark:text-white mb-1"
-            id="userName"
+        <div class="mt-4 text-center text-sm text-gray-600 dark:text-gray-300">
+          Don't have an account?
+          <a href="../pages/signup.html" class="text-blue-600 hover:underline"
+            >Sign up</a
           >
-            Welcome back!
-          </div>
-          <div
-            class="text-sm text-gray-600 dark:text-gray-400"
-            id="userEmail"
-          ></div>
         </div>
-        <button
-          id="logoutBtn"
-          class="w-full bg-red-600 hover:bg-red-700 text-white rounded-md py-2 px-4 font-semibold theme-transition"
-        >
-          Sign Out
-        </button>
       </div>
     </div>
 
-    <script src="login.js"></script>
+    <script src="../assets/vendor/firebase/firebase-app-compat.js"></script>
+    <script src="../assets/vendor/firebase/firebase-auth-compat.js"></script>
+    <script src="../shared/services/firebase-config.js"></script>
+    <script src="../shared/services/firebase-init.js"></script>
+    <script src="../shared/services/authService.js"></script>
   </body>
 </html>

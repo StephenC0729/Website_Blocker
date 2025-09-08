@@ -66,10 +66,26 @@ src/
 │   └── url-utils.js     # URL cleaning and validation utilities
 ├── content/             # Content script for website blocking
 │   └── content.js       # Blocking overlay injection
+├── react-dashboard/      # React dashboard source (compiled to a single IIFE)
+│   ├── App.jsx
+│   ├── Shell.jsx        # Provides navigation/content containers
+│   ├── main.jsx         # Exposes mount* functions on window.DashboardReactApp
+│   ├── components/
+│   │   └── Navigation.jsx
+│   └── pages/
+│       ├── Dashboard.jsx
+│       ├── Summary.jsx
+│       ├── Blocklist.jsx
+│       ├── Settings.jsx
+│       ├── FAQ.jsx
+│       ├── About.jsx
+│       └── Contact.jsx
 ├── dashboard/           # Full-screen management interface
 │   ├── index.html       # Main dashboard layout
 │   ├── dashboard-main.js # Main dashboard functionality
-│   ├── dashboard-utils.js # Messaging helpers (legacy fallback only)
+│   ├── dashboard-utils.js # Messaging helpers (used by dashboard)
+│   └── react-dist/      # Built React bundle (output of Vite build)
+│       └── dashboard.react.js
 ├── popup/               # Extension popup interface
 │   ├── popup.html       # Popup layout
 │   ├── popup.js         # Timer interface logic
@@ -89,6 +105,8 @@ src/
     ├── css/             # Stylesheets and frameworks
     │   ├── font-awesome.css
     │   └── tailwind.css
+    ├── vendor/          # Third-party libraries bundled locally
+    │   └── chart.umd.min.js
     └── fonts/           # Font files
         └── fa-solid-900.woff2
 ```
@@ -143,9 +161,19 @@ This project demonstrates significant complexity suitable for advanced web devel
 - **JavaScript (ES6+)**: Core functionality and Chrome extension APIs
 - **HTML5 & CSS3**: User interface and styling
 - **Chrome Extension APIs**: Storage, messaging, tabs, notifications
+- **React**: Dashboard UI components and routing
+- **Vite**: Bundling the dashboard into a single IIFE
 - **Tailwind CSS**: Styling framework for dashboard
 - **Chart.js**: Planned for analytics visualization
 - **Font Awesome**: Icon library
+
+## Development
+
+- Build the React dashboard bundle:
+  - `npm run build`
+- Live development (auto-rebuild React bundle):
+  - `npm run dev`
+- After building, reload the extension at `chrome://extensions`.
 
 ## Future Enhancements
 

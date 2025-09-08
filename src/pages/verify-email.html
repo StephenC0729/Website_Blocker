@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verify your email - App Blocker</title>
+    <link rel="stylesheet" href="../assets/css/tailwind.css" />
+  </head>
+  <body
+    class="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center theme-transition"
+  >
+    <div
+      class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-6 w-full max-w-md theme-transition"
+    >
+      <div class="text-center mb-6">
+        <h1 class="text-xl font-bold text-gray-900 dark:text-white mb-1">
+          🚫 App Blocker
+        </h1>
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          Verify your email to continue
+        </p>
+      </div>
+
+      <div id="alertContainer"></div>
+
+      <div
+        class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-4 mb-4"
+      >
+        <div class="text-sm text-gray-700 dark:text-gray-300 mb-1">
+          Verification email sent to:
+        </div>
+        <div
+          id="verifyEmail"
+          class="text-sm font-semibold text-gray-900 dark:text-white"
+        ></div>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <button
+          id="resendBtn"
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 px-4 font-semibold theme-transition"
+        >
+          Resend verification email
+        </button>
+        <button
+          id="checkBtn"
+          class="w-full bg-green-600 hover:bg-green-700 text-white rounded-md py-2 px-4 font-semibold theme-transition"
+        >
+          I've verified — Check now
+        </button>
+        <button
+          id="logoutBtn"
+          class="w-full bg-red-600 hover:bg-red-700 text-white rounded-md py-2 px-4 font-semibold theme-transition"
+        >
+          Sign Out
+        </button>
+      </div>
+    </div>
+
+    <script src="../assets/vendor/firebase/firebase-app-compat.js"></script>
+    <script src="../assets/vendor/firebase/firebase-auth-compat.js"></script>
+    <script src="../shared/services/firebase-config.js"></script>
+    <script src="../shared/services/firebase-init.js"></script>
+    <script src="../pages/verify-email.js"></script>
+  </body>
+</html>

@@ -34,6 +34,10 @@ function NavLink({ active, icon, label, onClick }) {
 export default function Navigation() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [guestOpen, setGuestOpen] = useState(false);
+  const [userDisplay, setUserDisplay] = useState({
+    name: 'Guest',
+    email: 'Not signed in',
+  });
   const guestContainerRef = useRef(null);
   const activePage = useMemo(() => {
     const fromHash = (location.hash || '').replace(/^#/, '');
@@ -70,6 +74,51 @@ export default function Navigation() {
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, [guestOpen]);
+
+  // Load username/email from localStorage and keep in sync
+  useEffect(() => {
+    const readAuth = () => {
+      try {
+        const raw = localStorage.getItem('authUser');
+        if (!raw) {
+          setUserDisplay({ name: 'Guest', email: 'Not signed in' });
+          return;
+        }
+        const u = JSON.parse(raw);
+        setUserDisplay({ name: u.name || 'User', email: u.email || '' });
+      } catch {
+        setUserDisplay({ name: 'Guest', email: 'Not signed in' });
+      }
+    };
+    readAuth();
+    const onStorage = (e) => {
+      if (e.key === 'authUser') readAuth();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  const isLoggedIn = !!(
+    userDisplay.email && userDisplay.email !== 'Not signed in'
+  );
+
+  const handleLogout = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      if (
+        window.firebaseAuth &&
+        typeof window.firebaseAuth.signOut === 'function'
+      ) {
+        await window.firebaseAuth.signOut();
+      }
+    } catch {}
+    try {
+      localStorage.removeItem('authUser');
+    } catch {}
+    setUserDisplay({ name: 'Guest', email: 'Not signed in' });
+    setGuestOpen(false);
+  };
 
   return (
     <div className="w-64 bg-white dark:bg-gray-800 shadow-lg flex flex-col h-full theme-transition">
@@ -150,14 +199,14 @@ export default function Navigation() {
           >
             <div className="flex items-center">
               <div className="w-8 h-8 bg-gray-600 text-white rounded-full flex items-center justify-center mr-3">
-                G
+                {userDisplay.name ? userDisplay.name[0] || 'U' : 'G'}
               </div>
               <div className="text-left">
                 <div className="text-sm text-gray-900 dark:text-white">
-                  Guest
+                  {userDisplay.name || 'Guest'}
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                  Not signed in
+                  {userDisplay.email || 'Not signed in'}
                 </div>
               </div>
             </div>
@@ -172,42 +221,99 @@ export default function Navigation() {
           >
             <div className="account-dropdown-inner">
               <div className="account-header">
-                <div className="email text-sm">Guest mode</div>
-                <div className="plan text-xs">Limited features</div>
+                <div className="email text-sm">
+                  {isLoggedIn
+                    ? `Welcome ${userDisplay.name || ''}`
+                    : 'Guest mode'}
+                </div>
+                <div className="plan text-xs">
+                  {isLoggedIn ? userDisplay.email || '' : 'Limited features'}
+                </div>
               </div>
               <div className="dropdown-separator"></div>
-              <button
-                id="dropdownLoginBtn"
-                className="dropdown-item"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  try {
-                    const url =
-                      (window.chrome &&
-                        window.chrome.runtime &&
-                        window.chrome.runtime.getURL &&
-                        window.chrome.runtime.getURL('src/pages/login.html')) ||
-                      '../pages/login.html';
-                    if (
-                      window.chrome &&
-                      window.chrome.tabs &&
-                      window.chrome.tabs.create
-                    ) {
-                      window.chrome.tabs.create({ url });
-                    } else {
-                      window.location.href = url;
-                    }
-                  } catch {
-                    window.location.href = '../pages/login.html';
-                  }
-                }}
-              >
-                <span>
-                  <i className="fas fa-sign-in-alt mr-2"></i>Log in
-                </span>
-                <i className="fas fa-chevron-right opacity-70"></i>
-              </button>
+              {isLoggedIn ? (
+                <button
+                  id="dropdownLogoutBtn"
+                  className="dropdown-item"
+                  onClick={handleLogout}
+                >
+                  <span>
+                    <i className="fas fa-sign-out-alt mr-2"></i>Log out
+                  </span>
+                  <i className="fas fa-chevron-right opacity-70"></i>
+                </button>
+              ) : (
+                <>
+                  <button
+                    id="dropdownLoginBtn"
+                    className="dropdown-item"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      try {
+                        const url =
+                          (window.chrome &&
+                            window.chrome.runtime &&
+                            window.chrome.runtime.getURL &&
+                            window.chrome.runtime.getURL(
+                              'src/pages/login.html'
+                            )) ||
+                          '../pages/login.html';
+                        if (
+                          window.chrome &&
+                          window.chrome.tabs &&
+                          window.chrome.tabs.create
+                        ) {
+                          window.chrome.tabs.create({ url });
+                        } else {
+                          window.location.href = url;
+                        }
+                      } catch {
+                        window.location.href = '../pages/login.html';
+                      }
+                    }}
+                  >
+                    <span>
+                      <i className="fas fa-sign-in-alt mr-2"></i>Log in
+                    </span>
+                    <i className="fas fa-chevron-right opacity-70"></i>
+                  </button>
+                  <button
+                    id="dropdownSignupBtn"
+                    className="dropdown-item"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      try {
+                        const url =
+                          (window.chrome &&
+                            window.chrome.runtime &&
+                            window.chrome.runtime.getURL &&
+                            window.chrome.runtime.getURL(
+                              'src/pages/signup.html'
+                            )) ||
+                          '../pages/signup.html';
+                        if (
+                          window.chrome &&
+                          window.chrome.tabs &&
+                          window.chrome.tabs.create
+                        ) {
+                          window.chrome.tabs.create({ url });
+                        } else {
+                          window.location.href = url;
+                        }
+                      } catch {
+                        window.location.href = '../pages/signup.html';
+                      }
+                    }}
+                  >
+                    <span>
+                      <i className="fas fa-user-plus mr-2"></i>Sign up
+                    </span>
+                    <i className="fas fa-chevron-right opacity-70"></i>
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -8,7 +8,12 @@
     "48": "src/assets/icons/Icon.png",
     "128": "src/assets/icons/Icon.png"
   },
-  "permissions": ["storage", "activeTab", "tabs", "notifications"],
+  "permissions": ["storage", "activeTab", "tabs", "notifications", "identity"],
+  "host_permissions": [
+    "https://identitytoolkit.googleapis.com/*",
+    "https://securetoken.googleapis.com/*",
+    "https://firestore.googleapis.com/*"
+  ],
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_title": "Bolton Blocker"
@@ -31,6 +36,14 @@
     }
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; object-src 'self'"
+    "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com; object-src 'self'"
+  },
+  "oauth2": {
+    "client_id": "905802673262-bs3aplit3gnige7jpkr2lgodosoic7pa.apps.googleusercontent.com",
+    "scopes": [
+      "email",
+      "profile",
+      "https://www.googleapis.com/auth/userinfo.email"
+    ]
   }
 }
