@@ -177,19 +177,7 @@ export default function Navigation() {
             </li>
           ))}
 
-          {isLoggedIn && (
-            <li>
-              <NavLink
-                active={activePage === 'account'}
-                icon="fas fa-user-cog"
-                label="Account"
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate('account');
-                }}
-              />
-            </li>
-          )}
+          {/* Account nav link removed; access via bottom account dropdown */}
 
           <li className="relative">
             <a

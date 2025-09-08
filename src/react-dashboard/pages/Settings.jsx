@@ -154,7 +154,7 @@ export default function Settings() {
           </div>
           <div className="space-x-2">
             <button
-              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-md transition-colors"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors"
               onClick={async () => {
                 try {
                   if (
@@ -318,7 +318,7 @@ export default function Settings() {
               %
             </span>
             <button
-              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-md transition-colors"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors"
               onClick={testSound}
             >
               <i className="fas fa-play mr-1"></i>
