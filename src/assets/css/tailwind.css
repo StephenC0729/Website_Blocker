@@ -373,6 +373,16 @@ body {
   .md\\:grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  /* Responsive helpers for login split layout */
+  .md\\:flex {
+    display: flex;
+  }
+  .md\\:block {
+    display: block;
+  }
+  .md\\:p-12 {
+    padding: 3rem;
+  }
 }
 @media (min-width: 1024px) {
   .lg\\:grid-cols-2 {
@@ -442,6 +452,9 @@ body {
 .h-16 {
   height: 4rem;
 }
+.h-auto {
+  height: auto;
+}
 .h-6 {
   height: 1.5rem; /* 24px */
 }
@@ -468,6 +481,9 @@ body {
 }
 .max-w-4xl {
   max-width: 56rem;
+}
+.max-w-lg {
+  max-width: 32rem;
 }
 .max-h-48 {
   max-height: 12rem;
@@ -873,6 +889,12 @@ body {
     0 4px 6px -2px rgb(0 0 0 / 0.05);
 }
 
+/* Drop shadow helper used on login illustration */
+.drop-shadow-xl {
+  filter: drop-shadow(0 20px 25px rgba(0, 0, 0, 0.15))
+    drop-shadow(0 8px 10px rgba(0, 0, 0, 0.1));
+}
+
 /* Opacity */
 .bg-opacity-50 {
   background-color: rgb(75 85 99 / 0.5);
@@ -1080,37 +1102,83 @@ label.inline-flex input.sr-only:checked + div::after {
    Global Dark Mode Overrides
    Ensure light panels switch to dark surfaces
    ============================================ */
-.dark .bg-white { background-color: #1f2937 !important; } /* gray-800 */
-.dark .bg-gray-50 { background-color: #111827 !important; } /* gray-900 */
-.dark .bg-gray-100 { background-color: #374151 !important; } /* gray-700 */
+.dark .bg-white {
+  background-color: #1f2937 !important;
+} /* gray-800 */
+.dark .bg-gray-50 {
+  background-color: #111827 !important;
+} /* gray-900 */
+.dark .bg-gray-100 {
+  background-color: #374151 !important;
+} /* gray-700 */
 
-.dark .text-gray-900 { color: #e5e7eb !important; } /* near-white */
-.dark .text-gray-700 { color: #d1d5db !important; }
-.dark .text-gray-600, .dark .text-gray-500 { color: #9ca3af !important; }
+.dark .text-gray-900 {
+  color: #e5e7eb !important;
+} /* near-white */
+.dark .text-gray-700 {
+  color: #d1d5db !important;
+}
+.dark .text-gray-600,
+.dark .text-gray-500 {
+  color: #9ca3af !important;
+}
 
-.dark .border-gray-200 { border-color: #374151 !important; } /* gray-700 */
-.dark .border-gray-300 { border-color: #4b5563 !important; } /* gray-600 */
+.dark .border-gray-200 {
+  border-color: #374151 !important;
+} /* gray-700 */
+.dark .border-gray-300 {
+  border-color: #4b5563 !important;
+} /* gray-600 */
 
 /* Divide utilities parity for tables/lists */
-.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #374151 !important; }
-.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) { border-color: #4b5563 !important; }
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #374151 !important;
+}
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #4b5563 !important;
+}
 
 /* Hover helpers in dark */
-.dark .hover\\:bg-gray-50:hover { background-color: #374151 !important; }
-.dark .hover\\:bg-gray-100:hover { background-color: #4b5563 !important; }
+.dark .hover\\:bg-gray-50:hover {
+  background-color: #374151 !important;
+}
+.dark .hover\\:bg-gray-100:hover {
+  background-color: #4b5563 !important;
+}
 
 /* FAQ specific adjustments (panels were forced white) */
-.dark .faq-container { background-color: #1f2937 !important; border-color: #374151 !important; }
-.dark .faq-question { color: #e5e7eb; }
-.dark .faq-answer { color: #d1d5db; }
+.dark .faq-container {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+}
+.dark .faq-question {
+  color: #e5e7eb;
+}
+.dark .faq-answer {
+  color: #d1d5db;
+}
 
 /* FAQ: ensure header rows aren't light in dark mode */
-.dark .faq-container .faq-question { background-color: #111827 !important; }
-.dark .faq-container .faq-question .text-gray-900 { color: #d1d5db !important; }
+.dark .faq-container .faq-question {
+  background-color: #111827 !important;
+}
+.dark .faq-container .faq-question .text-gray-900 {
+  color: #d1d5db !important;
+}
 
 /* Info callout (bg-blue-50, border-blue-200, blue text) in dark */
-.dark .bg-blue-50 { background-color: rgba(30, 58, 138, 0.25) !important; } /* indigo-900 @ ~25% */
-.dark .border-blue-200 { border-color: #3b82f6 !important; } /* blue-500 */
-.dark .text-blue-900 { color: #93c5fd !important; } /* blue-300 */
-.dark .text-blue-700 { color: #60a5fa !important; } /* blue-400 */
-.dark .hover\\:bg-blue-50:hover { background-color: rgba(30, 58, 138, 0.35) !important; }
+.dark .bg-blue-50 {
+  background-color: rgba(30, 58, 138, 0.25) !important;
+} /* indigo-900 @ ~25% */
+.dark .border-blue-200 {
+  border-color: #3b82f6 !important;
+} /* blue-500 */
+.dark .text-blue-900 {
+  color: #93c5fd !important;
+} /* blue-300 */
+.dark .text-blue-700 {
+  color: #60a5fa !important;
+} /* blue-400 */
+.dark .hover\\:bg-blue-50:hover {
+  background-color: rgba(30, 58, 138, 0.35) !important;
+}
