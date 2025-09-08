@@ -94,8 +94,24 @@ export default function Navigation() {
     const onStorage = (e) => {
       if (e.key === 'authUser') readAuth();
     };
+    const onAuthUserUpdated = (e) => {
+      try {
+        const u = e && e.detail ? e.detail : null;
+        if (u) {
+          setUserDisplay({ name: u.name || 'User', email: u.email || '' });
+        } else {
+          readAuth();
+        }
+      } catch {
+        readAuth();
+      }
+    };
     window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    window.addEventListener('authUserUpdated', onAuthUserUpdated);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('authUserUpdated', onAuthUserUpdated);
+    };
   }, []);
 
   const isLoggedIn = !!(
