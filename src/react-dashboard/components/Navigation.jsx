@@ -118,6 +118,18 @@ export default function Navigation() {
     } catch {}
     setUserDisplay({ name: 'Guest', email: 'Not signed in' });
     setGuestOpen(false);
+    // Redirect to login page after logout
+    try {
+      const url =
+        (window.chrome &&
+          window.chrome.runtime &&
+          window.chrome.runtime.getURL &&
+          window.chrome.runtime.getURL('src/pages/login.html')) ||
+        '../pages/login.html';
+      window.location.href = url;
+    } catch {
+      window.location.href = '../pages/login.html';
+    }
   };
 
   return (
