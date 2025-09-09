@@ -1,238 +1,416 @@
-# Website Blocker Chrome Extension
+# Bolt Blocker - Productivity Chrome Extension
 
-A productivity-focused Chrome extension that blocks distracting websites and includes a Pomodoro timer to help users stay focused.
+A comprehensive productivity Chrome extension that combines intelligent website blocking with Pomodoro timer functionality, featuring a modern React dashboard, real-time analytics, and cloud synchronization capabilities.
 
 ## Core Purpose
 
-This Chrome extension combines website blocking with Pomodoro timer functionality to create a comprehensive productivity tool. Users can create custom blocking categories, run focused work sessions, and maintain productivity through structured time management.
+Bolt Blocker is a sophisticated productivity tool that integrates time management with intelligent website blocking. The extension helps users maintain focus through structured Pomodoro sessions while automatically blocking distracting websites during work periods. With advanced features like category-based blocking, productivity analytics, cloud sync via Firebase, and a comprehensive React-based dashboard, Bolt Blocker serves as a complete productivity ecosystem for students, professionals, and anyone seeking to minimize digital distractions.
 
 ## Key Features
 
-### 1. Website Blocking System
+### 🎯 Advanced Pomodoro Timer System
+- **Multiple session types**: Focus (25min), Short Break (5min), Long Break (15min), Custom sessions
+- **Real-time synchronization**: Timer persists across popup, dashboard, and background
+- **Smart session management**: Automatic progression through Pomodoro cycles
+- **Audio & visual notifications**: TTS notifications and Chrome system alerts
+- **Cross-interface consistency**: Timer state synced between all extension interfaces
 
-- **Category-based blocking**: Users can create custom categories (default: "General")
-- **Active category system**: Only one category blocks sites at a time
-- **Content script blocking**: Shows full-screen overlay on blocked sites with motivational message
-- **URL matching**: Supports exact domains and subdomains
+### 🚫 Intelligent Website Blocking
+- **Category-based organization**: Create unlimited custom blocking categories with icons
+- **Smart domain matching**: Handles subdomains and URL normalization automatically  
+- **Motivational blocking overlay**: Full-screen focus interface with productivity messaging
+- **One-click site addition**: Quick-add current website to blocklist from popup
+- **Active category system**: Switch between different blocking profiles instantly
 
-### 2. Pomodoro Timer
+### 🔄 Unified Mode Integration
+- **Automatic category switching**: Applies focus categories during Pomodoro sessions
+- **Break category support**: Optional different blocking during break periods
+- **Seamless workflow**: Timer and blocking work together without manual intervention
+- **Configurable behavior**: Choose which categories activate during different session types
 
-- **Three session types**: Pomodoro (25min), Short Break (5min), Long Break (15min)
-- **Session tracking**: Counts completed sessions and pomodoros
-- **Visual interface**: Progress bar, timer display, session tabs
-- **Background persistence**: Timer continues running when popup is closed
+### 📊 Comprehensive React Dashboard
+- **Modern interface**: Full React 19 application with responsive design
+- **8 complete sections**: Dashboard, Analytics, Blocklist, Settings, Account, About, Contact, FAQ
+- **Real-time analytics**: Chart.js integration showing productivity trends and session history
+- **Session management**: Edit, delete, and analyze past Pomodoro sessions
+- **Advanced settings**: Dark mode, notification preferences, unified mode configuration
 
-### 3. Unified Mode (Recent Addition)
+### ☁️ Cloud Synchronization & Authentication
+- **Firebase integration**: Real-time sync across devices
+- **Google OAuth**: Secure authentication with profile management  
+- **Data persistence**: Settings and analytics backed up to cloud
+- **Account management**: Profile editing, password changes, account deletion
+- **Privacy controls**: Local data export and selective sync options
 
-- **Timer-blocking integration**: Automatically activates blocking categories during focus sessions
-- **Configurable categories**: Different categories for focus vs break periods
-- **Backward compatibility**: Optional feature that doesn't disrupt existing workflows
-
-### 4. Dashboard Interface
-
-- **Full-screen management**: Comprehensive productivity dashboard
-- **Navigation system**: Sidebar with different sections
-- **Analytics planning**: Chart.js integration planned for productivity metrics
-- **Settings management**: Theme switching, configuration options
+### 📈 Advanced Analytics System
+- **Session tracking**: Detailed logs of all Pomodoro sessions with duration and type
+- **Productivity metrics**: Daily/weekly focus time, completion rates, blocked site statistics
+- **Visual reports**: Interactive charts showing productivity trends over time
+- **Bulk operations**: Multi-select and manage session history
+- **Data export**: Export analytics data for external analysis
 
 ## Technical Architecture
 
-### Chrome Extension Structure
+### Modern Chrome Extension (Manifest V3)
+- **Service Worker Background**: Persistent background script handling timer logic and API communication
+- **Content Script Integration**: Intelligent blocking overlay injection with interaction prevention
+- **Cross-context messaging**: Real-time communication between popup, dashboard, content scripts, and background
+- **Chrome Storage API**: Local and sync storage for settings, analytics, and timer state
+- **OAuth2 Integration**: Google authentication with Firebase backend
 
-- **Manifest V3**: Modern extension format with service worker background
-- **Content scripts**: Inject blocking overlay on all websites
-- **Popup interface**: Quick access to timer and settings
-- **Dashboard**: Full-featured management interface
+### Core Backend Services
+- **Timer Service**: Complete Pomodoro timer with precise timing, session management, and completion handling
+- **Categories Service**: Website blocking categories with CRUD operations and migration support
+- **Analytics Service**: Session tracking, metrics calculation, and historical data management
+- **Settings Service**: Configuration management for unified mode, notifications, and user preferences
+- **Unified Orchestrator**: Coordinates timer sessions with automatic category switching
+- **Storage Service**: Abstracted Chrome Storage API with error handling and defaults
 
-### Key Components
+### Frontend Architecture
+- **React 19 Dashboard**: Modern single-page application with component-based architecture
+- **Vite Build System**: Optimized bundling into single IIFE for Chrome extension compatibility
+- **Real-time State Management**: Live updates across all interfaces using Chrome messaging API
+- **Responsive Design**: Mobile-friendly interface with dark mode support
+- **Component Library**: Reusable UI components with consistent styling
 
-- **Background services**: Timer, Categories, Storage, Messaging
-- **Unified orchestrator**: Coordinates timer and blocking integration
-- **Storage**: Chrome Storage API for local/sync data persistence
-- **Communication**: Chrome runtime messaging between components
+### External Integrations
+- **Firebase**: User authentication, cloud storage, and real-time synchronization
+- **EmailJS**: Contact form functionality with rate limiting
+- **Chart.js**: Advanced analytics visualization with interactive charts
+- **Google APIs**: OAuth2 authentication and profile management
 
 ## File Structure
 
 ```
 src/
-├── background/           # Service worker and background logic
-│   ├── index.js         # Main background script entry point
-│   ├── timer.service.js # Pomodoro timer management
-│   ├── categories.service.js # Website category management
-│   ├── unified-orchestrator.js # Timer-blocking coordination
-│   ├── settings.service.js # Settings management
-│   ├── messaging.js     # Cross-context messaging handler
-│   ├── storage.js       # Chrome Storage API wrapper
-│   └── url-utils.js     # URL cleaning and validation utilities
-├── content/             # Content script for website blocking
-│   └── content.js       # Blocking overlay injection
-├── react-dashboard/      # React dashboard source (compiled to a single IIFE)
-│   ├── App.jsx
-│   ├── Shell.jsx        # Provides navigation/content containers
-│   ├── main.jsx         # Exposes mount* functions on window.DashboardReactApp
+├── background/           # Service Worker & Core Business Logic
+│   ├── index.js         # Main background script entry point with lifecycle management
+│   ├── messaging.js     # Central message routing hub (300+ lines)
+│   ├── timer.service.js # Complete Pomodoro timer with notifications & analytics
+│   ├── categories.service.js # Website blocking categories with CRUD operations
+│   ├── unified-orchestrator.js # Timer-blocking integration coordinator
+│   ├── settings.service.js # User preferences and configuration management
+│   ├── analytics.service.js # Session tracking and metrics calculation
+│   ├── storage.js       # Chrome Storage API abstraction with error handling
+│   └── url-utils.js     # Domain normalization and validation utilities
+├── content/             # Website Blocking Content Scripts
+│   └── content.js       # Full-screen blocking overlay with interaction prevention
+├── popup/               # Quick Access Timer Interface
+│   ├── popup.html       # Popup layout with session tabs and controls
+│   ├── popup.js         # Complete timer interface (860+ lines)
+│   └── popup.css        # Responsive popup styling with session themes
+├── react-dashboard/     # Modern React Dashboard (React 19)
+│   ├── main.jsx         # Entry point exposing mount functions globally
+│   ├── App.jsx          # Main app wrapper component  
+│   ├── Shell.jsx        # Layout shell with navigation container
 │   ├── components/
-│   │   └── Navigation.jsx
+│   │   └── Navigation.jsx # Sidebar navigation with auth & dropdowns
 │   └── pages/
-│       ├── Dashboard.jsx
-│       ├── Summary.jsx
-│       ├── Blocklist.jsx
-│       ├── Settings.jsx
-│       ├── FAQ.jsx
-│       ├── About.jsx
-│       └── Contact.jsx
-├── dashboard/           # Full-screen management interface
-│   ├── index.html       # Main dashboard layout
-│   ├── dashboard-main.js # Main dashboard functionality
-│   ├── dashboard-utils.js # Messaging helpers (used by dashboard)
-│   └── react-dist/      # Built React bundle (output of Vite build)
+│       ├── Dashboard.jsx    # Main productivity dashboard with timer
+│       ├── Summary.jsx      # Analytics with Chart.js integration
+│       ├── Blocklist.jsx    # Category & website management
+│       ├── Settings.jsx     # Extension configuration & preferences
+│       ├── Account.jsx      # User profile & authentication
+│       ├── About.jsx        # Extension information & features
+│       ├── Contact.jsx      # Contact form with EmailJS
+│       └── FAQ.jsx          # Interactive help system
+├── dashboard/           # Dashboard Shell & Integration
+│   ├── index.html       # Main dashboard HTML shell
+│   ├── dashboard-main.js # React component orchestration (470+ lines)
+│   ├── dashboard-utils.js # Chrome messaging utilities & helpers
+│   └── react-dist/      # Built React bundle (Vite output)
 │       └── dashboard.react.js
-├── popup/               # Extension popup interface
-│   ├── popup.html       # Popup layout
-│   ├── popup.js         # Timer interface logic
-│   └── popup.css        # Popup styling
-├── pages/               # Additional pages
-│   └── login.html       # Login page (for future auth features)
-├── shared/              # Shared utilities across contexts
+├── shared/              # Cross-context Shared Services
 │   └── services/
-│       └── authService.js # Authentication service
-└── assets/              # Icons, sounds, and styling
-    ├── icons/           # Extension icons and UI icons
-    │   ├── Icon.png
-    │   ├── Icon.svg
-    │   └── Add_Site.svg
-    ├── sounds/          # Audio notifications
-    │   └── notification.mp3
-    ├── css/             # Stylesheets and frameworks
-    │   ├── font-awesome.css
-    │   └── tailwind.css
-    ├── vendor/          # Third-party libraries bundled locally
-    │   └── chart.umd.min.js
-    └── fonts/           # Font files
-        └── fa-solid-900.woff2
+│       └── emailService.js # EmailJS integration with rate limiting
+└── assets/              # Static Resources
+    ├── icons/           # Extension & UI icons
+    │   ├── Icon.png     # Main extension icon (128x128)
+    │   ├── Icon.svg     # Vector version
+    │   └── Add_Site.svg # UI action icons
+    ├── sounds/          # Audio Notifications
+    │   └── notification.mp3 # Timer completion sound
+    ├── fonts/           # Web Fonts
+    │   └── fa-solid-900.woff2 # FontAwesome icons
+    └── vendor/          # Third-party Libraries
+        └── chart.umd.min.js # Chart.js for analytics
 ```
 
-## Installation
+## Installation & Setup
 
-### For Developers (Local Development)
+### Prerequisites
+- **Node.js** (v16 or higher)
+- **npm** (v7 or higher)
+- **Chrome Browser** (latest version)
+- **Git** (for cloning repository)
 
-1. Clone or download this repository
-2. Run `npm install` to install dependencies
-3. Run `npm run build` to build the React dashboard
-4. Open Chrome and navigate to `chrome://extensions/`
-5. Enable "Developer mode" in the top right
-6. Click "Load unpacked" and select the project directory
-7. The extension will appear in your toolbar
+### Environment Configuration
 
-### For Testers (GitHub Distribution)
+**Required Environment Variables:**
+Create a `.env` file in the project root with these variables:
 
-#### Option 1: Download ZIP from GitHub
-1. Go to the [GitHub repository releases](https://github.com/StephenC0729/Website_Blocker/releases)
-2. Download the latest release ZIP file
-3. Extract the ZIP file to a folder on your computer
-4. Open Chrome and navigate to `chrome://extensions/`
-5. Enable "Developer mode" in the top right corner
-6. Click "Load unpacked" and select the extracted folder
-7. The extension will appear in your browser toolbar
+```bash
+# Firebase Configuration
+FIREBASE_API_KEY=your_firebase_api_key
+FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+FIREBASE_APP_ID=your_app_id
+FIREBASE_MEASUREMENT_ID=your_measurement_id
 
-#### Option 2: Clone Repository
-1. Clone this repository: `git clone https://github.com/StephenC0729/Website_Blocker.git`
-2. Navigate to the project directory: `cd Website_Blocker`
-3. Run `npm install` (if you want to modify React components)
-4. Run `npm run build` (if you want to rebuild the dashboard)
-5. Open Chrome and navigate to `chrome://extensions/`
-6. Enable "Developer mode" in the top right
-7. Click "Load unpacked" and select the project directory
-8. The extension will appear in your toolbar
+# OAuth2 Configuration
+OAUTH2_CLIENT_ID=your_google_oauth_client_id.apps.googleusercontent.com
+
+# EmailJS Configuration
+EMAILJS_SERVICE_ID=your_emailjs_service_id
+EMAILJS_TEMPLATE_ID=your_emailjs_template_id
+EMAILJS_PUBLIC_KEY=your_emailjs_public_key
+```
+
+### For Developers (Full Setup)
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/StephenC0729/Website_Blocker.git
+   cd Website_Blocker
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables:**
+   - Copy `.env.example` to `.env` (if provided)
+   - Fill in your Firebase, OAuth2, and EmailJS credentials
+
+4. **Build the React dashboard:**
+   ```bash
+   npm run build:react
+   ```
+
+5. **Build extension with environment variables:**
+   ```bash
+   npm run build
+   ```
+
+6. **Load extension in Chrome:**
+   - Open `chrome://extensions/`
+   - Enable "Developer mode" (top right)
+   - Click "Load unpacked" and select the `build/` directory
+   - The extension will appear in your toolbar
+
+### For Testers (Quick Setup)
+
+1. **Download and extract:**
+   ```bash
+   git clone https://github.com/StephenC0729/Website_Blocker.git
+   cd Website_Blocker
+   ```
+
+2. **Install and build:**
+   ```bash
+   npm install
+   npm run build:react
+   npm run build
+   ```
+
+3. **Load in Chrome:**
+   - Navigate to `chrome://extensions/`
+   - Enable "Developer mode"
+   - Click "Load unpacked" and select the `build/` folder
+
+### Development Commands
+
+```bash
+# Build React dashboard for development
+npm run build:react
+
+# Watch mode for React development  
+npm run build:react-watch
+
+# Build complete extension with environment variables
+npm run build
+
+# Secure build with environment variable injection
+npm run build:secure
+```
 
 ### Testing Checklist
 
-After installation, please test these core features:
+After installation, verify these features work correctly:
 
-- ✅ **Basic Blocking**: Add a website to blocklist and verify it shows blocking overlay
-- ✅ **Timer Functionality**: Start/pause/reset Pomodoro timer sessions
-- ✅ **Dashboard Access**: Click dashboard button to open full management interface
-- ✅ **Category Management**: Create custom categories and assign websites
-- ✅ **Unified Mode**: Test timer-blocking integration (Settings page)
-- ✅ **Cross-Session Persistence**: Timer continues running when popup is closed
+- ✅ **Pomodoro Timer**: Start/pause/reset timer sessions with audio notifications
+- ✅ **Website Blocking**: Add sites to blocklist and verify full-screen blocking overlay  
+- ✅ **Dashboard Access**: Open comprehensive React dashboard from popup
+- ✅ **Category Management**: Create/edit/delete custom blocking categories with icons
+- ✅ **Unified Mode**: Automatic category switching during timer sessions
+- ✅ **Analytics Dashboard**: View session history, charts, and productivity metrics
+- ✅ **Settings Configuration**: Dark mode, notifications, unified mode settings
+- ✅ **Cross-interface Sync**: Timer state persists across popup, dashboard, and background
+- ✅ **Account Management**: Google OAuth login and profile management (if configured)
 
 ### Troubleshooting
 
-**Extension not loading?**
-- Ensure you selected the root project folder (containing `manifest.json`)
-- Check Chrome Developer Tools console for error messages
-- Try disabling and re-enabling the extension
+**Extension won't load?**
+- Ensure you selected the `build/` folder, not the root directory
+- Check that `build/manifest.json` exists after running `npm run build`
+- Verify Chrome Developer Tools console for error messages
 
-**Dashboard not working?**
-- Run `npm run build` to ensure React components are compiled
-- Check that `src/dashboard/react-dist/dashboard.react.js` exists
+**React dashboard blank?**  
+- Run `npm run build:react` to compile React components
+- Verify `src/dashboard/react-dist/dashboard.react.js` exists
+- Check browser console for JavaScript errors
 
-**Timer not persisting?**
-- Extension may need storage permissions - check Chrome extension settings
+**Timer not syncing?**
+- Extension requires Chrome storage permissions (automatic)
+- Verify extension has proper permissions in `chrome://extensions/`
 
-## Usage
+**Firebase/Auth errors?**
+- Verify your `.env` file has correct Firebase configuration
+- Ensure OAuth2 client ID matches your Google Cloud Console project
+- Check that authorized origins include your extension ID
 
-1. **Quick Timer Access**: Click the extension icon to access the Pomodoro timer
-2. **Add Blocked Sites**: Use the "+" button in the popup to quickly add websites
-3. **Full Dashboard**: Click the dashboard button for comprehensive management
-4. **Unified Mode**: Toggle timer-blocking integration for automatic category switching
+**Build failures?**
+- Ensure Node.js v16+ is installed: `node --version`
+- Clear node_modules and reinstall: `rm -rf node_modules && npm install`
+- Verify all environment variables are set in `.env`
 
-## Development Complexity Assessment
+## Usage Guide
 
-### Complexity Level: **Moderate to High**
+### Quick Start
+1. **Access Timer**: Click the Bolt Blocker icon in your Chrome toolbar
+2. **Start Focus Session**: Click "Start" to begin a 25-minute Pomodoro session
+3. **Block Websites**: Click the "+" button to add the current site to your blocklist
+4. **Open Dashboard**: Click the dashboard button for comprehensive management
 
-This project demonstrates significant complexity suitable for advanced web development courses:
+### Advanced Features
+1. **Category Management**: Create custom blocking categories in the dashboard
+2. **Unified Mode**: Enable automatic blocking during timer sessions in Settings
+3. **Analytics**: Track productivity metrics and session history in Summary tab
+4. **Cloud Sync**: Sign in with Google to sync settings across devices
 
-#### High Complexity Indicators:
+### Pro Tips
+- Use the unified mode to automatically block social media during focus sessions
+- Create separate categories for work, study, and break periods
+- Monitor your productivity trends in the analytics dashboard
+- Customize session lengths and notification preferences in Settings
 
-- **Chrome Extension Architecture**: Requires understanding Manifest V3, service workers, content scripts, and cross-context messaging
-- **Multi-component System**: 15+ JavaScript files with intricate dependencies
-- **Advanced JavaScript Concepts**: Async/await, Chrome APIs, real-time state synchronization
-- **Background Service Management**: Timer persistence, unified orchestration, category management
-- **Cross-Context Communication**: Popup ↔ Background ↔ Content Script messaging
+## Project Complexity Assessment
 
-#### Educational Suitability:
+### Complexity Level: **Advanced/Production-Ready**
 
-| Course Level             | Complexity Rating | Feasibility                            |
-| ------------------------ | ----------------- | -------------------------------------- |
-| Intro Web Development    | Too Complex       | Would be overwhelming                  |
-| Intermediate JavaScript  | Quite Complex     | Challenging but possible with guidance |
-| Advanced Web Development | Appropriate       | Good learning project                  |
-| Senior Capstone          | Well-Suited       | Perfect scope and complexity           |
-| Graduate Project         | Moderate          | Good but could be more ambitious       |
+This is a sophisticated Chrome extension demonstrating enterprise-level complexity:
 
-### Recommended For:
+#### Advanced Technical Features:
+- **Modern Chrome Extension (Manifest V3)**: Service worker architecture, content scripts, cross-context messaging
+- **React 19 Architecture**: Component-based UI with real-time state management and responsive design  
+- **Firebase Integration**: Cloud authentication, data synchronization, and real-time updates
+- **Advanced State Management**: Cross-interface synchronization between popup, dashboard, and background
+- **Production Build System**: Vite bundling, environment variable injection, optimized deployment
+- **Comprehensive Analytics**: Session tracking, Chart.js integration, historical data management
+- **OAuth2 Authentication**: Google sign-in with profile management and secure API access
 
-- **Senior capstone projects** or **advanced web development courses** where students have strong JavaScript fundamentals
-- Students learning Chrome extension development
-- Projects focusing on browser APIs and cross-context communication
+#### Development Sophistication:
+
+| Aspect                    | Complexity Level  | Details                                    |
+| ------------------------- | ----------------- | ------------------------------------------ |
+| **Architecture**          | Advanced          | Multi-context Chrome extension with React |
+| **State Management**      | High              | Real-time sync across 4+ interfaces       |
+| **External Integrations** | Advanced          | Firebase, OAuth2, EmailJS, Chart.js       |
+| **Build System**          | Professional      | Vite, environment variables, CI/CD ready  |
+| **Code Quality**          | Production        | Error handling, TypeScript-ready, modular |
+| **Feature Completeness**  | Enterprise        | 8 dashboard sections, analytics, cloud sync |
+
+### Educational Value:
+
+| Learning Level            | Suitability       | Learning Outcomes                          |
+| ------------------------- | ----------------- | ------------------------------------------ |
+| **Senior Capstone**       | Excellent         | Complete full-stack development project   |
+| **Graduate Portfolio**    | Perfect           | Demonstrates professional development skills |
+| **Chrome Ext. Course**    | Ideal             | Advanced extension concepts and patterns   |
+| **React Advanced Course** | Great             | Modern React patterns and Chrome API integration |
+| **DevOps/CI-CD Course**   | Good              | Build systems and deployment strategies    |
 
 ## Technologies Used
 
-- **JavaScript (ES6+)**: Core functionality and Chrome extension APIs
-- **HTML5 & CSS3**: User interface and styling
-- **Chrome Extension APIs**: Storage, messaging, tabs, notifications
-- **React**: Dashboard UI components and routing
-- **Vite**: Bundling the dashboard into a single IIFE
-- **Tailwind CSS**: Styling framework for dashboard
-- **Chart.js**: Planned for analytics visualization
-- **Font Awesome**: Icon library
+### Frontend Technologies
+- **React 19**: Modern component-based UI with hooks and concurrent features
+- **Vite**: Fast build tool with HMR and optimized bundling for production
+- **JavaScript ES6+**: Modern syntax with async/await, modules, and destructuring
+- **HTML5**: Semantic markup with Chrome extension integration
+- **CSS3**: Custom styling with Flexbox, Grid, and responsive design
+- **Tailwind CSS**: Utility-first CSS framework for rapid UI development
 
-## Development
+### Backend & Services  
+- **Chrome Extension APIs**: Storage, messaging, tabs, notifications, identity, TTS
+- **Firebase**: Authentication, Firestore database, real-time synchronization
+- **Google OAuth2**: Secure user authentication and profile management
+- **EmailJS**: Contact form functionality with spam protection and rate limiting
 
-- Build the React dashboard bundle:
-  - `npm run build`
-- Live development (auto-rebuild React bundle):
-  - `npm run dev`
-- After building, reload the extension at `chrome://extensions`.
+### Data & Analytics
+- **Chart.js**: Interactive charts for productivity visualization and trend analysis
+- **Chrome Storage API**: Local and sync storage for settings and session data
+- **Analytics Service**: Custom session tracking and productivity metrics calculation
 
-## Future Enhancements
+### Development Tools
+- **Node.js**: JavaScript runtime for build tools and package management
+- **npm**: Package manager for dependency management and script automation
+- **dotenv**: Environment variable management for secure credential handling
+- **Font Awesome**: Comprehensive icon library for UI elements
 
-- Analytics dashboard with productivity metrics
-- Cloud synchronization with authentication
-- Advanced timer configurations
-- Productivity insights and reporting
-- Enhanced notification system
+### Architecture Patterns
+- **Service Worker**: Background processing with Chrome Extension Manifest V3
+- **Content Scripts**: Website overlay injection and user interaction prevention
+- **Cross-context Messaging**: Real-time communication between extension components
+- **IIFE Bundling**: Single-file React bundle compatible with Chrome extensions
+
+## Development Workflow
+
+### Development Commands
+```bash
+# Install dependencies
+npm install
+
+# Build React dashboard (development)
+npm run build:react
+
+# Build with file watching (development)
+npm run build:react-watch  
+
+# Build complete extension for production
+npm run build
+
+# Secure build with environment injection
+npm run build:secure
+```
+
+### Development Process
+1. **React Development**: Use `npm run build:react-watch` for live development
+2. **Extension Testing**: Load unpacked extension from `build/` directory  
+3. **Environment Variables**: Configure `.env` for Firebase and OAuth2 credentials
+4. **Production Build**: Use `npm run build` for final deployment preparation
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make your changes and test thoroughly
+4. Commit with descriptive messages: `git commit -m "Add feature description"`
+5. Push to your fork: `git push origin feature-name`
+6. Submit a pull request with detailed description
 
 ## License
 
-This project is for educational purposes and demonstrates modern web development practices in the context of browser extension development.
+**MIT License** - This project is open source and available for educational and commercial use. See LICENSE file for details.
+
+## Support
+
+- **Issues**: Report bugs and request features on [GitHub Issues](https://github.com/StephenC0729/Website_Blocker/issues)
+- **Documentation**: Comprehensive setup and usage guide in this README
+- **Contact**: Use the in-app contact form in the extension dashboard
+
+---
+
+**Bolt Blocker** - Combining focus, productivity, and intelligent website blocking in one powerful Chrome extension.
