@@ -1,11 +1,11 @@
 // src/shared/services/firebase-config.js
 // Expose Firebase config for compat SDK usage in MV3 (no module imports here)
 window.firebaseConfig = {
-  apiKey: 'AIzaSyB-5Kw_ue09pvIZ70F1079KagMZbUIcBKQ',
-  authDomain: 'bolt-blocker.firebaseapp.com',
-  projectId: 'bolt-blocker',
-  storageBucket: 'bolt-blocker.firebasestorage.app',
-  messagingSenderId: '905802673262',
-  appId: '1:905802673262:web:5b23fe78df5e3610a90a7f',
-  measurementId: 'G-YQ2RB0N1D0',
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID,
 };

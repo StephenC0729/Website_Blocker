@@ -4,9 +4,9 @@
 
 // EmailJS Configuration
 const EMAILJS_CONFIG = {
-  serviceId: 'service_zvkjvfc',
-  templateId: 'template_7yfkhjw',
-  publicKey: 'ScWnYMxp96RPCl11q'
+  serviceId: process.env.EMAILJS_SERVICE_ID,
+  templateId: process.env.EMAILJS_TEMPLATE_ID,
+  publicKey: process.env.EMAILJS_PUBLIC_KEY
 };
 
 /**
@@ -45,10 +45,7 @@ export async function sendContactEmail(formData) {
       template_params: templateParams
     };
 
-    console.log('Sending email via EmailJS...', { 
-      from: formData.email, 
-      subject: formData.subject 
-    });
+    console.log('Sending email via EmailJS...');
 
     // Send request to EmailJS
     const response = await fetch(url, {

@@ -49,3 +49,6 @@ pids
 # Swark output
 .swark-output/
 swark-output/
+
+# Build directory
+build/

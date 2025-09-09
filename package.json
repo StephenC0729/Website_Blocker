@@ -8,8 +8,10 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "vite build --config vite.config.mjs",
-    "build:watch": "vite build --config vite.config.mjs --watch"
+    "build": "node build.js",
+    "build:react": "vite build --config vite.config.mjs",
+    "build:react-watch": "vite build --config vite.config.mjs --watch",
+    "build:secure": "node build.js"
   },
   "repository": {
     "type": "git",
@@ -28,6 +30,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.0.2",
-    "vite": "^7.1.4"
+    "vite": "^7.1.4",
+    "dotenv": "^16.0.0"
   }
 }
