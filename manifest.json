@@ -40,7 +40,7 @@
     "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://www.googleapis.com https://apis.google.com https://accounts.google.com https://api.emailjs.com; object-src 'self'"
   },
   "oauth2": {
-    "client_id": "OAUTH2_CLIENT_ID",
+    "client_id": "905802673262-bs3aplit3gnige7jpkr2lgodosoic7pa.apps.googleusercontent.com",
     "scopes": [
       "email",
       "profile",
