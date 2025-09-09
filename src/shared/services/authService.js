@@ -299,11 +299,15 @@ class AuthManager {
   async setAuthState(user) {
     localStorage.setItem('authUser', JSON.stringify(user));
     console.log('User logged in:', user.email);
+    // Dispatch event to notify UI components of auth state change
+    window.dispatchEvent(new CustomEvent('authUserUpdated', { detail: user }));
   }
 
   async removeAuthState() {
     localStorage.removeItem('authUser');
     console.log('User logged out');
+    // Dispatch event to notify UI components of auth state change
+    window.dispatchEvent(new CustomEvent('authUserUpdated', { detail: null }));
   }
 
   async checkAuthState() {
