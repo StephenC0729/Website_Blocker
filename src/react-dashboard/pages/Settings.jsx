@@ -67,22 +67,19 @@ export default function Settings() {
     [settings]
   );
 
-  const testSound = useCallback(async () => {
+  const testTTS = useCallback(async () => {
     try {
-      const audioUrl = chrome.runtime.getURL(
-        'src/assets/sounds/notification.mp3'
-      );
-      const audio = new Audio(audioUrl);
-      const v = Math.max(
-        0,
-        Math.min(1, (settings.notificationVolume || 0) / 100)
-      );
-      audio.volume = v;
-      await audio.play();
+      if (chrome.tts) {
+        chrome.tts.speak('Timer completed. Your session has ended.', {
+          rate: 1.0,
+          pitch: 1.0,
+          volume: 0.8
+        });
+      }
     } catch (err) {
-      console.warn('Test sound failed:', err);
+      console.warn('Test voice failed:', err);
     }
-  }, [settings.notificationVolume]);
+  }, []);
 
   return (
     <div className="flex-1 p-6 overflow-auto min-h-full">
@@ -270,10 +267,10 @@ export default function Settings() {
         <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Sound Notifications
+              Voice Notifications
             </label>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Play audio alerts for blocked sites and timer events
+              Spoken announcements when timer sessions complete
             </p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
@@ -289,40 +286,21 @@ export default function Settings() {
           </label>
         </div>
         <div className="py-3 border-b border-gray-200 dark:border-gray-700">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">
-            Notification Volume
-          </label>
-          <div className="flex items-center space-x-3">
-            <i className="fas fa-volume-down text-gray-400"></i>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={settings.notificationVolume || 50}
-              onChange={(e) =>
-                persist({
-                  notificationVolume: Math.max(
-                    0,
-                    Math.min(100, Number(e.target.value) || 0)
-                  ),
-                })
-              }
-              className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
-            />
-            <i className="fas fa-volume-up text-gray-400"></i>
-            <span className="text-sm text-gray-600 dark:text-gray-400 w-8">
-              {Math.max(
-                0,
-                Math.min(100, Number(settings.notificationVolume) || 0)
-              )}
-              %
-            </span>
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Voice Settings
+              </label>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Voice volume controlled by your system settings
+              </p>
+            </div>
             <button
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors"
-              onClick={testSound}
+              onClick={testTTS}
             >
-              <i className="fas fa-play mr-2"></i>
-              Test sound
+              <i className="fas fa-volume-up mr-2"></i>
+              Test voice
             </button>
           </div>
         </div>
