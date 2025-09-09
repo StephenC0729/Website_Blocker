@@ -51,8 +51,8 @@ export default function About() {
           </div>
           <h4 className="font-semibold text-gray-900 mb-2">Smart Blocking</h4>
           <p className="text-sm text-gray-600">
-            6 customizable block sets with category-based website management and
-            time-based scheduling.
+            Unlimited customizable categories with organized website management
+            and manual category switching.
           </p>
         </div>
 
@@ -84,23 +84,23 @@ export default function About() {
           <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
             <i className="fas fa-calendar text-orange-600 text-xl"></i>
           </div>
-          <h4 className="font-semibold text-gray-900 mb-2">Schedule Control</h4>
+          <h4 className="font-semibold text-gray-900 mb-2">Session Control</h4>
           <p className="text-sm text-gray-600">
-            Time-based blocking with custom schedules for different days and
-            hours.
+            Timer-integrated blocking with automatic category switching
+            between focus and break sessions.
           </p>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
-            <i className="fas fa-lock text-indigo-600 text-xl"></i>
+            <i className="fas fa-shield-alt text-indigo-600 text-xl"></i>
           </div>
           <h4 className="font-semibold text-gray-900 mb-2">
-            Security Features
+            Account Security
           </h4>
           <p className="text-sm text-gray-600">
-            Password protection and lockdown mode to prevent changes during
-            active sessions.
+            Firebase authentication with email verification, password
+            management, and secure account deletion.
           </p>
         </div>
       </div>
@@ -135,18 +135,18 @@ export default function About() {
             <ul className="space-y-3">
               <li className="flex items-center text-sm text-gray-700">
                 <i className="fas fa-check text-green-500 mr-3"></i>
-                Serverless-first design
+                No account required for core features
               </li>
               <li className="flex items-center text-sm text-gray-700">
                 <i className="fas fa-check text-green-500 mr-3"></i>Local data
                 persistence
               </li>
               <li className="flex items-center text-sm text-gray-700">
-                <i className="fas fa-check text-green-500 mr-3"></i>Cross-device
-                sync ready
+                <i className="fas fa-check text-green-500 mr-3"></i>Optional cross-device
+                sync with account
               </li>
               <li className="flex items-center text-sm text-gray-700">
-                <i className="fas fa-check text-green-500 mr-3"></i>Offline
+                <i className="fas fa-check text-green-500 mr-3"></i>Full offline
                 functionality
               </li>
             </ul>

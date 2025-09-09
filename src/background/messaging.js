@@ -5,6 +5,7 @@ import * as timerService from './timer.service.js';
 import * as settingsService from './settings.service.js';
 import * as unifiedOrchestrator from './unified-orchestrator.js';
 import * as analyticsService from './analytics.service.js';
+import { sendContactEmail, checkRateLimit } from '../shared/services/emailService.js';
 
 // Action constants for message routing - defines all supported message types
 export const ACTIONS = {
@@ -219,9 +220,35 @@ export async function handleMessage(request, _sender, sendResponse) {
 
       // Contact/support
       case ACTIONS.CONTACT_SEND_EMAIL:
-        // In this local-first extension, we simulate sending and simply acknowledge receipt.
-        // Future: integrate with external service via fetch from background.
-        sendResponse({ ok: true });
+        try {
+          // Check rate limiting to prevent spam
+          const rateCheck = checkRateLimit();
+          if (!rateCheck.allowed) {
+            sendResponse({ 
+              ok: false, 
+              error: `Please wait ${rateCheck.remainingTime} seconds before sending another message.` 
+            });
+            break;
+          }
+
+          // Validate payload
+          if (!request.payload) {
+            sendResponse({ ok: false, error: 'Missing message data' });
+            break;
+          }
+
+          // Send email via EmailJS
+          const result = await sendContactEmail(request.payload);
+          
+          if (result.success) {
+            sendResponse({ ok: true, message: 'Message sent successfully!' });
+          } else {
+            sendResponse({ ok: false, error: result.error });
+          }
+        } catch (error) {
+          console.error('Contact email error:', error);
+          sendResponse({ ok: false, error: 'Failed to send message. Please try again.' });
+        }
         break;
 
       // Unified mode and settings cases

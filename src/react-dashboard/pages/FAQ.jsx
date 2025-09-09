@@ -90,8 +90,8 @@ export default function FAQ() {
               blocklist category active at a time
             </li>
             <li>
-              <strong>Custom schedules:</strong> Each set can have different
-              active hours and days
+              <strong>Manual switching:</strong> Switch between categories
+              manually or automatically via unified mode
             </li>
             <li>
               <strong>Category organization:</strong> Group websites by
@@ -129,8 +129,8 @@ export default function FAQ() {
               automatically change blocklist categories based on session type
             </li>
             <li>
-              <strong>Lockdown mode:</strong> Prevents you from changing
-              settings during active sessions
+              <strong>Unified mode:</strong> Automatically switches between
+              focus and break categories based on timer state
             </li>
           </ul>
           <p className="text-sm">
@@ -156,12 +156,12 @@ export default function FAQ() {
               without any registration
             </li>
             <li>
-              <strong>Chrome Sync:</strong> If you're signed into Chrome, your
-              settings sync across your devices automatically
+              <strong>Guest mode:</strong> All data stays local on your device 
+              - no syncing across devices when using without an account
             </li>
             <li>
-              <strong>Optional cloud backup:</strong> Future versions will offer
-              optional cloud sync for additional backup
+              <strong>Firebase Cloud Sync:</strong> Optional account-based 
+              sync across your devices when signed in
             </li>
             <li>
               <strong>Privacy-focused:</strong> Your browsing data never leaves
@@ -219,31 +219,31 @@ export default function FAQ() {
           openIndex={openIndex}
           setOpenIndex={setOpenIndex}
         >
-          <p>App Blocker offers full customization of timer settings:</p>
+          <p>App Blocker offers timer customization options:</p>
           <ul className="list-disc list-inside space-y-1 text-sm">
             <li>
-              <strong>Work sessions:</strong> Adjust from 1-60 minutes (default:
-              25 minutes)
+              <strong>Preset sessions:</strong> Pomodoro (25 min), Short Break 
+              (5 min), Long Break (15 min)
             </li>
             <li>
-              <strong>Short breaks:</strong> Customize from 1-30 minutes
-              (default: 5 minutes)
+              <strong>Custom timer:</strong> Set any duration for custom focus 
+              sessions with minute/second precision
             </li>
             <li>
-              <strong>Long breaks:</strong> Set from 1-60 minutes (default: 15
-              minutes)
+              <strong>Session switching:</strong> Manually switch between 
+              different session types
             </li>
             <li>
-              <strong>Session cycles:</strong> Configure how many sessions
-              before a long break
+              <strong>Session tracking:</strong> Automatic session counting 
+              and completion tracking
             </li>
             <li>
-              <strong>Auto-start:</strong> Option to automatically start breaks
-              or require manual activation
+              <strong>Sound notifications:</strong> Audio alerts for session 
+              completion with volume control
             </li>
             <li>
-              <strong>Notifications:</strong> Desktop and sound notifications
-              for session transitions
+              <strong>Visual progress:</strong> Progress bar and real-time 
+              countdown display
             </li>
           </ul>
           <p className="text-sm">
