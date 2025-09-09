@@ -21,32 +21,52 @@ function replaceEnvVariables(content) {
   return content;
 }
 
+// Determine if a file should be treated as text for env var replacement.
+function isTextFile(filePath) {
+  const textExtensions = new Set([
+    '.js', '.mjs', '.cjs', '.json', '.html', '.css', '.txt', '.md', '.svg'
+  ]);
+  return textExtensions.has(path.extname(filePath).toLowerCase());
+}
+
 function processFile(filePath, outputPath = null) {
-  const content = fs.readFileSync(filePath, 'utf8');
-  const processedContent = replaceEnvVariables(content);
-  const outputFile = outputPath || filePath;
-  fs.writeFileSync(outputFile, processedContent);
-  console.log(`Processed: ${filePath}`);
+  if (!isTextFile(filePath)) {
+    // Binary file – copy verbatim.
+    fs.copyFileSync(filePath, outputPath || filePath);
+    return;
+  }
+
+    const content = fs.readFileSync(filePath, 'utf8');
+    const processedContent = replaceEnvVariables(content);
+    const outputFile = outputPath || filePath;
+    fs.writeFileSync(outputFile, processedContent);
+    console.log(`Processed (text): ${filePath}`);
 }
 
 function copyAndProcessDir(srcDir, destDir) {
   if (!fs.existsSync(destDir)) {
     fs.mkdirSync(destDir, { recursive: true });
   }
-  
-  const files = fs.readdirSync(srcDir);
-  
-  for (const file of files) {
-    const srcPath = path.join(srcDir, file);
-    const destPath = path.join(destDir, file);
-    
-    if (fs.statSync(srcPath).isDirectory()) {
+
+  for (const entry of fs.readdirSync(srcDir)) {
+    const srcPath = path.join(srcDir, entry);
+    const destPath = path.join(destDir, entry);
+    const stats = fs.statSync(srcPath);
+
+    if (stats.isDirectory()) {
       copyAndProcessDir(srcPath, destPath);
-    } else {
+      continue;
+    }
+
+    if (isTextFile(srcPath)) {
       const content = fs.readFileSync(srcPath, 'utf8');
       const processedContent = replaceEnvVariables(content);
       fs.writeFileSync(destPath, processedContent);
+      continue;
     }
+
+    // Binary asset – copy without modification.
+    fs.copyFileSync(srcPath, destPath);
   }
 }
 

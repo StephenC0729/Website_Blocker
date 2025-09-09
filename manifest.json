@@ -32,7 +32,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["src/assets/sounds/*"],
+      "resources": ["src/assets/sounds/*", "src/assets/fonts/*", "src/assets/css/*"],
       "matches": ["<all_urls>"]
     }
   ],
