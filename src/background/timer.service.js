@@ -2,6 +2,103 @@ import { get, set } from './storage.js';
 import * as unifiedOrchestrator from './unified-orchestrator.js';
 import * as analyticsService from './analytics.service.js';
 
+async function playBackgroundAudioNotification() {
+  console.log('🔔 playBackgroundAudioNotification called - using Chrome Notifications API');
+  try {
+    // Get settings for enabled status
+    let enabled = true;
+    
+    try {
+      const result = await get(['settings']);
+      const settings = result.settings || {};
+      if (typeof settings.soundNotificationsEnabled === 'boolean') enabled = settings.soundNotificationsEnabled;
+    } catch (e) {
+      console.warn('Could not load notification settings, using defaults');
+    }
+    
+    if (!enabled) {
+      console.log('🔇 Sound notifications disabled, skipping');
+      return;
+    }
+    console.log('🔔 Sound notifications enabled - showing system notification');
+
+    // Use Chrome Notifications API for reliable system sound
+    try {
+      // Get the correct icon URL using chrome.runtime.getURL()
+      const iconUrl = chrome.runtime.getURL('src/assets/icons/Icon.png');
+      console.log('🔔 Using icon URL:', iconUrl);
+      
+      await chrome.notifications.create({
+        type: 'basic',
+        iconUrl: iconUrl,
+        title: '⏰ Timer Completed',
+        message: 'Your focus session has ended!',
+        priority: 2, // High priority for sound
+        requireInteraction: false // Auto-dismiss after a few seconds
+      });
+      console.log('🔔 System notification created successfully');
+      
+      // Add TTS backup for audible notification since Chrome notifications are often silent
+      try {
+        console.log('🔊 Playing TTS audio backup for reliable sound...');
+        chrome.tts.speak('Timer completed. Your focus session has ended.', {
+          rate: 1.0,
+          pitch: 1.0,
+          volume: 0.8
+        });
+        console.log('🔊 TTS audio backup played successfully');
+      } catch (ttsError) {
+        console.error('🔊 TTS backup failed:', ttsError);
+      }
+    } catch (error) {
+      console.error('🔔 Failed to create system notification:', error);
+      
+      // Fallback: Try without icon
+      try {
+        console.log('🔔 Trying notification without icon...');
+        await chrome.notifications.create({
+          type: 'basic',
+          title: '⏰ Timer Completed',
+          message: 'Your focus session has ended!',
+          priority: 2,
+          requireInteraction: false
+        });
+        console.log('🔔 Fallback notification (no icon) created successfully');
+        
+        // Add TTS backup for this fallback case too
+        try {
+          console.log('🔊 Playing TTS audio backup for fallback notification...');
+          chrome.tts.speak('Timer completed. Your focus session has ended.', {
+            rate: 1.0,
+            pitch: 1.0,
+            volume: 0.8
+          });
+          console.log('🔊 TTS audio backup played successfully');
+        } catch (ttsError) {
+          console.error('🔊 TTS backup failed:', ttsError);
+        }
+      } catch (fallbackError) {
+        console.error('🔔 Fallback notification also failed:', fallbackError);
+        
+        // If both notifications fail, try TTS only
+        try {
+          console.log('🔊 Both notifications failed - trying TTS only...');
+          chrome.tts.speak('Timer completed. Your focus session has ended.', {
+            rate: 1.0,
+            pitch: 1.0,
+            volume: 0.8
+          });
+          console.log('🔊 TTS-only fallback played successfully');
+        } catch (ttsError) {
+          console.error('🔊 All notification methods failed:', ttsError);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error playing background notification:', error);
+  }
+}
+
 export async function getTimerState() {
   try {
     const result = await get(['timerState']);
@@ -194,6 +291,15 @@ export async function handleTimerComplete(request) {
     }
 
     await updateTimerState(updates);
+
+    // Play background audio notification when timer completes
+    console.log('🔔 Timer completed - attempting to play sound notification');
+    try {
+      await playBackgroundAudioNotification();
+      console.log('🎵 Sound notification completed successfully');
+    } catch (e) {
+      console.warn('Background audio notification failed:', e);
+    }
 
     // Log analytics for session completion (pass actualSec to ensure robust recording)
     try {

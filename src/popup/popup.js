@@ -256,8 +256,7 @@ class PomodoroTimer {
       nextLabel = this.sessions['pomodoro']?.label || 'Time to focus!';
     }
 
-    // Play notification (use next session message when available)
-    this.playNotification(nextLabel);
+    // Background script will handle the audio notification
 
     // Sync state from background (which handles the session switching logic)
     await this.syncWithBackground();
@@ -299,41 +298,6 @@ class PomodoroTimer {
       this.sessions[this.currentSession].label;
   }
 
-  /**
-   * Play browser notification when session completes
-   * Only shows if user has granted notification permission
-   */
-  playNotification(messageOverride) {
-    // Play audio notification (always, regardless of browser notification permission)
-    this.playAudioNotification();
-  }
-
-  async playAudioNotification() {
-    try {
-      let volumePct = 70;
-      let enabled = true;
-      const getSettings = () => new Promise((resolve) => {
-        try {
-          chrome.runtime.sendMessage({ action: 'getSettings' }, (response) => {
-            resolve((response && response.settings) || {});
-          });
-        } catch (e) { resolve({}); }
-      });
-      const s = await getSettings();
-      if (typeof s.notificationVolume === 'number') volumePct = s.notificationVolume;
-      if (typeof s.soundNotificationsEnabled === 'boolean') enabled = s.soundNotificationsEnabled;
-      if (!enabled) return;
-
-      const audioUrl = chrome.runtime.getURL('src/assets/sounds/notification.mp3');
-      const audio = new Audio(audioUrl);
-      audio.volume = Math.max(0, Math.min(1, (Number(volumePct) || 0) / 100));
-      audio.play().catch((error) => {
-        console.log('Audio notification failed (user interaction may be required):', error);
-      });
-    } catch (error) {
-      console.error('Error playing audio notification:', error);
-    }
-  }
 
   /**
    * Synchronization Methods for Background Communication

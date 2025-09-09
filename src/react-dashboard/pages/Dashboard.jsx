@@ -85,6 +85,9 @@ export default function Dashboard() {
           pomodoroCount,
         });
       } catch {}
+      
+      // Background script will handle the audio notification
+      
       setIsRunning(false);
       endTsRef.current = null;
       if (intervalRef.current) {

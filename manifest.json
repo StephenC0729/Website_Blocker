@@ -8,7 +8,7 @@
     "48": "src/assets/icons/Icon.png",
     "128": "src/assets/icons/Icon.png"
   },
-  "permissions": ["storage", "activeTab", "tabs", "notifications", "identity"],
+  "permissions": ["storage", "activeTab", "tabs", "notifications", "identity", "scripting", "tts"],
   "host_permissions": [
     "https://identitytoolkit.googleapis.com/*",
     "https://securetoken.googleapis.com/*",
@@ -34,6 +34,11 @@
     {
       "resources": ["src/assets/sounds/*", "src/assets/fonts/*", "src/assets/css/*"],
       "matches": ["<all_urls>"]
+    },
+    {
+      "resources": ["src/assets/sounds/notification.mp3"],
+      "matches": ["<all_urls>"],
+      "use_dynamic_url": false
     }
   ],
   "content_security_policy": {

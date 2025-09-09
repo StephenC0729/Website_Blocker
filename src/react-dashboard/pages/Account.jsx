@@ -65,14 +65,10 @@ export default function Account() {
           <i className="fas fa-user-cog text-blue-500 mr-2"></i>
           Manage Account
         </h3>
-        <div className="flex items-start">
-          <div className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl font-semibold mr-4">
-            {initials}
+        <div>
+          <div className="text-gray-900 dark:text-white font-medium mb-4">
+            Profile
           </div>
-          <div className="flex-1">
-            <div className="text-gray-900 dark:text-white font-medium mb-2">
-              Profile
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -186,7 +182,6 @@ export default function Account() {
                 </div>
               </div>
             </div>
-          </div>
         </div>
       </div>
       {/* Password management */}
@@ -705,15 +700,49 @@ export function DeleteAccountModal({
   );
 }
 
+async function deleteUserFirestoreData(uid) {
+  if (!window.firebaseDb || !uid) {
+    throw new Error('Firestore not initialized or no user ID provided');
+  }
+
+  try {
+    const userDataRef = window.firebaseDb
+      .collection('users')
+      .doc(uid)
+      .collection('data');
+
+    // Delete all user data documents
+    const dataDocuments = ['settings', 'categorySites', 'categoryMetadata', 'analytics'];
+    const deletePromises = dataDocuments.map(async (docName) => {
+      try {
+        await userDataRef.doc(docName).delete();
+      } catch (e) {
+        console.warn(`Failed to delete ${docName}:`, e);
+      }
+    });
+
+    await Promise.allSettled(deletePromises);
+
+    // Delete the user's main document
+    try {
+      await window.firebaseDb.collection('users').doc(uid).delete();
+    } catch (e) {
+      console.warn('Failed to delete user document:', e);
+    }
+  } catch (e) {
+    console.error('Error deleting user Firestore data:', e);
+    throw new Error('Failed to delete user data from Firestore');
+  }
+}
+
 async function doDeleteAccount() {
   const user = (window.firebaseAuth && window.firebaseAuth.currentUser) || null;
   if (!user) throw new Error('No authenticated user.');
+  
+  const uid = user.uid;
+
   try {
-    await user.delete();
-  } catch (e) {
-    throw e;
-  }
-  try {
+    // Stop sync service first
     if (
       window.SyncService &&
       typeof window.SyncService.stopSync === 'function'
@@ -721,9 +750,26 @@ async function doDeleteAccount() {
       await window.SyncService.stopSync();
     }
   } catch {}
+
+  try {
+    // Delete user's Firestore data before deleting auth account
+    await deleteUserFirestoreData(uid);
+  } catch (e) {
+    console.error('Failed to delete Firestore data:', e);
+    // Continue with account deletion even if Firestore cleanup fails
+  }
+
+  try {
+    // Delete Firebase Auth user
+    await user.delete();
+  } catch (e) {
+    throw e;
+  }
+
   try {
     localStorage.removeItem('authUser');
   } catch {}
+
   try {
     if (
       window.firebaseAuth &&
@@ -732,6 +778,7 @@ async function doDeleteAccount() {
       await window.firebaseAuth.signOut();
     }
   } catch {}
+
   try {
     const url =
       (window.chrome &&
