@@ -1,0 +1,56 @@
+@startuml
+
+title AD-01 Timer Session Lifecycle with Unified Mode
+
+' Two swimlanes only (User, System) with lane background colors.
+skinparam linetype ortho
+
+|User|
+start
+:Click Start;
+
+|System|
+if (Timer running?) then (yes)
+  |User|
+  :Reject start;\nShow message;
+  stop
+else (no)
+  |System|
+  :Set start/end timestamps;\nSet isRunning=true;
+  if (Unified mode enabled?) then (yes)
+    :Save previous active category;\nSwitch category (Focus/Break mapping);
+  endif
+  :Persist timer state;\nBroadcast to popup/dashboard;
+endif
+
+repeat
+|User|
+if (Press Pause?) then (yes)
+  |System|
+  :Freeze timeLeft;\nSet isRunning=false;
+  |User|
+  if (Press Resume?) then (yes)
+    |System|
+    :Set isRunning=true;\nContinue countdown;
+  endif
+endif
+
+if (Press Reset?) then (yes)
+  |System|
+  :Clear timer state;\nLog cancel if needed;
+  if (Unified changed category?) then (yes)
+    :Restore previous active category;
+  endif
+  stop
+endif
+repeat while (Session active?)
+
+|System|
+:Session completes;\nLog analytics;
+if (Unified mode?) then (yes)
+  :Switch to break category or restore previous;
+endif
+:Notify user (Chrome notification/TTS);
+stop
+@enduml
+

@@ -1,0 +1,25 @@
+@startuml
+title SD-14 Manage account (UC-14)
+actor User
+participant "Dashboard (React)" as Dashboard
+participant "Firebase Auth" as Auth
+participant "Storage/Sync Service" as Sync
+
+User -> Dashboard: Update profile/password or Delete account
+alt Update profile/password
+  Dashboard -> Auth: updateProfile/Password(...)
+  Auth --> Dashboard: success/failure
+  Dashboard -> User: show result
+  Dashboard -> Sync: align local data as needed
+else Delete account
+  Dashboard -> Auth: deleteUser()
+  Auth --> Dashboard: success/failure
+  Dashboard -> Sync: clear local; sign out
+  Dashboard -> User: confirm deletion
+end
+
+alt Not authenticated / provider restricted
+  Dashboard -> User: prompt sign-in or show instructions
+end
+@enduml
+

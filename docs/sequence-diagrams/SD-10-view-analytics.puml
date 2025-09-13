@@ -1,0 +1,21 @@
+@startuml
+title SD-10 View analytics (UC-10)
+actor User
+participant "Dashboard (React)" as Dashboard
+participant "Analytics Service" as Analytics
+participant "Storage Service" as Storage
+
+User -> Dashboard: Open Analytics page
+Dashboard -> Analytics: getSummary(range)
+Analytics -> Storage: read session history
+Storage --> Analytics: sessions
+Analytics -> Dashboard: aggregated metrics
+Dashboard -> User: render charts
+
+alt No data
+  Dashboard -> User: show empty state
+else Chart render error
+  Dashboard -> User: show fallback table
+end
+@enduml
+

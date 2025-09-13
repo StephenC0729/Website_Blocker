@@ -1,0 +1,17 @@
+@startuml
+title SD-05 Create category (UC-05)
+actor User
+participant "Dashboard (React)" as Dashboard
+participant "Storage Service" as Storage
+
+User -> Dashboard: Enter name/icon and submit
+Dashboard -> Dashboard: validate input
+alt Valid
+  Dashboard -> Storage: createCategory(name, icon)
+  Storage --> Dashboard: categoryId
+  Dashboard -> User: show success
+else Duplicate/invalid
+  Dashboard -> User: show validation error
+end
+@enduml
+

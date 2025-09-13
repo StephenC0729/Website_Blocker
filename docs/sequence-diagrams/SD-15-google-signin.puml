@@ -1,0 +1,26 @@
+@startuml
+title SD-15 Sign in with Google (UC-15)
+actor User
+participant "Dashboard (React)" as Dashboard
+participant "Firebase Auth (Google)" as Auth
+participant "Sync Service" as Sync
+participant "Firestore" as Firestore
+participant "Storage Service" as Storage
+
+User -> Dashboard: Click "Sign in with Google"
+Dashboard -> Auth: signInWithPopup()
+alt Success
+  Auth --> Dashboard: user session
+  Dashboard -> Sync: startInitialSync(user)
+  Sync -> Firestore: pull cloud docs
+  Firestore --> Sync: cloud data
+  Sync -> Storage: merge by updatedAt and write local
+  Sync -> Firestore: push merged values
+  Sync --> Dashboard: synced
+  Dashboard -> User: signed in + synced
+else Cancel/Failure
+  Auth --> Dashboard: error
+  Dashboard -> User: show error; remain signed out
+end
+@enduml
+

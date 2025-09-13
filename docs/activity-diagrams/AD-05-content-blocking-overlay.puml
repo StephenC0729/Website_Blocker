@@ -1,0 +1,28 @@
+@startuml
+title AD-05 Content blocking enforcement (overlay) (User vs System)
+skinparam linetype ortho
+
+|User|
+
+
+start
+|User|
+  :Navigate to a website / change URL;
+
+|System|
+  :Request active category sites from background;
+  if (Active category exists?) then (yes)
+    :Normalize current domain;
+    if (Domain matches list?) then (yes)
+      :Inject overlay; Disable interactions;
+    else (no)
+      :No overlay;
+    endif
+  else (no)
+    :No blocking;
+  endif
+
+stop
+
+@enduml
+

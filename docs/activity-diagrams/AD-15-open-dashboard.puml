@@ -1,0 +1,26 @@
+@startuml
+title AD-15 Open dashboard (bootstrapping) (User vs System)
+skinparam linetype ortho
+
+|User|
+
+
+start
+|User|
+  :Open Dashboard;
+
+|System|
+  :Load HTML shell and React bundle;\nMount app; render shell;
+  :Request initial state via messaging;
+  :Return state;
+
+|User|
+  :Render pages with received state;\nView dashboard;
+
+|System|
+  :Subscribe to updates (timer, categories, analytics);
+
+stop
+
+@enduml
+

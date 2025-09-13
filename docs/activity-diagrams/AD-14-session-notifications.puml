@@ -1,0 +1,23 @@
+@startuml
+title AD-14 Session event notifications (User vs System)
+skinparam linetype ortho
+
+|User|
+
+
+start
+|User|
+  :Trigger timer transitions (start/complete);
+
+|System|
+  if (Notifications enabled?) then (yes)
+    :Create Chrome notification;
+  endif
+  if (TTS enabled?) then (yes)
+    :Speak via TTS;
+  endif
+
+stop
+
+@enduml
+

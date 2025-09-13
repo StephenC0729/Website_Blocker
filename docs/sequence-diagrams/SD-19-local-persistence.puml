@@ -1,0 +1,17 @@
+@startuml
+title SD-19 Store data (local persistence) (UC-19)
+participant "Any Client Component" as Client
+participant "Storage Service" as Storage
+participant "chrome.storage.local" as ChromeStorage
+
+Client -> Storage: get/set(key, value)
+Storage -> ChromeStorage: chrome.storage.local.get/set
+ChromeStorage --> Storage: success or error
+alt Success
+  Storage --> Client: return value/ok
+else Error
+  Storage -> Storage: apply defaults or in-memory fallback
+  Storage --> Client: warn; continue with fallback
+end
+@enduml
+

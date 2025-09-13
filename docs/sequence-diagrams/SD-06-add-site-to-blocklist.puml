@@ -1,0 +1,19 @@
+@startuml
+title SD-06 Add site to blocklist (UC-06)
+actor User
+participant "Dashboard (React)" as Dashboard
+participant "Storage Service" as Storage
+
+User -> Dashboard: Add domain/URL
+Dashboard -> Dashboard: normalize and deduplicate
+alt Valid and new
+  Dashboard -> Storage: addSite(categoryId, domain)
+  Storage --> Dashboard: updated list
+  Dashboard -> User: confirm added
+else Invalid domain
+  Dashboard -> User: show error
+else Already present
+  Dashboard -> User: no-op feedback
+end
+@enduml
+

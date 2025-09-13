@@ -1,0 +1,35 @@
+@startuml
+title AD-02 Manual session type switch (User vs System)
+skinparam linetype ortho
+
+|User|
+
+start
+|User|
+  :Select new session type;
+
+|System|
+  if (Timer running?) then (yes)
+    :Prompt to Pause/Reset;\nAbort or reset per policy;
+    stop
+  else (no)
+    :Apply session type + duration;\nUpdate timer config;
+  endif
+
+|User|
+  if (Start immediately?) then (yes)
+    :Confirm start;
+  else (no)
+    :Leave timer idle;\nShow ready state;
+    stop
+  endif
+
+|System|
+  if (Unified mode enabled?) then (yes)
+    :Apply mapped category for new type;
+  endif
+  :Start countdown;\nBroadcast state;
+
+stop
+@enduml
+

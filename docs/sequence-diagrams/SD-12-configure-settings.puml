@@ -1,0 +1,19 @@
+@startuml
+title SD-12 Configure settings (UC-12)
+actor User
+participant "Dashboard (React)" as Dashboard
+participant "Storage Service" as Storage
+participant "Other UIs" as UIs
+
+User -> Dashboard: Modify settings and Save
+Dashboard -> Dashboard: validate settings
+alt Valid
+  Dashboard -> Storage: save(settings)
+  Storage --> Dashboard: ok
+  Dashboard -> UIs: broadcast settings update
+  Dashboard -> User: show success
+else Invalid value
+  Dashboard -> User: show validation error
+end
+@enduml
+

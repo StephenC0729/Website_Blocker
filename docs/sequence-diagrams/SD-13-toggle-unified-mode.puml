@@ -1,0 +1,19 @@
+@startuml
+title SD-13 Toggle unified mode (UC-13)
+actor User
+participant "Dashboard (React)" as Dashboard
+participant "Unified Orchestrator" as Orchestrator
+participant "Storage Service" as Storage
+
+User -> Dashboard: Toggle unified mode and select categories
+Dashboard -> Dashboard: validate selections
+alt Categories selected
+  Dashboard -> Orchestrator: configure(focusCat, breakCat, enabled)
+  Orchestrator -> Storage: save configuration
+  Orchestrator -> Dashboard: confirm
+  Dashboard -> User: show success
+else Missing categories
+  Dashboard -> User: keep off; prompt selection
+end
+@enduml
+

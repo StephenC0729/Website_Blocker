@@ -1,0 +1,15 @@
+@startuml
+title SD-18 Notifications on session events (UC-18)
+participant "Background/Timer Service" as Timer
+participant "Chrome Notifications" as Notify
+participant "Chrome TTS" as TTS
+
+Timer -> Timer: on session start/complete
+alt Permissions available and enabled
+  Timer -> Notify: create notification
+  Timer -> TTS: speak(message)
+else Permission denied/disabled
+  Timer -> Timer: skip notifications
+end
+@enduml
+

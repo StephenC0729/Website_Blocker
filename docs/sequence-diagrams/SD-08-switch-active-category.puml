@@ -1,0 +1,16 @@
+@startuml
+title SD-08 Switch active category (UC-08)
+actor User
+participant "Dashboard (React)" as Dashboard
+participant "Unified Orchestrator" as Orchestrator
+participant "Storage Service" as Storage
+participant "Content Script" as Content
+
+User -> Dashboard: Choose active category
+Dashboard -> Orchestrator: setActiveCategory(categoryId)
+Orchestrator -> Storage: persist activeCategoryId
+Orchestrator -> Content: broadcast enforcement change
+Content -> Content: start enforcing selected category
+Dashboard -> User: UI reflects active category
+@enduml
+

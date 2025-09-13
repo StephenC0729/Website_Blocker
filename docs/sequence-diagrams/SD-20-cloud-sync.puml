@@ -1,0 +1,19 @@
+@startuml
+title SD-20 Cloud sync (UC-20)
+participant "Sync Service" as Sync
+participant "Firestore" as Firestore
+participant "Storage Service" as Storage
+
+Sync -> Sync: on sign-in/startup or local change (debounced)
+alt Signed-in and online
+  Sync -> Firestore: pull cloud docs
+  Firestore --> Sync: cloud data
+  Sync -> Storage: merge by updatedAt and write local
+  Sync -> Firestore: push merged values
+  Sync -> Storage: update sync status timestamps
+else Offline/API error
+  Sync -> Sync: log warning; schedule retry
+  Sync -> Storage: keep local authoritative
+end
+@enduml
+

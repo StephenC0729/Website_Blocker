@@ -1,0 +1,30 @@
+@startuml
+title AD-07 Export analytics data (User vs System)
+skinparam linetype ortho
+
+|User|
+
+
+start
+|User|
+  :Click Export;
+
+|System|
+  :Serialize analytics (JSON/CSV);
+  if (Serialization ok?) then (yes)
+    :Prepare downloadable blob;
+  else (no)
+    :Return error state;
+  endif
+
+|User|
+  if (Success?) then (yes)
+    :Browser downloads file;\nShow success message;
+  else (no)
+    :Show error notification;
+  endif
+
+stop
+
+@enduml
+

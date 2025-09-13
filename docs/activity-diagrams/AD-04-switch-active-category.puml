@@ -1,0 +1,23 @@
+@startuml
+title AD-04 Switch active category (User vs System)
+skinparam linetype ortho
+
+|User|
+
+
+start
+|User|
+  :Select category as active;
+
+|System|
+  :Persist activeCategoryId;\nBroadcast to contexts;
+  if (Category is None?) then (yes)
+    :Blocking disabled;
+  else (no)
+    :Content scripts enforce on next check;
+  endif
+
+stop
+
+@enduml
+

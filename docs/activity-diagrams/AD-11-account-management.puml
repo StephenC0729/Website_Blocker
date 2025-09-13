@@ -1,0 +1,43 @@
+@startuml
+title AD-11 Account management (User vs System)
+skinparam linetype ortho
+
+|User|
+
+
+start
+|User|
+  :Open Account page;
+  if (Choose action?) then (Update profile/password)
+    :Submit changes;
+  elseif (Delete account)
+    :Request account deletion;\nConfirm destructive action;
+  endif
+
+|System|
+  if (Update profile/password?) then (yes)
+    :Validate & call Firebase API;
+    if (Success?) then (yes)
+      :Persist changes; Return success;
+    else (no)
+      :Return error message;
+    endif
+  else (Delete account?)
+    if (Confirmed?) then (yes)
+      :Delete user via Firebase;\nClear local data;\nSign out;
+    else (no)
+      :Cancel deletion;
+    endif
+  endif
+
+|User|
+  if (Success?) then (yes)
+    :See confirmation;
+  else (no)
+    :See error/cancelled message;
+  endif
+
+stop
+
+@enduml
+

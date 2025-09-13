@@ -1,0 +1,20 @@
+@startuml
+title SD-03 Reset timer (UC-03)
+actor User
+participant "Popup UI" as Popup
+participant "Background/Timer Service" as Timer
+participant "Unified Orchestrator" as Orchestrator
+participant "Storage Service" as Storage
+
+User -> Popup: Click Reset
+Popup -> Timer: reset()
+Timer -> Storage: clear timestamps; set isRunning=false
+alt Unified mode changed category
+  Timer -> Orchestrator: restorePreviousCategory()
+  Orchestrator -> Storage: setActiveCategory(previous)
+  Orchestrator -> "Other UIs" as UIs: broadcast activeCategory
+end
+Timer -> "Other UIs" as UIs: broadcast reset
+Timer -> Popup: stateUpdate(idle)
+@enduml
+

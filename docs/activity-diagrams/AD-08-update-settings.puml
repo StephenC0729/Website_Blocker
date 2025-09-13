@@ -1,0 +1,31 @@
+@startuml
+title AD-08 Update settings (User vs System)
+skinparam linetype ortho
+
+|User|
+
+
+start
+|User|
+  :Edit settings in Settings page;
+  :Submit changes;
+
+|System|
+  :Validate values;
+  if (Valid?) then (yes)
+    :Persist to storage;\nBroadcast updates to contexts;\nApply immediately where relevant;
+  else (no)
+    :Return validation errors;
+  endif
+
+|User|
+  if (Saved?) then (yes)
+    :See updated UI/state;
+  else (no)
+    :Review validation messages;
+  endif
+
+stop
+
+@enduml
+

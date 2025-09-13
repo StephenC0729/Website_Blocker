@@ -1,0 +1,20 @@
+@startuml
+title SD-11 Export data (UC-11)
+actor User
+participant "Dashboard (React)" as Dashboard
+participant "Analytics Service" as Analytics
+participant "Storage Service" as Storage
+
+User -> Dashboard: Click Export
+Dashboard -> Analytics: serializeData(format)
+Analytics -> Storage: read sessions/metrics
+Storage --> Analytics: data
+alt Serialization OK
+  Analytics --> Dashboard: blob
+  Dashboard -> User: trigger download (CSV/JSON)
+else Serialization error
+  Analytics --> Dashboard: error
+  Dashboard -> User: show error and suggest retry
+end
+@enduml
+

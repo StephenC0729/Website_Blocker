@@ -1,0 +1,26 @@
+@startuml
+title SD-16 Submit contact form (UC-16)
+actor User
+participant "Dashboard (React)" as Dashboard
+participant "Contact Service" as Contact
+participant "EmailJS" as EmailJS
+
+User -> Dashboard: Fill form and Send
+Dashboard -> Contact: validate fields; check cooldown
+alt Valid and not rate-limited
+  Contact -> EmailJS: POST(name,email,subject,message)
+  alt EmailJS accepted
+    EmailJS --> Contact: 200 OK
+    Contact -> Dashboard: success
+    Dashboard -> User: show success
+  else EmailJS error
+    EmailJS --> Contact: error
+    Contact -> Dashboard: show API error
+  end
+else Invalid fields
+  Contact -> Dashboard: show validation error
+else Rate limited
+  Contact -> Dashboard: show remaining seconds
+end
+@enduml
+

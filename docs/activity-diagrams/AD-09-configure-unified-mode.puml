@@ -1,0 +1,33 @@
+@startuml
+title AD-09 Configure unified mode (User vs System)
+skinparam linetype ortho
+
+|User|
+
+
+start
+|User|
+  :Toggle Unified Mode;
+
+|System|
+  if (Enabled?) then (yes)
+    :Require selection of focusCategoryId and optional breakCategoryId;
+  else (no)
+    :Persist disabled; no auto switching;
+    stop
+  endif
+
+|User|
+  :Select focus/break categories;
+
+|System|
+  if (Categories selected?) then (yes)
+    :Persist configuration;
+  else (no)
+    :Keep disabled and prompt to select categories;
+  endif
+
+stop
+
+@enduml
+

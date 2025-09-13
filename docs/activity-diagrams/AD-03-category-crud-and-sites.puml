@@ -1,0 +1,37 @@
+@startuml
+title AD-03 Category CRUD and site management (User vs System)
+skinparam linetype ortho
+
+|User|
+
+start
+|User|
+  :Open Blocklist page;
+  :Enter name/icon OR enter URL/domain OR select delete;
+
+|System|
+  if (Action == Create Category?) then (yes)
+    if (Valid name/icon?) then (yes)
+      :Save category metadata;\nInit empty sites list;
+    else (no)
+      :Show validation error;
+    endif
+  else (no)
+    if (Action == Add Site?) then (yes)
+      if (Valid domain?) then (yes)
+        :Normalize/clean;\nDeduplicate;\nPersist to category sites;
+      else (no)
+        :Show invalid domain message;
+      endif
+    else (Action == Delete Site/Category?)
+      :Confirm deletion;
+      :Remove entries;\nPersist;
+      if (Deleted category is active?) then (yes)
+        :Unset active or switch to fallback;
+      endif
+    endif
+  endif
+
+stop
+@enduml
+

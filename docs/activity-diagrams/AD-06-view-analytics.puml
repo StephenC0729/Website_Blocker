@@ -1,0 +1,30 @@
+@startuml
+title AD-06 View analytics (User vs System)
+skinparam linetype ortho
+
+|User|
+
+
+start
+|User|
+  :Open Analytics/Summary page;
+
+|System|
+  :Load session history from storage;
+  if (Any data?) then (yes)
+    :Aggregate by day/week; Compute metrics;\nPrepare datasets;
+  else (no)
+    :Prepare empty-state response;
+  endif
+
+|User|
+  if (Data available?) then (yes)
+    :View charts and tables;
+  else (no)
+    :See empty-state tips;
+  endif
+
+stop
+
+@enduml
+

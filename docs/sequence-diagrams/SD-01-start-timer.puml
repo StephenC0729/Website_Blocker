@@ -1,0 +1,29 @@
+@startuml
+title SD-01 Start timer (UC-01)
+actor User
+participant "Popup UI" as Popup
+participant "Background/Timer Service" as Timer
+participant "Unified Orchestrator" as Orchestrator
+participant "Storage Service" as Storage
+participant "Chrome APIs" as Chrome
+
+User -> Popup: Click Start(sessionType)
+Popup -> Timer: startSession(sessionType)
+Timer -> Storage: persist start/end, isRunning=true
+alt Unified mode enabled
+  Timer -> Orchestrator: mapSessionTypeToCategory(sessionType)
+  Orchestrator -> Storage: setActiveCategory(categoryId)
+  Orchestrator -> Chrome: broadcast activeCategory
+else Unified mode disabled/misconfigured
+  Timer -> Popup: proceed without category switch
+end
+Timer -> Chrome: broadcast timer state (runtime.sendMessage)
+Timer -> Popup: stateUpdate(timeLeft, isRunning)
+
+alt Timer already running
+  Timer -> Popup: reject start; keep current state
+else Invalid/missing duration
+  Timer -> Popup: show error; do not start
+end
+@enduml
+

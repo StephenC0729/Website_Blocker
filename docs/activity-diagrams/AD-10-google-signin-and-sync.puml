@@ -1,0 +1,31 @@
+@startuml
+title AD-10 Google sign-in and bootstrap sync (User vs System)
+skinparam linetype ortho
+
+|User|
+
+
+start
+|User|
+  :Click "Sign in with Google";
+
+|System|
+  :Launch OAuth via Firebase;
+  if (Success?) then (yes)
+    :Establish auth state;\nstartSync(uid);
+    :pullAll -> merge -> push;\nUpdate sync status;\nSubscribe to local changes (debounced push);
+  else (no)
+    :Return error; remain signed out;
+  endif
+
+|User|
+  if (Signed in?) then (yes)
+    :See signed-in state and synced data;
+  else (no)
+    :See sign-in error message;
+  endif
+
+stop
+
+@enduml
+

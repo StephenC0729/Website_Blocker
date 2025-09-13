@@ -1,0 +1,28 @@
+@startuml
+title AD-13 Cloud sync cycle (User vs System)
+skinparam linetype ortho
+
+|User|
+
+
+start
+|User|
+  :Sign in / Sign out;
+
+|System|
+  if (Signed in?) then (yes)
+    :StartSync(uid);
+    :pullAll -> read local & cloud docs;\nMerge by updatedAt;\nWrite to local;\nPush merged docs;\nUpdate lastPullAt/lastPushAt;
+    :Listen to chrome.storage.onChanged;
+    repeat
+      :Local changes detected (settings/sites/analytics);\nDebounce ~800ms;\nPush changed docs to cloud;
+    repeat while (Still signed in?)
+    :StopSync on sign-out;\nRemove listener; clear timers;
+  else (no)
+    :No sync;
+  endif
+
+stop
+
+@enduml
+

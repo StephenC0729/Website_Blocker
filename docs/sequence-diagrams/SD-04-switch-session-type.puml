@@ -1,0 +1,23 @@
+@startuml
+title SD-04 Switch session type (UC-04)
+actor User
+participant "Popup UI" as Popup
+participant "Background/Timer Service" as Timer
+participant "Unified Orchestrator" as Orchestrator
+participant "Storage Service" as Storage
+
+User -> Popup: Select sessionType'
+Popup -> Timer: setSessionType(sessionType')
+Timer -> Storage: persist selected type and duration
+Timer -> Orchestrator: apply unified-mode mapping
+Orchestrator -> Storage: setActiveCategory(mapped)
+Orchestrator -> "Other UIs" as UIs: broadcast activeCategory
+
+alt Switching during active run
+  Popup -> Timer: getState()
+  Timer --> Popup: state(isRunning=true)
+  Popup -> User: prompt to pause/stop first
+end
+Timer -> Popup: stateUpdate(config)
+@enduml
+

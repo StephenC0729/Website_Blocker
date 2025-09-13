@@ -1,0 +1,40 @@
+@startuml
+title AD-12 Submit contact form with rate limit (User vs System)
+skinparam linetype ortho
+
+|User|
+
+
+start
+|User|
+  :Complete contact form;\nClick Send;
+
+|System|
+  :Validate fields and email format;
+  if (Valid?) then (yes)
+    :Check cooldown;
+    if (Allowed?) then (yes)
+      :POST to EmailJS;
+      if (API ok?) then (yes)
+        :Return success;
+      else (no)
+        :Return API error text;
+      endif
+    else (no)
+      :Return remaining seconds message;
+    endif
+  else (no)
+    :Return validation errors;
+  endif
+
+|User|
+  if (Success?) then (yes)
+    :See success toast;
+  else (no)
+    :See error or cooldown message;
+  endif
+
+stop
+
+@enduml
+

@@ -1,0 +1,18 @@
+@startuml
+title SD-17 Show blocking overlay (UC-17)
+participant "Content Script" as Content
+participant "Storage Service" as Storage
+
+activate Content
+Content -> Content: on page load or URL change
+Content -> Content: normalize current domain
+Content -> Storage: read activeCategory and sites
+Storage --> Content: config
+alt Domain matches active category
+  Content -> Content: inject full-screen overlay
+  Content -> Content: disable interactions
+else No active category or no match
+  Content -> Content: no injection
+end
+@enduml
+

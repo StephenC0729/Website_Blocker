@@ -1,0 +1,18 @@
+@startuml
+title SD-09 Access dashboard (UC-09)
+actor User
+participant "Chrome UI" as Chrome
+participant "Dashboard (React SPA)" as Dashboard
+participant "Storage Service" as Storage
+
+User -> Chrome: Open Dashboard
+Chrome -> Dashboard: load index.html + bundle
+Dashboard -> Storage: read initial data
+Storage --> Dashboard: state/settings/categories
+Dashboard -> User: render SPA and subscribe to messages
+
+alt Build missing/load error
+  Dashboard -> User: show rebuild guidance
+end
+@enduml
+

@@ -1,0 +1,18 @@
+@startuml
+title SD-02 Pause timer (UC-02)
+actor User
+participant "Popup UI" as Popup
+participant "Background/Timer Service" as Timer
+participant "Storage Service" as Storage
+
+User -> Popup: Click Pause
+Popup -> Timer: pause()
+alt A session is running
+  Timer -> Storage: update isRunning=false; persist timeLeft
+  Timer -> Popup: stateUpdate(isRunning=false, timeLeft)
+  Timer -> "Other UIs" as UIs: broadcast pause
+else No running session
+  Timer -> Popup: ignore or show message
+end
+@enduml
+

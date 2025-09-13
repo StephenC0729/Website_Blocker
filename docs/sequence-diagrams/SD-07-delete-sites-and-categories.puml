@@ -1,0 +1,18 @@
+@startuml
+title SD-07 Delete sites/categories (UC-07)
+actor User
+participant "Dashboard (React)" as Dashboard
+participant "Unified Orchestrator" as Orchestrator
+participant "Storage Service" as Storage
+
+User -> Dashboard: Select site(s)/category and delete
+Dashboard -> Storage: delete(s)
+alt Deleted category was active
+  Storage -> Orchestrator: active deleted
+  Orchestrator -> Storage: unset or switch to fallback
+  Orchestrator -> "Other UIs" as UIs: broadcast activeCategory
+end
+Storage --> Dashboard: confirm
+Dashboard -> User: show success
+@enduml
+
